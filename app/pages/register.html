@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>التسجيل | قرية متعلمة</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Global styles and variables, consistent across all pages */
+    :root {
+      --primary-blue: #1d4ed8;
+      --dark-blue: #1e3a8a;
+      --light-blue: #e0f2fe;
+      --accent-orange: #f59e0b;
+      --text-color: #333;
+      --light-bg: #eef2ff;
+      --white: #ffffff;
+      --gray-text: #888;
+      --border-color: #93c5fd;
+    }
+
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: linear-gradient(to bottom, var(--light-bg), var(--white));
+      color: var(--text-color);
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+
+    /* Header styles - Consistent across all pages */
+    .header {
+      background: var(--dark-blue);
+      padding: 1rem 0; /* Adjusted padding for better consistency */
+      color: var(--white);
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      position: relative; /* Essential for positioning the absolute nav on mobile */
+      z-index: 10;
+    }
+
+    .header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+
+    .logo {
+      font-size: 2.2rem;
+      margin: 0;
+      color: var(--white); /* Ensure logo color is white */
+      white-space: nowrap; /* Prevent logo from wrapping */
+    }
+
+    /* Navigation for larger screens (default) */
+    .nav {
+        display: flex; /* Display links side by side */
+        gap: 1.5rem; /* Space between links */
+        /* Important: On desktop, make sure max-height and padding are reset */
+        max-height: none;
+        padding: 0;
+        position: static; /* Reset position for desktop */
+        width: auto;
+    }
+
+    .nav-link {
+      color: var(--white);
+      text-decoration: none;
+      font-size: 1.1rem;
+      transition: color 0.3s ease;
+      white-space: nowrap; /* Prevent links from wrapping */
+    }
+
+    .nav-link:hover, .nav-link.active {
+      color: var(--accent-orange);
+    }
+
+    /* Hamburger Menu Icon - Hidden by default on desktop */
+    .menu-toggle {
+      display: none; /* Hidden on large screens */
+      flex-direction: column;
+      justify-content: space-around;
+      width: 30px;
+      height: 25px;
+      cursor: pointer;
+      z-index: 100;
+      padding: 5px;
+    }
+
+    .menu-toggle .bar {
+      width: 100%;
+      height: 3px;
+      background-color: var(--white);
+      border-radius: 5px;
+      transition: all 0.3s ease-in-out;
+    }
+
+    /* Main content container */
+    .main-content-container { /* Renamed 'main.container' for consistency */
+      flex: 1;
+      text-align: center;
+      padding: 3rem 1rem;
+      max-width: 800px;
+      margin: 2rem auto;
+      background: var(--white);
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-title {
+      font-size: 2.5rem;
+      color: var(--primary-blue);
+      margin: 1.5rem 0 1rem;
+      position: relative;
+      padding-bottom: 10px;
+    }
+
+    .hero-title::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 0;
+      width: 80px;
+      height: 4px;
+      background-color: var(--accent-orange);
+      border-radius: 2px;
+    }
+
+    .hero-text {
+      font-size: 1.1rem;
+      color: var(--gray-text);
+      margin-bottom: 2rem;
+    }
+
+    .form {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      border: 1px solid #eee;
+      border-radius: 10px;
+      background-color: #f9f9f9;
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
+      text-align: right;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+      color: var(--dark-blue);
+    }
+
+    .form-group input[type="text"],
+    .form-group input[type="date"],
+    .form-group select {
+      width: 100%;
+      padding: 0.8rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      text-align: right;
+      box-sizing: border-box;
+    }
+
+    .form-group input[type="text"]:focus,
+    .form-group input[type="date"]:focus,
+    .form-group select:focus {
+      border-color: var(--primary-blue);
+      box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.2);
+      outline: none;
+    }
+
+    .btn-primary {
+      background-color: var(--primary-blue);
+      color: var(--white);
+      padding: 0.9rem 2.5rem;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      /* Added for better control on mobile */
+      display: inline-block;
+      min-width: 180px; /* Give a minimum width */
+      max-width: 250px; /* Prevent it from being too wide */
+      box-sizing: border-box; /* Include padding in width calculations */
+    }
+
+    .btn-primary:hover {
+      background-color: #2563eb;
+      transform: translateY(-2px);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+      background-color: #1a42a8;
+    }
+
+    .success-message, .error-message {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .success-message {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .error-message {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .footer {
+      margin-top: auto;
+      text-align: center;
+      color: var(--gray-text);
+      padding: 1.5rem;
+      font-size: 0.95rem;
+      background-color: #f0f0f0;
+      border-top: 1px solid #e5e5e5;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .header .container {
+        flex-direction: row; /* Keep logo and toggle on one row */
+        justify-content: space-between;
+        align-items: center;
+      }
+      .nav {
+        display: flex;
+        flex-direction: column; /* Stack links vertically on mobile */
+        position: absolute;
+        top: 100%; /* Position right below the header */
+        left: 0;
+        width: 100%;
+        background: var(--dark-blue);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 0; /* Reset padding for initial closed state */
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+        max-height: 0; /* Initially hidden */
+        overflow: hidden;
+        transition: max-height 0.3s ease-out, padding 0.3s ease-out; /* Smooth transition */
+      }
+
+      .nav.open {
+        max-height: 300px; /* A value large enough to show all links when open */
+        padding: 0.5rem 0; /* Reduced vertical padding to show all links */
+      }
+
+      .nav-link {
+        text-align: center;
+        padding: 0.5rem 0; /* Reduced vertical padding for individual links */
+        font-size: 1.2rem;
+        width: 100%;
+        margin-bottom: 0; /* Reset horizontal margin */
+        margin-right: 0; /* Reset original margin-right */
+      }
+
+      .menu-toggle {
+        display: flex; /* Show hamburger icon on mobile */
+      }
+
+      /* Animation for hamburger icon */
+      .menu-toggle.open .bar:nth-child(1) {
+        transform: translateY(11px) rotate(45deg);
+      }
+      .menu-toggle.open .bar:nth-child(2) {
+        opacity: 0;
+      }
+      .menu-toggle.open .bar:nth-child(3) {
+        transform: translateY(-11px) rotate(-45deg);
+      }
+
+      .main-content-container { /* Adjusted for better mobile margins and padding */
+        margin: 1rem auto;
+        padding: 1.5rem 0.8rem;
+      }
+      .hero-title {
+        font-size: 2rem;
+      }
+      .form-group input[type="text"],
+      .form-group input[type="date"],
+      .form-group select {
+        padding: 0.8rem; /* Adjusted padding */
+        font-size: 1rem; /* Adjusted font size */
+      }
+      .btn-primary {
+        width: 90%; /* Make buttons take most of the width */
+        max-width: 300px; /* But not wider than 300px */
+        min-width: unset; /* Remove minimum width constraint */
+        margin: 0.5rem auto; /* Center them with auto margins */
+        padding: 0.8rem 2rem;
+        font-size: 1.1rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .logo {
+        font-size: 1.8rem;
+      }
+      .nav-link {
+        font-size: 1rem;
+      }
+      .hero-title {
+        font-size: 1.8rem;
+      }
+      .hero-text {
+        font-size: 1rem;
+      }
+      .form-group input[type="text"],
+      .form-group input[type="date"],
+      .form-group select {
+        font-size: 0.85rem;
+        padding: 0.7rem;
+      }
+      .btn-primary {
+        font-size: 1rem;
+        padding: 0.7rem 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <h1 class="logo">قرية متعلمة</h1>
+      <div class="menu-toggle" id="mobile-menu">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+      </div>
+      <nav class="nav" id="main-nav">
+        <a href="../index.html" class="nav-link">الرئيسية</a>
+        <a href="./register.html" class="nav-link active">التسجيل</a>
+        <a href="./exam-status.html" class="nav-link">الامتحان</a>
+        <a href="./status.html" class="nav-link">حالة الطلب</a>
+        <a href="./villages.html" class="nav-link">القرى</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content-container"> <section>
+      <h2 class="hero-title">نموذج التسجيل</h2>
+      <p class="hero-text">يرجى تعبئة البيانات بدقة للالتحاق بالبرنامج.</p>
+
+      <form id="register-form" class="form"> <div class="form-group">
+          <label for="name">الاسم الكامل</label>
+          <input type="text" id="name" name="name" required placeholder="اكتب اسمك بالكامل" />
+        </div>
+
+        <div class="form-group">
+          <label for="nationalId">الرقم القومي</label>
+          <input type="text" id="nationalId" name="nationalId" required placeholder="مثال: 29801010123456" />
+        </div>
+
+        <div class="form-group">
+          <label for="dob">تاريخ الميلاد</label>
+          <input type="date" id="dob" name="dob" required />
+        </div>
+
+        <div class="form-group">
+          <label for="gender">الجنس</label>
+          <select id="gender" name="gender" required>
+            <option value="">اختر الجنس...</option>
+            <option value="ذكر">ذكر</option>
+            <option value="أنثى">أنثى</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="ageCategory">فئة العمر</label>
+          <select id="ageCategory" name="ageCategory" required>
+            <option value="">اختر الفئة...</option>
+            <option value="طفل">طفل (8-17 سنة)</option>
+            <option value="شاب">شاب (18-35 سنة)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="leaderCode">كود القائد</label>
+          <input type="text" id="leaderCode" name="leaderCode" required placeholder="ادخل كود القائد" />
+        </div>
+
+        <button type="submit" class="btn-primary">إرسال التسجيل</button>
+      </form>
+
+      <div id="register-result" class="success-message" style="display: none; margin-top: 1rem;"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2025 منصة قرية متعلمة. جميع الحقوق محفوظة.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Function to generate a 6-character random request ID
+    function generateRequestId() {
+      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      let result = '';
+      const charactersLength = characters.length;
+      for (let i = 0; i < 6; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+      }
+      return result;
+    }
+
+    document.getElementById("register-form").addEventListener("submit", function (e) {
+      e.preventDefault(); // Prevent default form submission
+
+      const name = document.getElementById("name").value.trim();
+      const nationalId = document.getElementById("nationalId").value.trim();
+      const dob = document.getElementById("dob").value; // YYYY-MM-DD format
+      const gender = document.getElementById("gender").value;
+      const ageCategory = document.getElementById("ageCategory").value;
+      const leaderCode = document.getElementById("leaderCode").value.trim(); // Get leader code
+      const registerResultDiv = document.getElementById("register-result");
+
+      // Clear previous messages and classes
+      registerResultDiv.style.display = "none";
+      registerResultDiv.classList.remove('success-message', 'error-message');
+
+      // --- Validation ---
+      if (!name || !nationalId || !dob || !gender || !ageCategory || !leaderCode) {
+        displayMessage("❌ يرجى ملء جميع الحقول المطلوبة.", 'error');
+        return;
+      }
+
+      // Validate National ID length (e.g., 14 digits for Egypt)
+      if (!/^\d{14}$/.test(nationalId)) {
+        displayMessage("❌ الرقم القومي يجب أن يتكون من 14 رقمًا فقط.", 'error');
+        return;
+      }
+
+
+      // Validate Leader Code (case-sensitive)
+      const correctLeaderCode = "Abdou2003"; // This should ideally come from a secure backend
+      if (leaderCode !== correctLeaderCode) {
+        displayMessage("❌ كود القائد غير صحيح. يرجى التأكد من الكود.", 'error');
+        return;
+      }
+
+      const birthDate = new Date(dob);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--; // Adjust age if birthday hasn't occurred yet this year
+      }
+
+      let isValidAge = true;
+      let ageError = "";
+
+      if (ageCategory === "طفل") {
+        if (age < 8 || age > 17) {
+          isValidAge = false;
+          ageError = `عمر الطفل يجب أن يكون بين 8 و 17 سنة. العمر المدخل: ${age} سنة.`;
+        }
+      } else if (ageCategory === "شاب") {
+        if (age < 18 || age > 35) {
+          isValidAge = false;
+          ageError = `عمر الشاب يجب أن يكون بين 18 و 35 سنة. العمر المدخل: ${age} سنة.`;
+        }
+      }
+
+      if (!isValidAge) {
+        displayMessage(`❌ خطأ في العمر: ${ageError}`, 'error');
+        return;
+      }
+
+      // Generate a unique Request ID
+      const requestId = generateRequestId();
+
+      // --- Telegram Bot details ---
+      // IMPORTANT: Replace with your actual bot token and chat ID
+      const botToken = "7542961188:AAFQDDg9hlwVyYOaZuVF3ni-J5KrUXz1fAI";
+      const chatId = "1213902845"; // Make sure this chatId is correct and the bot has permission
+
+      // Construct the message for Telegram
+      const message = `
+📝 *طلب تسجيل جديد*
+-----------------------------
+*رقم الطلب*: \`${requestId}\`
+👤 *الاسم الكامل*: ${name}
+🆔 *الرقم القومي*: ${nationalId}
+🎂 *تاريخ الميلاد*: ${dob} (${age} سنة)
+🚻 *الجنس*: ${gender}
+👶 *فئة العمر*: ${ageCategory}
+👑 *كود القائد*: ${leaderCode}
+-----------------------------
+`;
+
+      // Display a loading message
+      displayMessage("⏳ جارٍ إرسال طلبك...", 'success');
+
+      // Send data to Telegram Bot API
+      fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: message,
+          parse_mode: "Markdown"
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.ok) {
+          displayMessage(
+            `✅ تم إرسال طلب التسجيل بنجاح! رقم طلبك هو: 
+            <br><code>${requestId}</code>
+            <br>يرجى الاحتفاظ به لأنه سيستخدم دائمًا لمتابعة طلبك.`,
+            'success'
+          );
+          console.log("Registration data sent to Telegram successfully!");
+          this.reset(); // Clear the form after successful submission
+        } else {
+          let errorMessage = `❌ حدث خطأ أثناء إرسال الطلب: ${data.description || "خطأ غير معروف"}. يرجى المحاولة مرة أخرى.`;
+          if (data.description && data.description.includes("chat not found")) {
+            errorMessage += "\n💡 **ملاحظة:** قد يكون هناك مشكلة في معرّف المحادثة (Chat ID) أو لم تبدأ المحادثة مع البوت بعد.";
+          }
+          displayMessage(errorMessage, 'error');
+          console.error("Failed to send message to Telegram:", data.description);
+        }
+      })
+      .catch(error => {
+        displayMessage("❌ حدث خطأ في الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت.", 'error');
+        console.error("Error sending message to Telegram:", error);
+      });
+    });
+
+    function displayMessage(msg, type) {
+      const registerResultDiv = document.getElementById("register-result");
+      registerResultDiv.classList.remove('success-message', 'error-message');
+      registerResultDiv.classList.add(`${type}-message`);
+      registerResultDiv.innerHTML = msg;
+      registerResultDiv.style.display = "block";
+    }
+
+    // JavaScript for Mobile Menu Toggle (consistent across all pages)
+    const mobileMenu = document.getElementById('mobile-menu');
+    const mainNav = document.getElementById('main-nav');
+
+    // Check if elements exist before adding event listener
+    if (mobileMenu && mainNav) {
+      mobileMenu.addEventListener('click', () => {
+        mobileMenu.classList.toggle('open');
+        mainNav.classList.toggle('open');
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>الامتحان | قرية متعلمة</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Global styles and variables, consistent across all pages */
+    :root {
+      --primary-blue: #1d4ed8;
+      --dark-blue: #1e3a8a;
+      --light-blue: #e0f2fe;
+      --accent-orange: #f59e0b;
+      --text-color: #333;
+      --light-bg: #eef2ff;
+      --white: #ffffff;
+      --gray-text: #888;
+      --border-color: #93c5fd;
+    }
+
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: linear-gradient(to bottom, var(--light-bg), var(--white));
+      color: var(--text-color);
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+
+    /* Header styles - Consistent across all pages */
+    .header {
+      background: var(--dark-blue);
+      padding: 1rem 0;
+      color: var(--white);
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      position: relative;
+      z-index: 10;
+    }
+
+    .header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+
+    .logo {
+      font-size: 2.2rem;
+      margin: 0;
+      color: var(--white);
+      white-space: nowrap;
+    }
+
+    /* Navigation for larger screens (default) */
+    .nav {
+        display: flex;
+        gap: 1.5rem;
+        max-height: none;
+        padding: 0;
+        position: static;
+        width: auto;
+    }
+
+    .nav-link {
+      color: var(--white);
+      text-decoration: none;
+      font-size: 1.1rem;
+      transition: color 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .nav-link:hover, .nav-link.active {
+      color: var(--accent-orange);
+    }
+
+    /* Hamburger Menu Icon - Hidden by default on desktop */
+    .menu-toggle {
+      display: none;
+      flex-direction: column;
+      justify-content: space-around;
+      width: 30px;
+      height: 25px;
+      cursor: pointer;
+      z-index: 100;
+      padding: 5px;
+    }
+
+    .menu-toggle .bar {
+      width: 100%;
+      height: 3px;
+      background-color: var(--white);
+      border-radius: 5px;
+      transition: all 0.3s ease-in-out;
+    }
+
+    /* Main content container */
+    .main-content-container {
+      flex: 1;
+      text-align: center;
+      padding: 2rem 1rem;
+      max-width: 800px;
+      margin: 2rem auto;
+      background: var(--white);
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-title {
+      font-size: 2.5rem;
+      color: var(--primary-blue);
+      margin: 1.5rem 0 1rem;
+      position: relative;
+      padding-bottom: 10px;
+    }
+
+    .hero-title::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 0;
+      width: 80px;
+      height: 4px;
+      background-color: var(--accent-orange);
+      border-radius: 2px;
+    }
+
+    #clock, #countdown {
+      font-size: 1.8rem;
+      color: var(--accent-orange);
+      background: #fff3cd;
+      padding: 0.8rem 1.5rem;
+      border-radius: 12px;
+      display: inline-block;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 10px rgba(245, 158, 11, 0.2);
+      transition: all 0.3s ease;
+      font-weight: 700;
+    }
+
+    #countdown {
+      color: var(--dark-blue);
+      border: 2px solid var(--border-color);
+      background-color: var(--light-blue);
+      box-shadow: 0 4px 10px rgba(29, 78, 216, 0.15);
+    }
+
+    #exam-form {
+      display: none; /* Controlled by JavaScript */
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      border: 1px solid #eee;
+      border-radius: 10px;
+      background-color: #f9f9f9;
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
+      flex-direction: column; /* For centering inputs */
+      align-items: center; /* For centering inputs */
+    }
+
+    input[type="text"] {
+      padding: 1rem;
+      width: 90%;
+      max-width: 350px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      margin-bottom: 1.2rem;
+      font-size: 1.1rem;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      text-align: right; /* For Arabic text direction */
+      box-sizing: border-box;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--primary-blue);
+      box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.2);
+      outline: none;
+    }
+
+    .btn-primary {
+      background-color: var(--primary-blue);
+      color: var(--white);
+      padding: 0.9rem 2.5rem;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      display: inline-block;
+      min-width: 180px;
+      max-width: 250px;
+      box-sizing: border-box;
+    }
+
+    .btn-primary:hover {
+      background-color: #2563eb;
+      transform: translateY(-2px);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+      background-color: #1a42a8;
+    }
+
+    .footer {
+      margin-top: auto;
+      text-align: center;
+      color: var(--gray-text);
+      padding: 1.5rem;
+      font-size: 0.95rem;
+      background-color: #f0f0f0;
+      border-top: 1px solid #e5e5e5;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .header .container {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+      
+      .nav {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: var(--dark-blue);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+      }
+
+      .nav.open {
+        max-height: 300px;
+        padding: 0.5rem 0;
+      }
+
+      .nav-link {
+        text-align: center;
+        padding: 0.5rem 0;
+        font-size: 1.2rem;
+        width: 100%;
+        margin-bottom: 0;
+        flex-basis: auto;
+      }
+
+      .menu-toggle {
+        display: flex;
+      }
+
+      /* Animation for hamburger icon */
+      .menu-toggle.open .bar:nth-child(1) {
+        transform: translateY(11px) rotate(45deg);
+      }
+      .menu-toggle.open .bar:nth-child(2) {
+        opacity: 0;
+      }
+      .menu-toggle.open .bar:nth-child(3) {
+        transform: translateY(-11px) rotate(-45deg);
+      }
+
+      .hero-title {
+        font-size: 2rem;
+      }
+
+      #clock, #countdown {
+        font-size: 1.5rem;
+        padding: 0.6rem 1rem;
+      }
+
+      input[type="text"] {
+        width: 95%;
+        padding: 0.8rem;
+        font-size: 1rem;
+      }
+
+      .btn-primary {
+        width: 90%;
+        max-width: 300px;
+        min-width: unset;
+        margin: 0.5rem auto;
+        padding: 0.8rem 2rem;
+        font-size: 1.1rem;
+      }
+
+      .main-content-container {
+        margin: 1rem auto;
+        padding: 1.5rem 0.8rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .logo {
+        font-size: 1.8rem;
+      }
+      .nav-link {
+        font-size: 1rem;
+      }
+      .hero-title {
+        font-size: 1.8rem;
+      }
+
+      #clock, #countdown {
+        font-size: 1.3rem;
+        padding: 0.5rem 0.8rem;
+      }
+
+      input[type="text"] {
+        max-width: 95%;
+        padding: 0.7rem;
+      }
+
+      .btn-primary {
+        font-size: 1rem;
+        padding: 0.7rem 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="container">
+      <h1 class="logo">قرية متعلمة</h1>
+      <div class="menu-toggle" id="mobile-menu">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+      </div>
+      <nav class="nav" id="main-nav">
+        <a href="../index.html" class="nav-link">الرئيسية</a>
+        <a href="./register.html" class="nav-link">التسجيل</a>
+        <a href="./exam-status.html" class="nav-link active">الامتحان</a>
+        <a href="./status.html" class="nav-link">حالة الطلب</a>
+        <a href="./villages.html" class="nav-link">القرى</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content-container">
+    <h2 class="hero-title">موعد الامتحان</h2>
+    <p id="clock">الساعة الآن...</p>
+    <p id="countdown">جارٍ الحساب...</p>
+
+    <form id="exam-form">
+      <input type="text" id="leader-code" placeholder="كود القائد" required />
+      <input type="text" id="request-id" placeholder="رقم الطلب" required />
+      <button type="submit" class="btn-primary">دخول الامتحان</button>
+    </form>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+        &copy; 2025 منصة قرية متعلمة
+    </div>
+  </footer>
+
+  <script>
+    const clock = document.getElementById("clock");
+    const countdown = document.getElementById("countdown");
+    const form = document.getElementById("exam-form");
+
+    // Define the valid user credentials
+    const validCredentials = [
+      { leaderCode: "LEAD123", requestId: "12345" },
+      { leaderCode: "ALPHA001", requestId: "98765" },
+      { leaderCode: "BETA002", requestId: "11223" },
+      { leaderCode: "GAMMA003", requestId: "44556" },
+      { leaderCode: "DELTA004", requestId: "77889" },
+    ];
+
+    const EXAM_START_HOUR = 19; // 7 PM
+    const EXAM_END_HOUR = 20;   // 8 PM (1 hour later)
+    const EXAM_DAYS = [0, 1, 6]; // 0 = Sunday, 1 = Monday, 6 = Saturday (original days)
+
+    function getExamTimes(currentEgyptTime) {
+      const today = new Date(currentEgyptTime);
+      today.setHours(EXAM_START_HOUR, 0, 0, 0); // Set to 7 PM today
+
+      const examStartToday = new Date(today);
+      const examEndToday = new Date(today);
+      examEndToday.setHours(EXAM_END_HOUR, 0, 0, 0); // Set to 8 PM today
+
+      return { examStartToday, examEndToday };
+    }
+
+    // This function finds the next *upcoming* exam open time
+    function getNextExamOpenTime(currentEgyptTime) {
+        let nextOpen = new Date(currentEgyptTime);
+        let foundNextExam = false;
+
+        // Loop through the next 7 days to find the earliest upcoming exam day/time
+        for (let i = 0; i < 7; i++) {
+            const tempDate = new Date(currentEgyptTime);
+            tempDate.setDate(currentEgyptTime.getDate() + i);
+            tempDate.setHours(EXAM_START_HOUR, 0, 0, 0); // Set to 7 PM for that day
+
+            if (EXAM_DAYS.includes(tempDate.getDay())) {
+                if (tempDate.getTime() > currentEgyptTime.getTime()) {
+                    // This future exam day is still ahead of us
+                    nextOpen = tempDate;
+                    foundNextExam = true;
+                    break; // Found the next exam open time
+                } else if (i === 0 && currentEgyptTime.getHours() < EXAM_START_HOUR && EXAM_DAYS.includes(currentEgyptTime.getDay())) {
+                    // It's today, it's an exam day, and it's before the start hour
+                    nextOpen = tempDate; // Use today's 7 PM
+                    foundNextExam = true;
+                    break;
+                }
+            }
+        }
+        
+        // If no exam is found in the next 7 days, or current time is past all exams for this cycle
+        if (!foundNextExam) {
+            // This might happen if all valid days have passed for the week.
+            // Reset to current time + 1 day and find the next exam day from there.
+            let futureDate = new Date(currentEgyptTime);
+            futureDate.setDate(futureDate.getDate() + 1); // Start checking from tomorrow
+            while (!EXAM_DAYS.includes(futureDate.getDay())) {
+                futureDate.setDate(futureDate.getDate() + 1);
+            }
+            futureDate.setHours(EXAM_START_HOUR, 0, 0, 0);
+            nextOpen = futureDate;
+        }
+
+        return nextOpen;
+    }
+
+
+    function update() {
+      const now = new Date();
+      // Get Egypt time directly using toLocaleString with timeZone
+      const egyptTime = new Date(now.toLocaleString("en-US", { timeZone: "Africa/Cairo" }));
+      const currentDay = egyptTime.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
+      const currentHour = egyptTime.getHours();
+
+      clock.textContent = `الساعة الآن: ${egyptTime.toLocaleTimeString("ar-EG", { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+
+      const { examStartToday, examEndToday } = getExamTimes(egyptTime);
+
+      // Check if current time is within the exam window AND it's an exam day
+      if (EXAM_DAYS.includes(currentDay) && egyptTime >= examStartToday && egyptTime < examEndToday) {
+        // --- During the 1-hour exam period (7 PM to 8 PM) ---
+        const diff = examEndToday - egyptTime;
+        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+        countdown.textContent = `✅ الامتحان مفتوح الآن! متبقي على الإغلاق: ${m} دقيقة، ${s} ثانية`;
+        form.style.display = "flex"; // Show the form (as flex for centering)
+      } else {
+        // --- Before or After the 1-hour exam period ---
+        const nextExamOpen = getNextExamOpenTime(egyptTime);
+        const diffToOpen = nextExamOpen - egyptTime;
+
+        if (diffToOpen > 0) { // If there's a time until the next exam opens
+          const d = Math.floor(diffToOpen / (1000 * 60 * 60 * 24));
+          const h = Math.floor((diffToOpen % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const m = Math.floor((diffToOpen % (1000 * 60 * 60)) / (1000 * 60));
+          const s = Math.floor((diffToOpen % (1000 * 60)) / 1000);
+
+          let countdownText = `العد التنازلي لفتح الامتحان: `;
+          if (d > 0) countdownText += `${d} يوم، `;
+          countdownText += `${h} ساعة، ${m} دقيقة، ${s} ثانية`;
+          countdown.textContent = countdownText;
+        } else {
+          // This case should ideally not be reached often with the improved getNextExamOpenTime,
+          // but acts as a fallback for when the exam window just passed or an edge case.
+          countdown.textContent = "⏳ انتهى وقت الامتحان لهذا اليوم/الأسبوع. سيفتح في الموعد القادم (السبت/الأحد/الاثنين 7 مساءً).";
+        }
+        form.style.display = "none"; // Hide the form
+      }
+    }
+
+    // Initial call and set interval for updates
+    update();
+    setInterval(update, 1000);
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      const leader = document.getElementById("leader-code").value.trim();
+      const request = document.getElementById("request-id").value.trim();
+
+      // Check if the entered credentials match any in the validCredentials array
+      const isValid = validCredentials.some(cred =>
+        cred.leaderCode === leader && cred.requestId === request
+      );
+
+      if (isValid) {
+        window.location.href = "./exam.html"; // Redirect to the actual exam page (needs to exist)
+      } else {
+        alert("❌ كود القائد أو رقم الطلب غير صحيح.");
+      }
+    });
+
+    // JavaScript for Mobile Menu Toggle (copied from other pages)
+    const mobileMenu = document.getElementById('mobile-menu');
+    const mainNav = document.getElementById('main-nav');
+
+    // Check if elements exist before adding event listener
+    if (mobileMenu && mainNav) {
+      mobileMenu.addEventListener('click', () => {
+        mobileMenu.classList.toggle('open');
+        mainNav.classList.toggle('open');
+      });
+    }
+  </script>
+</body>
+</html>

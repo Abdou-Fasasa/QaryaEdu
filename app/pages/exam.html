@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>امتحان الطالب | قرية متعلمة</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-blue: #1d4ed8;
+      --dark-blue: #1e3a8a;
+      --light-blue: #e0f2fe;
+      --accent-green: #10b981;
+      --dark-green: #059669;
+      --text-color: #333;
+      --light-bg: #eef2ff;
+      --white: #ffffff;
+      --gray-text: #888;
+      --border-color: #d1d5db;
+      --question-border: #e2e8f0; /* Light gray for question separator */
+      --pass-color: #059669; /* Green for passing */
+      --fail-color: #dc2626; /* Red for failing */
+    }
+
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: linear-gradient(to bottom, var(--light-bg), var(--white));
+      color: var(--text-color);
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--dark-blue);
+      padding: 1.5rem;
+      color: var(--white);
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
+    }
+    .logo {
+      font-size: 2.2rem;
+      margin: 0;
+    }
+
+    .exam-container {
+      flex: 1;
+      max-width: 900px;
+      margin: 2rem auto;
+      background: var(--white);
+      padding: 2.5rem;
+      border-radius: 1rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+
+    h2 {
+      text-align: center;
+      color: var(--primary-blue);
+      margin-bottom: 2.5rem;
+      font-size: 2.2rem;
+      position: relative;
+      padding-bottom: 10px;
+    }
+
+    h2::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 0;
+      width: 70px;
+      height: 4px;
+      background-color: var(--accent-green);
+      border-radius: 2px;
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 0.7rem;
+      color: var(--dark-blue);
+      font-size: 1.05rem;
+    }
+
+    input[type="text"], select, textarea {
+      width: 100%;
+      padding: 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 0.75rem;
+      margin-bottom: 1.8rem;
+      font-size: 1rem;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      text-align: right;
+      box-sizing: border-box;
+    }
+
+    input[type="text"]:focus, select:focus, textarea:focus {
+      border-color: var(--primary-blue);
+      box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.2);
+      outline: none;
+    }
+
+    textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .question {
+      margin-bottom: 2.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 2px dashed var(--question-border);
+    }
+
+    .question:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .question p {
+      margin-bottom: 1.2rem;
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: var(--text-color);
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px 25px;
+    }
+
+    .options-grid label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      font-weight: 400;
+      color: #4a5568;
+      padding: 10px 5px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .options-grid label:hover {
+      background-color: #f0f4f8;
+      border-color: var(--light-blue);
+    }
+    
+    .options-grid input[type="radio"] {
+        margin-left: 10px;
+        margin-top: 0;
+        margin-bottom: 0;
+        width: auto;
+        accent-color: var(--primary-blue);
+        transform: scale(1.2);
+    }
+
+    button {
+      display: block;
+      background-color: var(--accent-green);
+      color: var(--white);
+      border: none;
+      padding: 1rem 3rem;
+      font-size: 1.2rem;
+      border-radius: 0.75rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      margin: 2.5rem auto 0;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    button:hover {
+      background-color: var(--dark-green);
+      transform: translateY(-2px);
+    }
+    button:active {
+      transform: translateY(0);
+      background-color: #047857;
+    }
+
+    .result {
+      text-align: center;
+      margin-top: 3rem;
+      font-size: 1.6rem;
+      font-weight: bold;
+      padding: 1.5rem;
+      border-radius: 12px;
+      border: 2px solid; /* Border color will change based on pass/fail */
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .result.pass {
+      background-color: #d1fae5; /* Light green */
+      color: var(--pass-color);
+      border-color: var(--pass-color);
+    }
+
+    .result.fail {
+      background-color: #fee2e2; /* Light red */
+      color: var(--fail-color);
+      border-color: var(--fail-color);
+    }
+
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .exam-container {
+        padding: 1.5rem;
+        margin: 1rem auto;
+      }
+      h2 {
+        font-size: 1.8rem;
+        margin-bottom: 2rem;
+      }
+      input[type="text"], select, textarea {
+        padding: 0.8rem;
+        margin-bottom: 1.5rem;
+      }
+      .question {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+      }
+      .question p {
+        font-size: 1.05rem;
+      }
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+      .options-grid label {
+        padding: 8px 5px;
+      }
+      button {
+        padding: 0.9rem 2.5rem;
+        font-size: 1.1rem;
+      }
+      .result {
+        font-size: 1.4rem;
+        padding: 1rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .exam-container {
+        padding: 1rem;
+      }
+      h2 {
+        font-size: 1.6rem;
+      }
+      input[type="text"], select, textarea {
+        font-size: 0.9rem;
+      }
+      .question p {
+        font-size: 1rem;
+      }
+      button {
+        padding: 0.8rem 2rem;
+        font-size: 1rem;
+      }
+      .result {
+        font-size: 1.2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1 class="logo">قرية متعلمة</h1>
+  </header>
+
+  <div class="exam-container">
+    <h2>امتحان الطالب</h2>
+
+    <form id="exam-form">
+      <label for="student-name">الاسم الكامل</label>
+      <input type="text" id="student-name" required placeholder="مثال: محمد أحمد" />
+
+      <label for="request-id">رقم الطلب</label>
+      <input type="text" id="request-id" required placeholder="مثال: 12345" />
+
+      <label for="exam-day">اختر اليوم</label>
+      <select id="exam-day" required>
+        <option value="">-- اختر اليوم --</option>
+        <option value="السبت 12 يوليو">السبت 12 يوليو</option>
+        <option value="الأحد 13 يوليو">الأحد 13 يوليو</option>
+        <option value="الاثنين 14 يوليو">الاثنين 14 يوليو</option>
+      </select>
+
+      <div id="questions"></div>
+
+      <button type="submit">إرسال الامتحان</button>
+    </form>
+
+    <div id="result" class="result"></div>
+  </div>
+
+  <script>
+    const allQuestionsData = [
+      // 15 Multiple Choice Questions (MCQ) - 3.75 points each
+      { type: "mcq", q: "ما عاصمة مصر؟", options: ["القاهرة", "الرياض", "دمشق", "تونس"], answer: "القاهرة" },
+      { type: "mcq", q: "كم عدد أركان الإسلام؟", options: ["3", "5", "6", "4"], answer: "5" },
+      { type: "mcq", q: "ما اللون الناتج من خلط الأزرق والأصفر؟", options: ["أخضر", "برتقالي", "بنفسجي", "أسود"], answer: "أخضر" },
+      { type: "mcq", q: "أكبر كوكب في النظام الشمسي؟", options: ["زحل", "المشتري", "الأرض", "المريخ"], answer: "المشتري" },
+      { type: "mcq", q: "كاتب رواية 'البؤساء'؟", options: ["فيكتور هوجو", "تولستوي", "نجيب محفوظ", "طه حسين"], answer: "فيكتور هوجو" },
+      { type: "mcq", q: "عدد الحروف في الأبجدية العربية؟", options: ["28", "26", "29", "27"], answer: "28" },
+      { type: "mcq", q: "أول من أسلم من الصبيان؟", options: ["علي بن أبي طالب", "عمر بن الخطاب", "عثمان", "بلال"], answer: "علي بن أبي طالب" },
+      { type: "mcq", q: "عاصمة فلسطين؟", options: ["القدس", "رام الله", "غزة", "يافا"], answer: "القدس" },
+      { type: "mcq", q: "الحيوان الذي لا ينام؟", options: ["السمك", "الثعبان", "الدلفين", "النسر"], answer: "السمك" },
+      { type: "mcq", q: "كم شهراً في السنة؟", options: ["10", "12", "11", "13"], answer: "12" },
+      { type: "mcq", q: "مخترع المصباح الكهربائي؟", options: ["أديسون", "نيوتن", "ماركوني", "جاليليو"], answer: "أديسون" },
+      { type: "mcq", q: "الغاز الأساسي في الهواء؟", options: ["نيتروجين", "أكسجين", "هيدروجين", "ثاني أكسيد الكربون"], answer: "نيتروجين" },
+      { type: "mcq", q: "الكتاب المقدس عند المسلمين؟", options: ["القرآن", "الإنجيل", "التوراة", "الزبور"], answer: "القرآن" },
+      { type: "mcq", q: "عدد الصلوات المفروضة يوميًا؟", options: ["5", "3", "4", "2"], answer: "5" },
+      { type: "mcq", q: "النبي الذي ابتلعه الحوت؟", options: ["يونس", "إبراهيم", "موسى", "نوح"], answer: "يونس" },
+
+      // 5 True/False Questions - 3.75 points each
+      { type: "truefalse", q: "الشمس تدور حول الأرض.", options: ["صحيح", "خطأ"], answer: "خطأ" },
+      { type: "truefalse", q: "الماء يتجمد عند 0 درجة مئوية.", options: ["صحيح", "خطأ"], answer: "صحيح" },
+      { type: "truefalse", q: "القاهرة هي عاصمة الأردن.", options: ["صحيح", "خطأ"], answer: "خطأ" },
+      { type: "truefalse", q: "مصر تقع في قارة آسيا.", options: ["صحيح", "خطأ"], answer: "خطأ" },
+      { type: "truefalse", q: "عدد فصول السنة أربعة.", options: ["صحيح", "خطأ"], answer: "صحيح" },
+
+      // 5 Essay Questions - 5 points each (graded if not empty)
+      { type: "essay", q: "تحدث عن أهمية التعليم في بناء المجتمعات.", placeholder: "اكتب إجابتك هنا..." },
+      { type: "essay", q: "اشرح دور الشباب في تحقيق التنمية المستدامة.", placeholder: "اكتب إجابتك هنا..." },
+      { type: "essay", q: "ما هي أبرز التحديات التي تواجه العالم اليوم وكيف يمكن مواجهتها؟", placeholder: "اكتب إجابتك هنا..." },
+      { type: "essay", q: "اذكر بعض الطرق الفعالة لتعزيز الصحة البدنية والنفسية.", placeholder: "اكتب إجابتك هنا..." },
+      { type: "essay", q: "كيف يمكن للتكنولوجيا أن تسهم في تطوير قطاع التعليم؟", placeholder: "اكتب إجابتك هنا..." }
+    ];
+
+    // Separate questions by type
+    const mcqQuestions = allQuestionsData.filter(q => q.type === 'mcq');
+    const trueFalseQuestions = allQuestionsData.filter(q => q.type === 'truefalse');
+    const essayQuestions = allQuestionsData.filter(q => q.type === 'essay');
+
+    // Shuffle and select the required number of questions for each type
+    const selectedMcq = mcqQuestions.sort(() => 0.5 - Math.random()).slice(0, 15);
+    const selectedTrueFalse = trueFalseQuestions.sort(() => 0.5 - Math.random()).slice(0, 5);
+    const selectedEssay = essayQuestions.sort(() => 0.5 - Math.random()).slice(0, 5);
+
+    // Combine all selected questions and shuffle them again to mix types
+    const selectedQuestions = [...selectedMcq, ...selectedTrueFalse, ...selectedEssay].sort(() => 0.5 - Math.random());
+
+    const questionsContainer = document.getElementById("questions");
+
+    selectedQuestions.forEach((q, index) => {
+      const div = document.createElement("div");
+      div.classList.add("question");
+
+      div.innerHTML = `<p>${index + 1}. ${q.q}</p>`;
+
+      if (q.type === 'mcq' || q.type === 'truefalse') {
+        const optionsGrid = document.createElement("div");
+        optionsGrid.classList.add("options-grid");
+        q.options.forEach(opt => {
+          const label = document.createElement("label");
+          const input = document.createElement("input");
+          input.type = "radio";
+          input.name = `q${index}`; // Unique name for each question
+          input.value = opt;
+          input.required = true;
+          label.appendChild(input);
+          label.appendChild(document.createTextNode(` ${opt}`));
+          optionsGrid.appendChild(label);
+        });
+        div.appendChild(optionsGrid);
+      } else if (q.type === 'essay') {
+        const textarea = document.createElement("textarea");
+        textarea.id = `q${index}`; // Unique ID for essay textarea
+        textarea.name = `q${index}`;
+        textarea.placeholder = q.placeholder || "اكتب إجابتك هنا...";
+        textarea.required = true; // Make essay questions required
+        div.appendChild(textarea);
+      }
+      questionsContainer.appendChild(div);
+    });
+
+    document.getElementById("exam-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const name = document.getElementById("student-name").value.trim();
+      const requestId = document.getElementById("request-id").value.trim();
+      const day = document.getElementById("exam-day").value;
+
+      let studentScore = 0;
+      const pointsPerMcqTf = 3.75; // 75 points / 20 questions
+      const pointsPerEssay = 5;    // 25 points / 5 questions
+
+      selectedQuestions.forEach((q, i) => {
+        if (q.type === 'mcq' || q.type === 'truefalse') {
+          const selected = document.querySelector(`input[name="q${i}"]:checked`);
+          if (selected && selected.value === q.answer) {
+            studentScore += pointsPerMcqTf;
+          }
+        } else if (q.type === 'essay') {
+          const essayAnswer = document.getElementById(`q${i}`).value.trim();
+          if (essayAnswer !== '') { // Essay question is "correct" if answered (not empty)
+            studentScore += pointsPerEssay;
+          }
+        }
+      });
+
+      const percentage = Math.round((studentScore / 100) * 100); // Score is out of 100
+      const resultDiv = document.getElementById("result");
+      resultDiv.textContent = `✅ نتيجتك: ${percentage}%`;
+      resultDiv.classList.remove('pass', 'fail'); // Clear previous classes
+
+      if (percentage < 50) {
+        resultDiv.textContent += " 😔 راسب. يجب الإعادة.";
+        resultDiv.classList.add('fail');
+      } else {
+        resultDiv.textContent += " 🎉 ناجح! تهانينا.";
+        resultDiv.classList.add('pass');
+      }
+
+      // Telegram Bot Integration
+      const botToken = "7960767519:AAHJIrusFrFyb3Mr0BHBKZo8BGgKemkfABE"; // Replace with your actual bot token
+      const chatId = "1213902845"; // Replace with your actual chat ID
+      const msg = `📋 *نتيجة امتحان الطالب*\n👤 الاسم: ${name}\n🆔 رقم الطلب: ${requestId}\n📅 اليوم: ${day}\n📊 النتيجة: ${percentage}% ${percentage < 50 ? '(راسب)' : '(ناجح)'}`;
+
+      fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: msg,
+          parse_mode: "Markdown"
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.ok) {
+          console.log("Message sent to Telegram successfully!");
+        } else {
+          console.error("Failed to send message to Telegram:", data.description);
+          alert("حدث خطأ أثناء إرسال النتيجة. يرجى المحاولة مرة أخرى أو إبلاغ المسؤول.");
+        }
+      })
+      .catch(error => {
+        console.error("Error sending message to Telegram:", error);
+        alert("حدث خطأ في الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت.");
+      });
+    });
+  </script>
+</body>
+</html>
