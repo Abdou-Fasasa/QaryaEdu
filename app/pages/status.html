@@ -428,15 +428,15 @@
           nationalId: "29801010123456",
           status: "accepted",
           name: "أحمد علي محمود",
-          age: 26,
+          age: 26, // Age to determine youth/child
           village: "قرية الأمل",
         },
         {
           requestId: "Xy98Zk",
           nationalId: "30002030123456",
-          status: "rejected",
+          status: "accepted",
           name: "فاطمة سعيد",
-          age: 22,
+          age: 15, // Example: child age
           village: "قرية المستقبل",
           reason: "عدم استيفاء شروط العمر"
         },
@@ -458,16 +458,14 @@
         let currentDay = new Date(today);
 
         // Find the next Saturday
-        // getDay() returns 0 for Sunday, 1 for Monday, ..., 6 for Saturday
-        // We want to add days until we reach Saturday (day 6)
         const dayOfWeek = currentDay.getDay(); 
-        const daysUntilSaturday = (6 - dayOfWeek + 7) % 7; // +7 to handle cases where today is Sat, Sun, Mon, etc.
+        const daysUntilSaturday = (6 - dayOfWeek + 7) % 7; 
         currentDay.setDate(currentDay.getDate() + daysUntilSaturday);
 
         // Add Saturday, Sunday, and Monday
         for (let i = 0; i < 3; i++) {
             const examDate = new Date(currentDay);
-            examDate.setDate(currentDay.getDate() + i); // Add 0 for Sat, 1 for Sun, 2 for Mon
+            examDate.setDate(currentDay.getDate() + i); 
 
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             dates.push(examDate.toLocaleDateString('ar-EG', options));
@@ -490,6 +488,20 @@
         );
 
         if (foundApplication) {
+          let costPerDay = 0;
+          let participantType = "";
+
+          // Determine participant type and cost per day based on age
+          if (foundApplication.age < 18) {
+            participantType = "طفل";
+            costPerDay = 100; // 100 EGP for children
+          } else {
+            participantType = "شاب";
+            costPerDay = 200; // 200 EGP for youth
+          }
+
+          const totalExamCost = 3 * costPerDay; // 3 days exam
+
           let tableHtml = `
             <table class="status-table">
               <thead>
@@ -502,7 +514,7 @@
                 <tr><td>رقم الطلب</td><td>${foundApplication.requestId}</td></tr>
                 <tr><td>الرقم القومي</td><td>${foundApplication.nationalId}</td></tr>
                 <tr><td>الاسم الكامل</td><td>${foundApplication.name}</td></tr>
-                <tr><td>السن</td><td>${foundApplication.age} سنة</td></tr>
+                <tr><td>السن</td><td>${foundApplication.age} سنة (${participantType})</td></tr>
                 <tr><td>القرية</td><td>${foundApplication.village}</td></tr>
                 <tr>
                   <td>الحالة</td>
@@ -516,8 +528,8 @@
             const examDates = getNextExamDates(); // Get the next Sat, Sun, Mon dates dynamically
             tableHtml += `
                 <tr><td>أيام الامتحان</td><td>3 أيام</td></tr>
-                <tr><td>تكلفة اليوم</td><td>200 جنيه مصري</td></tr>
-                <tr><td>إجمالي تكلفة الامتحان</td><td>${3 * 200} جنيه مصري</td></tr>
+                <tr><td>تكلفة اليوم</td><td>${costPerDay} جنيه مصري (${participantType})</td></tr>
+                <tr><td>إجمالي تكلفة الامتحان</td><td>${totalExamCost} جنيه مصري</td></tr>
                 <tr>
                     <td>تواريخ الامتحانات</td>
                     <td>

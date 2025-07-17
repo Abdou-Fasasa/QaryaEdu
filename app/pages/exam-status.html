@@ -393,61 +393,44 @@
 
     const EXAM_START_HOUR = 19; // 7 PM
     const EXAM_END_HOUR = 20;   // 8 PM (1 hour later)
-    const EXAM_DAYS = [0, 1, 6]; // 0 = Sunday, 1 = Monday, 6 = Saturday (original days)
+    const EXAM_DAYS = [0, 1, 6]; // 0 = Sunday, 1 = Monday, 6 = Saturday
 
-    function getExamTimes(currentEgyptTime) {
-      const today = new Date(currentEgyptTime);
-      today.setHours(EXAM_START_HOUR, 0, 0, 0); // Set to 7 PM today
+    const dayNames = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
 
-      const examStartToday = new Date(today);
-      const examEndToday = new Date(today);
-      examEndToday.setHours(EXAM_END_HOUR, 0, 0, 0); // Set to 8 PM today
-
-      return { examStartToday, examEndToday };
-    }
-
-    // This function finds the next *upcoming* exam open time
+    // This function finds the next *upcoming* exam start time
     function getNextExamOpenTime(currentEgyptTime) {
-        let nextOpen = new Date(currentEgyptTime);
-        let foundNextExam = false;
+      let nextOpen = new Date(currentEgyptTime);
+      let foundNextExam = false;
 
-        // Loop through the next 7 days to find the earliest upcoming exam day/time
-        for (let i = 0; i < 7; i++) {
-            const tempDate = new Date(currentEgyptTime);
-            tempDate.setDate(currentEgyptTime.getDate() + i);
-            tempDate.setHours(EXAM_START_HOUR, 0, 0, 0); // Set to 7 PM for that day
+      // Iterate through current day + next 6 days to find the next exam day
+      for (let i = 0; i < 7; i++) {
+        const tempDate = new Date(currentEgyptTime);
+        tempDate.setDate(currentEgyptTime.getDate() + i); // Go to current day + i days
+        tempDate.setHours(EXAM_START_HOUR, 0, 0, 0); // Set to 7 PM for that specific day
 
-            if (EXAM_DAYS.includes(tempDate.getDay())) {
-                if (tempDate.getTime() > currentEgyptTime.getTime()) {
-                    // This future exam day is still ahead of us
-                    nextOpen = tempDate;
-                    foundNextExam = true;
-                    break; // Found the next exam open time
-                } else if (i === 0 && currentEgyptTime.getHours() < EXAM_START_HOUR && EXAM_DAYS.includes(currentEgyptTime.getDay())) {
-                    // It's today, it's an exam day, and it's before the start hour
-                    nextOpen = tempDate; // Use today's 7 PM
-                    foundNextExam = true;
-                    break;
-                }
-            }
+        if (EXAM_DAYS.includes(tempDate.getDay())) {
+          if (tempDate.getTime() > currentEgyptTime.getTime()) {
+            // Found a future exam day where the start time is still ahead of current time
+            nextOpen = tempDate;
+            foundNextExam = true;
+            break;
+          }
         }
-        
-        // If no exam is found in the next 7 days, or current time is past all exams for this cycle
-        if (!foundNextExam) {
-            // This might happen if all valid days have passed for the week.
-            // Reset to current time + 1 day and find the next exam day from there.
-            let futureDate = new Date(currentEgyptTime);
-            futureDate.setDate(futureDate.getDate() + 1); // Start checking from tomorrow
-            while (!EXAM_DAYS.includes(futureDate.getDay())) {
-                futureDate.setDate(futureDate.getDate() + 1);
-            }
-            futureDate.setHours(EXAM_START_HOUR, 0, 0, 0);
-            nextOpen = futureDate;
-        }
+      }
 
-        return nextOpen;
+      // Fallback if no future exam found within next 7 days (e.g., if current time is past Monday 8 PM)
+      // This ensures we always find the next valid exam day for countdown
+      if (!foundNextExam) {
+          let futureDate = new Date(currentEgyptTime);
+          futureDate.setDate(futureDate.getDate() + 1); // Start checking from tomorrow
+          while (!EXAM_DAYS.includes(futureDate.getDay())) {
+              futureDate.setDate(futureDate.getDate() + 1);
+          }
+          futureDate.setHours(EXAM_START_HOUR, 0, 0, 0);
+          nextOpen = futureDate;
+      }
+      return nextOpen;
     }
-
 
     function update() {
       const now = new Date();
@@ -458,37 +441,61 @@
 
       clock.textContent = `الساعة الآن: ${egyptTime.toLocaleTimeString("ar-EG", { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
 
-      const { examStartToday, examEndToday } = getExamTimes(egyptTime);
+      const examStartToday = new Date(egyptTime);
+      examStartToday.setHours(EXAM_START_HOUR, 0, 0, 0);
 
-      // Check if current time is within the exam window AND it's an exam day
-      if (EXAM_DAYS.includes(currentDay) && egyptTime >= examStartToday && egyptTime < examEndToday) {
-        // --- During the 1-hour exam period (7 PM to 8 PM) ---
-        const diff = examEndToday - egyptTime;
-        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const s = Math.floor((diff % (1000 * 60)) / 1000);
+      const examEndToday = new Date(egyptTime);
+      examEndToday.setHours(EXAM_END_HOUR, 0, 0, 0);
 
-        countdown.textContent = `✅ الامتحان مفتوح الآن! متبقي على الإغلاق: ${m} دقيقة، ${s} ثانية`;
-        form.style.display = "flex"; // Show the form (as flex for centering)
-      } else {
-        // --- Before or After the 1-hour exam period ---
-        const nextExamOpen = getNextExamOpenTime(egyptTime);
-        const diffToOpen = nextExamOpen - egyptTime;
+      // Check if it's an exam day
+      if (EXAM_DAYS.includes(currentDay)) {
+        if (egyptTime >= examStartToday && egyptTime < examEndToday) {
+          // --- During the 1-hour exam period (7 PM to 8 PM) ---
+          const diff = examEndToday - egyptTime;
+          const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          const s = Math.floor((diff % (1000 * 60)) / 1000);
 
-        if (diffToOpen > 0) { // If there's a time until the next exam opens
+          countdown.textContent = `✅ الامتحان مفتوح الآن! متبقي على الإغلاق: ${m} دقيقة، ${s} ثانية`;
+          form.style.display = "flex"; // Show the form
+        } else if (egyptTime < examStartToday) {
+          // --- Exam day, but before 7 PM ---
+          const diffToOpen = examStartToday - egyptTime;
+          const h = Math.floor((diffToOpen % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const m = Math.floor((diffToOpen % (1000 * 60 * 60)) / (1000 * 60));
+          const s = Math.floor((diffToOpen % (1000 * 60)) / 1000);
+
+          countdown.textContent = `العد التنازلي لفتح الامتحان اليوم: ${h} ساعة، ${m} دقيقة، ${s} ثانية`;
+          form.style.display = "none"; // Hide the form
+        } else { // egyptTime >= examEndToday (Past 8 PM on exam day)
+          // --- Exam day, but after 8 PM ---
+          const nextExamOpen = getNextExamOpenTime(egyptTime); // Find next exam open time (could be tomorrow or next Saturday)
+          const diffToOpen = nextExamOpen - egyptTime;
+
           const d = Math.floor(diffToOpen / (1000 * 60 * 60 * 24));
           const h = Math.floor((diffToOpen % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
           const m = Math.floor((diffToOpen % (1000 * 60 * 60)) / (1000 * 60));
           const s = Math.floor((diffToOpen % (1000 * 60)) / 1000);
 
-          let countdownText = `العد التنازلي لفتح الامتحان: `;
+          let countdownText = `انتهى الامتحان لهذا اليوم. سيفتح الامتحان القادم في: `;
           if (d > 0) countdownText += `${d} يوم، `;
           countdownText += `${h} ساعة، ${m} دقيقة، ${s} ثانية`;
           countdown.textContent = countdownText;
-        } else {
-          // This case should ideally not be reached often with the improved getNextExamOpenTime,
-          // but acts as a fallback for when the exam window just passed or an edge case.
-          countdown.textContent = "⏳ انتهى وقت الامتحان لهذا اليوم/الأسبوع. سيفتح في الموعد القادم (السبت/الأحد/الاثنين 7 مساءً).";
+          form.style.display = "none"; // Hide the form
         }
+      } else {
+        // --- Not an exam day (Tuesday, Wednesday, Thursday, Friday) ---
+        const nextExamOpen = getNextExamOpenTime(egyptTime);
+        const diffToOpen = nextExamOpen - egyptTime;
+
+        const d = Math.floor(diffToOpen / (1000 * 60 * 60 * 24));
+        const h = Math.floor((diffToOpen % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const m = Math.floor((diffToOpen % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((diffToOpen % (1000 * 60)) / 1000);
+
+        let countdownText = `${dayNames[currentDay]}: لا توجد امتحانات اليوم. سيفتح الامتحان في الموعد القادم: `;
+        if (d > 0) countdownText += `${d} يوم، `;
+        countdownText += `${h} ساعة، ${m} دقيقة، ${s} ثانية`;
+        countdown.textContent = countdownText;
         form.style.display = "none"; // Hide the form
       }
     }
