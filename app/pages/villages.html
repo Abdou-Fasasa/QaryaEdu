@@ -311,7 +311,8 @@
     </div>
   </header>
 
-  <main class="main-content-container"> <section>
+  <main class="main-content-container">
+    <section>
       <h2 class="hero-title">القرى التعليمية</h2>
       <p class="hero-text">تعرف على القرى المتاحة والقادة والمتقدمين.</p>
 
@@ -330,26 +331,34 @@
       {
         name: "قرية دشاشه",
         leader: "عبدالرحمن عبدالسلام شعبان",
-        rating: 5,
-        applicantsCount: 20
+        rating: 4,
+        applicantsCount: 45,
+        youthCount: 20,    // New: Count of youth
+        childrenCount: 25  // New: Count of children
       },
       {
         name: "قرية عزبة نصر",
         leader: "عمرو جمال أحمد",
         rating: 4,
-        applicantsCount: 15
+        applicantsCount: 50,
+        youthCount: 20,
+        childrenCount: 30
       },
       {
         name: "قرية الريغة",
         leader: "ليلى خالد محمود",
         rating: 4,
-        applicantsCount: 18
+        applicantsCount: 45,
+        youthCount: 20,
+        childrenCount: 25
       },
       {
         name: "مدينة سمسطا",
         leader: "خالد منصور علي",
         rating: 3,
-        applicantsCount: 25
+        applicantsCount: 50,
+        youthCount: 20,
+        childrenCount: 30
       }
     ];
 
@@ -363,7 +372,7 @@
         <p>القائد: <strong>${village.leader}</strong></p>
         <p>التقييم: ${"⭐".repeat(village.rating)}${"☆".repeat(5 - village.rating)}</p>
         <p>عدد المتقدمين: ${village.applicantsCount}</p>
-        <p class="applicants-info">للاطلاع على قائمة المتقدمين، يرجى التواصل مع الإدارة.</p>
+        <p>الشباب: ${village.youthCount}</p>    <p>الأطفال: ${village.childrenCount}</p> <p class="applicants-info">للاطلاع على قائمة المتقدمين، يرجى التواصل مع الإدارة.</p>
       `;
       listContainer.appendChild(el);
     });
