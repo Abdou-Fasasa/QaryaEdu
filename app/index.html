@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="style.css">
   <title>قرية متعلمة</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
@@ -45,7 +44,7 @@
       color: var(--white);
       text-align: center;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      position: relative;
+      position: relative; /* Essential for positioning the absolute nav on mobile */
       z-index: 10;
     }
 
@@ -61,17 +60,18 @@
     .logo {
       font-size: 2.2rem;
       margin: 0;
-      color: var(--white);
-      white-space: nowrap;
+      color: var(--white); /* Ensure logo color is white */
+      white-space: nowrap; /* Prevent logo from wrapping */
     }
 
     /* Navigation for larger screens (default) */
     .nav {
-        display: flex;
-        gap: 1.5rem;
+        display: flex; /* Display links side by side */
+        gap: 1.5rem; /* Space between links */
+        /* Important: On desktop, make sure max-height and padding are reset */
         max-height: none;
         padding: 0;
-        position: static;
+        position: static; /* Reset position for desktop */
         width: auto;
     }
 
@@ -80,7 +80,7 @@
       text-decoration: none;
       font-size: 1.1rem;
       transition: color 0.3s ease;
-      white-space: nowrap;
+      white-space: nowrap; /* Prevent links from wrapping */
     }
 
     .nav-link:hover, .nav-link.active {
@@ -89,7 +89,7 @@
 
     /* Hamburger Menu Icon - Hidden by default on desktop */
     .menu-toggle {
-      display: none;
+      display: none; /* Hidden on large screens */
       flex-direction: column;
       justify-content: space-around;
       width: 30px;
@@ -237,46 +237,46 @@
       border-top: 1px solid #e5e5e5;
     }
 
-    /* Responsive adjustments */
+   /* Responsive adjustments */
     @media (max-width: 768px) {
       .header .container {
-        flex-direction: row;
+        flex-direction: row; /* Keep logo and toggle on one row */
         justify-content: space-between;
         align-items: center;
       }
       
       .nav {
         display: flex;
-        flex-direction: column;
+        flex-direction: column; /* Stack links vertically on mobile */
         position: absolute;
-        top: 100%;
+        top: 100%; /* Position right below the header */
         left: 0;
         width: 100%;
         background: var(--dark-blue);
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        padding: 0;
+        padding: 0; /* Reset padding for initial closed state */
         border-top: 1px solid rgba(255, 255, 255, 0.2);
-        max-height: 0;
+        max-height: 0; /* Initially hidden */
         overflow: hidden;
-        transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+        transition: max-height 0.3s ease-out, padding 0.3s ease-out; /* Smooth transition */
       }
 
       .nav.open {
-        max-height: 300px;
-        padding: 0.5rem 0;
+        max-height: 300px; /* A value large enough to show all links when open */
+        padding: 0.5rem 0; /* Reduced vertical padding to show all links */
       }
 
       .nav-link {
         text-align: center;
-        padding: 0.5rem 0;
+        padding: 0.5rem 0; /* Reduced vertical padding for individual links */
         font-size: 1.2rem;
         width: 100%;
-        margin-bottom: 0;
-        flex-basis: auto;
+        margin-bottom: 0; /* Reset horizontal margin */
+        margin-right: 0; /* Reset original margin-right */
       }
 
       .menu-toggle {
-        display: flex;
+        display: flex; /* Show hamburger icon on mobile */
       }
 
       /* Animation for hamburger icon */
@@ -289,7 +289,6 @@
       .menu-toggle.open .bar:nth-child(3) {
         transform: translateY(-11px) rotate(-45deg);
       }
-
       .hero {
         padding: 3rem 1rem;
       }
@@ -329,7 +328,7 @@
         font-size: 1.8rem;
       }
       .nav-link {
-        font-size: 1rem;
+        font-size: 1rem; /* Adjusted for very small screens */
       }
       .hero h2 {
         font-size: 1.8rem;
@@ -354,11 +353,11 @@
           <span class="bar"></span>
       </div>
       <nav class="nav" id="main-nav">
-        <a href="index.html" class="nav-link active">الرئيسية</a>
-        <a href="pages/register.html" class="nav-link">التسجيل</a>
-        <a href="pages/exam-status.html" class="nav-link">الامتحان</a>
-        <a href="pages/status.html" class="nav-link">حالة الطلب</a>
-        <a href="pages/villages.html" class="nav-link">القرى</a>
+        <a href="./index.html" class="nav-link active">الرئيسية</a>
+        <a href="./pages/register.html" class="nav-link">التسجيل</a>
+        <a href="./pages/exam-status.html" class="nav-link">الامتحان</a>
+        <a href="./pages/status.html" class="nav-link">حالة الطلب</a>
+        <a href="./pages/villages.html" class="nav-link">القرى</a>
       </nav>
     </div>
   </header>
@@ -398,14 +397,17 @@
   </footer>
 
   <script>
-    // JavaScript for Mobile Menu Toggle (copied from status.html)
+    // JavaScript for Mobile Menu Toggle (consistent across all pages)
     const mobileMenu = document.getElementById('mobile-menu');
     const mainNav = document.getElementById('main-nav');
 
-    mobileMenu.addEventListener('click', () => {
-      mobileMenu.classList.toggle('open');
-      mainNav.classList.toggle('open');
-    });
+    // Check if elements exist before adding event listener
+    if (mobileMenu && mainNav) {
+      mobileMenu.addEventListener('click', () => {
+        mobileMenu.classList.toggle('open');
+        mainNav.classList.toggle('open');
+      });
+    }
   </script>
 </body>
 </html>
