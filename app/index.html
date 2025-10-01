@@ -45,7 +45,7 @@
       text-align: center;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       position: relative; /* Essential for positioning the absolute nav on mobile */
-      z-index: 10;
+      z-index: 50;
     }
 
     .header .container {
@@ -55,6 +55,7 @@
       max-width: 1200px;
       margin: 0 auto;
       padding: 0 1rem;
+      gap: 1rem;
     }
 
     .logo {
@@ -73,7 +74,15 @@
         padding: 0;
         position: static; /* Reset position for desktop */
         width: auto;
+
+        /* Keep links on a single line but allow horizontal scroll on very small desktop widths */
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
+    /* hide native scrollbar for cleaner look (still scrollable) */
+    .nav::-webkit-scrollbar{ display: none }
+    .nav { scrollbar-width: none; -ms-overflow-style: none; }
 
     .nav-link {
       color: var(--white);
@@ -81,6 +90,8 @@
       font-size: 1.1rem;
       transition: color 0.3s ease;
       white-space: nowrap; /* Prevent links from wrapping */
+      display: inline-block;
+      padding: 0.25rem 0;
     }
 
     .nav-link:hover, .nav-link.active {
@@ -92,19 +103,23 @@
       display: none; /* Hidden on large screens */
       flex-direction: column;
       justify-content: space-around;
-      width: 30px;
-      height: 25px;
+      width: 38px;
+      height: 30px;
       cursor: pointer;
-      z-index: 100;
-      padding: 5px;
+      z-index: 60;
+      padding: 6px;
+      border-radius: 8px;
+      background: transparent;
+      border: none;
     }
+    .menu-toggle:focus { outline: 2px solid rgba(245,158,11,0.25) }
 
     .menu-toggle .bar {
       width: 100%;
       height: 3px;
       background-color: var(--white);
       border-radius: 5px;
-      transition: all 0.3s ease-in-out;
+      transition: all 0.25s ease-in-out;
     }
 
     /* Hero Section Styles */
@@ -150,11 +165,11 @@
       border-radius: 8px;
       transition: background-color 0.3s ease, transform 0.2s ease;
       font-weight: 600;
-      /* Added for better control on mobile */
-      display: inline-block; 
-      min-width: 180px; /* Give a minimum width */
-      max-width: 250px; /* Prevent it from being too wide */
-      box-sizing: border-box; /* Include padding in width calculations */
+      display: inline-block;
+      min-width: 180px;
+      max-width: 250px;
+      box-sizing: border-box;
+      text-align: center;
     }
 
     .btn:hover {
@@ -172,11 +187,11 @@
       border-radius: 8px;
       transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
       font-weight: 600;
-      /* Added for better control on mobile */
       display: inline-block;
-      min-width: 180px; /* Give a minimum width */
-      max-width: 250px; /* Prevent it from being too wide */
-      box-sizing: border-box; /* Include padding in width calculations */
+      min-width: 180px;
+      max-width: 250px;
+      box-sizing: border-box;
+      text-align: center;
     }
 
     .btn-secondary:hover {
@@ -253,42 +268,46 @@
         left: 0;
         width: 100%;
         background: var(--dark-blue);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
         padding: 0; /* Reset padding for initial closed state */
-        border-top: 1px solid rgba(255, 255, 255, 0.2);
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
         max-height: 0; /* Initially hidden */
         overflow: hidden;
-        transition: max-height 0.3s ease-out, padding 0.3s ease-out; /* Smooth transition */
+        transition: max-height 0.32s cubic-bezier(.2,.9,.27,1), padding 0.24s ease-out;
       }
 
       .nav.open {
-        max-height: 300px; /* A value large enough to show all links when open */
-        padding: 0.5rem 0; /* Reduced vertical padding to show all links */
+        max-height: 60vh; /* enough height for many links on small screens */
+        padding: 0.6rem 0; /* vertical padding when open */
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
       }
 
       .nav-link {
         text-align: center;
-        padding: 0.5rem 0; /* Reduced vertical padding for individual links */
-        font-size: 1.2rem;
+        padding: 0.6rem 0; /* Vertical padding for individual links */
+        font-size: 1.15rem;
         width: 100%;
-        margin-bottom: 0; /* Reset horizontal margin */
-        margin-right: 0; /* Reset original margin-right */
+        margin-bottom: 0;
+        border-bottom: 1px solid rgba(255,255,255,0.03);
       }
 
       .menu-toggle {
         display: flex; /* Show hamburger icon on mobile */
+        background: rgba(255,255,255,0.04);
       }
 
       /* Animation for hamburger icon */
       .menu-toggle.open .bar:nth-child(1) {
-        transform: translateY(11px) rotate(45deg);
+        transform: translateY(10px) rotate(45deg);
       }
       .menu-toggle.open .bar:nth-child(2) {
         opacity: 0;
       }
       .menu-toggle.open .bar:nth-child(3) {
-        transform: translateY(-11px) rotate(-45deg);
+        transform: translateY(-10px) rotate(-45deg);
       }
+
       .hero {
         padding: 3rem 1rem;
       }
@@ -299,18 +318,17 @@
         font-size: 1rem;
       }
       .hero-buttons {
-        /* On small screens, flex-direction is column and align-items center */
         flex-direction: column; 
         align-items: center; /* Center the buttons when stacked */
-        gap: 0.8rem; /* Slightly reduced gap for stacked buttons */
+        gap: 0.8rem;
       }
       .btn, .btn-secondary {
-        width: 90%; /* Make buttons take most of the width */
-        max-width: 300px; /* But not wider than 300px */
-        min-width: unset; /* Remove minimum width constraint */
-        margin: 0.3rem auto; /* Center them with auto margins */
-        padding: 0.8rem 1.5rem; /* Adjusted padding for mobile */
-        font-size: 1.1rem; /* Slightly smaller font size */
+        width: 90%;
+        max-width: 300px;
+        min-width: unset;
+        margin: 0.3rem auto;
+        padding: 0.8rem 1.5rem;
+        font-size: 1.1rem;
       }
       .stats-grid {
         grid-template-columns: 1fr; /* Stack stats vertically */
@@ -341,18 +359,32 @@
         padding: 0.7rem 1.2rem; /* Further reduced padding for very small screens */
       }
     }
+
+    /* overlay used to close mobile nav when clicking outside */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(2,6,23,0.45);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .28s ease;
+      z-index: 45;
+    }
+    .overlay.open { opacity: 1; pointer-events: auto; }
   </style>
 </head>
 <body>
-  <header class="header">
+  <header class="header" id="site-header">
     <div class="container">
       <h1 class="logo">قرية متعلمة</h1>
-      <div class="menu-toggle" id="mobile-menu">
+
+      <div class="menu-toggle" id="mobile-menu" role="button" tabindex="0" aria-controls="main-nav" aria-expanded="false" aria-label="قائمة الموقع">
           <span class="bar"></span>
           <span class="bar"></span>
           <span class="bar"></span>
       </div>
-      <nav class="nav" id="main-nav">
+
+      <nav class="nav" id="main-nav" aria-label="روابط الموقع">
         <a href="./index.html" class="nav-link active">الرئيسية</a>
         <a href="./pages/register.html" class="nav-link">التسجيل</a>
         <a href="./pages/exam-status.html" class="nav-link">الامتحان</a>
@@ -362,6 +394,9 @@
       </nav>
     </div>
   </header>
+
+  <!-- overlay to close mobile nav on outside click -->
+  <div id="page-overlay" class="overlay" aria-hidden="true"></div>
 
   <section class="hero">
     <div class="container">
@@ -398,15 +433,83 @@
   </footer>
 
   <script>
-    // JavaScript for Mobile Menu Toggle (consistent across all pages)
+    // Mobile nav toggle with accessibility and overlay
     const mobileMenu = document.getElementById('mobile-menu');
     const mainNav = document.getElementById('main-nav');
+    const overlay = document.getElementById('page-overlay');
+    let previousFocus = null;
 
-    // Check if elements exist before adding event listener
+    function openNav() {
+      previousFocus = document.activeElement;
+      mobileMenu.classList.add('open');
+      mainNav.classList.add('open');
+      overlay.classList.add('open');
+      mobileMenu.setAttribute('aria-expanded', 'true');
+      overlay.setAttribute('aria-hidden', 'false');
+      // focus first link
+      const first = mainNav.querySelector('a, button');
+      if (first) first.focus();
+      document.body.style.overflow = 'hidden';
+      document.addEventListener('keydown', trapFocus);
+    }
+
+    function closeNav() {
+      mobileMenu.classList.remove('open');
+      mainNav.classList.remove('open');
+      overlay.classList.remove('open');
+      mobileMenu.setAttribute('aria-expanded', 'false');
+      overlay.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      if (previousFocus) previousFocus.focus();
+      document.removeEventListener('keydown', trapFocus);
+    }
+
+    function trapFocus(e) {
+      if (e.key !== 'Tab') return;
+      const focusable = mainNav.querySelectorAll('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])');
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) { last.focus(); e.preventDefault(); }
+      } else {
+        if (document.activeElement === last) { first.focus(); e.preventDefault(); }
+      }
+      // allow ESC to close
+      if (e.key === 'Escape') closeNav();
+    }
+
     if (mobileMenu && mainNav) {
       mobileMenu.addEventListener('click', () => {
-        mobileMenu.classList.toggle('open');
-        mainNav.classList.toggle('open');
+        if (mainNav.classList.contains('open')) closeNav(); else openNav();
+      });
+      mobileMenu.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          if (mainNav.classList.contains('open')) closeNav(); else openNav();
+        }
+      });
+      // close when clicking overlay
+      overlay.addEventListener('click', closeNav);
+      // close when clicking a link on small screens
+      mainNav.querySelectorAll('a').forEach(a => {
+        a.addEventListener('click', () => {
+          if (window.innerWidth <= 768) closeNav();
+        });
+      });
+      // ensure nav resets on resize to desktop
+      window.addEventListener('resize', () => {
+        if (window.innerWidth > 768 && mainNav.classList.contains('open')) {
+          closeNav();
+        }
+      });
+      // set active link based on path (simple)
+      document.querySelectorAll('.nav-link').forEach(link => {
+        try {
+          if (location.pathname.endsWith(link.getAttribute('href').split('/').pop())) {
+            link.classList.add('active');
+          }
+        } catch (e) {}
       });
     }
   </script>
