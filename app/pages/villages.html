@@ -38,15 +38,68 @@
             padding: 0 1rem;
         }
         
-        /* Header styles - UNCHANGED */
-        .header { background: var(--dark-blue); padding: 1rem 0; color: var(--white); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); position: relative; z-index: 10; }
-        .header .container { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
-        .logo { font-size: 2.2rem; margin: 0; color: var(--white); white-space: nowrap; }
-        .nav { display: flex; gap: 1.5rem; max-height: none; padding: 0; position: static; width: auto; }
-        .nav-link { color: var(--white); text-decoration: none; font-size: 1.1rem; transition: color 0.3s ease; white-space: nowrap; }
-        .nav-link:hover, .nav-link.active { color: var(--accent-orange); }
-        .menu-toggle { display: none; flex-direction: column; justify-content: space-around; width: 30px; height: 25px; cursor: pointer; z-index: 100; padding: 5px; }
-        .menu-toggle .bar { width: 100%; height: 3px; background-color: var(--white); border-radius: 5px; transition: all 0.3s ease-in-out; }
+        /* Header styles */
+        .header { 
+            background: var(--dark-blue); 
+            padding: 1rem 0; 
+            color: var(--white); 
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+            position: relative; 
+            z-index: 10; 
+        }
+        .header .container { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 0 1rem; 
+        }
+        .logo { 
+            font-size: 2.2rem; 
+            margin: 0; 
+            color: var(--white); 
+            white-space: nowrap; 
+        }
+        
+        /* Desktop Navigation (Default) */
+        .nav { 
+            display: flex; 
+            gap: 1.5rem; 
+            max-height: none; 
+            padding: 0; 
+            position: static; 
+            width: auto; 
+        }
+        .nav-link { 
+            color: var(--white); 
+            text-decoration: none; 
+            font-size: 1.1rem; 
+            transition: color 0.3s ease; 
+            white-space: nowrap; 
+        }
+        .nav-link:hover, .nav-link.active { 
+            color: var(--accent-orange); 
+        }
+        
+        /* Menu Toggle Button (Hidden on Desktop) */
+        .menu-toggle { 
+            display: none; 
+            flex-direction: column; 
+            justify-content: space-around; 
+            width: 30px; 
+            height: 25px; 
+            cursor: pointer; 
+            z-index: 100; 
+            padding: 5px; 
+        }
+        .menu-toggle .bar { 
+            width: 100%; 
+            height: 3px; 
+            background-color: var(--white); 
+            border-radius: 5px; 
+            transition: all 0.3s ease-in-out; 
+        }
         
         /* Main content styles - Minor tweaks for wider layout */
         .main-content-container {
@@ -225,24 +278,80 @@
             border-top: 1px solid #e5e5e5;
         }
 
-        /* Responsive adjustments */
+        /* ==================================== */
+        /* === Responsive adjustments (Mobile) === */
+        /* ==================================== */
         @media (max-width: 768px) {
-            .menu-toggle { display: flex; }
-            .nav { position: absolute; max-height: 0; }
-            .nav.open { max-height: 60vh; padding: 0.6rem 0; }
+            
+            /* 1. Mobile Menu Toggle */
+            .menu-toggle { 
+                display: flex; /* Show the menu button */
+            }
+            
+            /* 2. Mobile Navigation Bar (The one that slides) */
+                  .nav {
+        display: flex;
+        flex-direction: column; /* Stack links vertically on mobile */
+        position: absolute;
+        top: 100%; /* Position right below the header */
+        left: 0;
+        width: 100%;
+        background: var(--dark-blue);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        padding: 0; /* Reset padding for initial closed state */
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        max-height: 0; /* Initially hidden */
+        overflow: hidden;
+        transition: max-height 0.32s cubic-bezier(.2,.9,.27,1), padding 0.24s ease-out;
+      }
 
+      .nav.open {
+        max-height: 60vh; /* enough height for many links on small screens */
+        padding: 0.6rem 0; /* vertical padding when open */
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .nav-link {
+        text-align: center;
+        padding: 0.6rem 0; /* Vertical padding for individual links */
+        font-size: 1.15rem;
+        width: 100%;
+        margin-bottom: 0;
+        border-bottom: 1px solid rgba(255,255,255,0.03);
+      }
+
+      .menu-toggle {
+        display: flex; /* Show hamburger icon on mobile */
+        background: rgba(255,255,255,0.04);
+      }
+
+      /* Animation for hamburger icon */
+      .menu-toggle.open .bar:nth-child(1) {
+        transform: translateY(10px) rotate(45deg);
+      }
+      .menu-toggle.open .bar:nth-child(2) {
+        opacity: 0;
+      }
+      .menu-toggle.open .bar:nth-child(3) {
+        transform: translateY(-10px) rotate(-45deg);
+      }
             .main-content-container {
                 margin: 1rem auto;
                 padding: 1.5rem 0.8rem;
                 max-width: 100%;
             }
+            
+            /* 5. Filter Controls on Mobile (Stacked) */
             .filter-controls {
                 flex-direction: column;
                 padding: 1rem;
             }
             .filter-group {
-                min-width: 100%;
+                min-width: 100%; /* Make filter controls full width */
+                flex: 1 1 100%;
             }
+            
             .village-grid {
                 grid-template-columns: 1fr;
             }
@@ -366,10 +475,11 @@
             { governorate: "البحيرة", city: "دمنهور", name: "مدينة دمنهور", leader: "منال محمد عبد الحميد", rating: 5, applicantsCount: 70, youthCount: 40, childrenCount: 30 },
             { governorate: "البحيرة", city: "أبو حمص", name: "قرية الأبقعين", leader: "سعد زغلول محمود", rating: 3, applicantsCount: 50, youthCount: 25, childrenCount: 25 },
             
-            // --- بني سويف ---
-            { governorate: "بني سويف", city: "سمسطا", name: "قرية دشاشه", leader: "محمد شعبان محمد عبدالرحيم", rating: 4, applicantsCount: 45, youthCount: 20, childrenCount: 25 },
+            // --- بني سويف (تعديل: دمج القرى تحت "سمسطا" وإزالة الفشن) ---
             { governorate: "بني سويف", city: "سمسطا", name: "مدينة سمسطا", leader: "خالد منصور علي", rating: 3, applicantsCount: 50, youthCount: 20, childrenCount: 30 },
-            { governorate: "بني سويف", city: "الفشن", name: "قرية عزبة نصر", leader: "عمرو جمال أحمد السيد", rating: 4, applicantsCount: 50, youthCount: 20, childrenCount: 30 },
+            { governorate: "بني سويف", city: "سمسطا", name: "قرية دشاشه", leader: "عبدالرحمن عبدالسلام شعبان", rating: 4, applicantsCount: 45, youthCount: 20, childrenCount: 25 },
+            { governorate: "بني سويف", city: "سمسطا", name: "قرية عزبة نصر", leader: "عمرو جمال أحمد السيد", rating: 4, applicantsCount: 50, youthCount: 20, childrenCount: 30 },
+            // ملاحظة: تم حذف الموقع القديم التابع لـ الفشن بناءً على طلبك
             
             // --- الفيوم ---
             { governorate: "الفيوم", city: "طامية", name: "قرية كفر عميرة", leader: "علياء مصطفى جلال", rating: 3, applicantsCount: 40, youthCount: 15, childrenCount: 25 },
@@ -579,7 +689,7 @@
             filterAndRenderVillages(); // عرض الكل في البداية
         });
         
-        // JavaScript for Mobile Menu Toggle (UNCHANGED)
+        // JavaScript for Mobile Menu Toggle
         const mobileMenu = document.getElementById('mobile-menu');
         const mainNav = document.getElementById('main-nav');
         if (mobileMenu && mainNav) {
