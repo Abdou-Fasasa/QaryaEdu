@@ -429,20 +429,18 @@
 
     <script>
       // Simulated data for demonstration
-      const applications = [
-        {
-          requestId: "6CMdSd",
-          nationalId: "28803312200075",
-          status: "rejected",
-          name: "محمد شعبان محمد عبدالرحيم",
-          age: 27, // Age to determine youth/child
-          village: "قرية دشاشة",
-          message: "هناك ادخال بيانات خاطئ في الطلب.",
-          reason: "هناك ادخال بيانات خاطئ في الطلب.",
+const applications = [
+  {
+    requestId: "rRMgT7",
+    nationalId: "30901252201795",
+    status: "under_review", // جاري مراجعة الطلب
+    name: "محمد احمد ربيع عبدالوهاب",
+    age: 16, // لتحديد إذا كان طفل أو شاب
+    village: "قرية دشاشة",
+    message: "جاري مراجعة الطلب. تابع حالة الطلب هنا",
+  },
+];
 
-        },
-
-      ];
 
       // Function to get the next Saturday, Sunday, and Monday dates
       function getNextExamDates() {
