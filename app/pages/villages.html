@@ -1,398 +1,593 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>القرى التعليمية | قرية متعلمة</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    /* Global styles and variables, consistent across all pages */
-    :root {
-      --primary-blue: #1d4ed8;
-      --dark-blue: #1e3a8a;
-      --light-blue: #e0f2fe;
-      --accent-orange: #f59e0b;
-      --text-color: #333;
-      --light-bg: #eef2ff;
-      --white: #ffffff;
-      --gray-text: #888;
-      --border-color: #93c5fd;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>القرى التعليمية | قرية متعلمة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Global styles and variables - UNCHANGED */
+        :root {
+            --primary-blue: #1d4ed8;
+            --dark-blue: #1e3a8a;
+            --light-blue: #e0f2fe;
+            --accent-orange: #f59e0b;
+            --text-color: #333;
+            --light-bg: #eef2ff;
+            --white: #ffffff;
+            --gray-text: #6b7280;
+            --border-color: #93c5fd;
+            --input-focus-shadow: 0 0 0 3px rgba(29, 78, 216, 0.2);
+        }
 
-    body {
-      font-family: 'Cairo', sans-serif;
-      background: linear-gradient(to bottom, var(--light-bg), var(--white));
-      color: var(--text-color);
-      margin: 0;
-      padding: 0;
-      line-height: 1.6;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(to bottom, var(--light-bg), var(--white));
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
 
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 1rem;
-    }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        /* Header styles - UNCHANGED */
+        .header { background: var(--dark-blue); padding: 1rem 0; color: var(--white); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); position: relative; z-index: 10; }
+        .header .container { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
+        .logo { font-size: 2.2rem; margin: 0; color: var(--white); white-space: nowrap; }
+        .nav { display: flex; gap: 1.5rem; max-height: none; padding: 0; position: static; width: auto; }
+        .nav-link { color: var(--white); text-decoration: none; font-size: 1.1rem; transition: color 0.3s ease; white-space: nowrap; }
+        .nav-link:hover, .nav-link.active { color: var(--accent-orange); }
+        .menu-toggle { display: none; flex-direction: column; justify-content: space-around; width: 30px; height: 25px; cursor: pointer; z-index: 100; padding: 5px; }
+        .menu-toggle .bar { width: 100%; height: 3px; background-color: var(--white); border-radius: 5px; transition: all 0.3s ease-in-out; }
+        
+        /* Main content styles - Minor tweaks for wider layout */
+        .main-content-container {
+            flex: 1;
+            text-align: center;
+            padding: 3rem 1rem;
+            max-width: 1100px;
+            margin: 2rem auto;
+            background: var(--white);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            position: relative;
+            z-index: 1;
+        }
 
-    /* Header styles - Consistent across all pages */
-    .header {
-      background: var(--dark-blue);
-      padding: 1rem 0; /* Adjusted padding for better consistency */
-      color: var(--white);
-      text-align: center;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      position: relative; /* Essential for positioning the absolute nav on mobile */
-      z-index: 10;
-    }
+        .hero-title {
+            font-size: 2.5rem;
+            color: var(--primary-blue);
+            margin: 1.5rem 0 1rem;
+            position: relative;
+            padding-bottom: 10px;
+        }
 
-    .header .container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 1rem;
-    }
+        .hero-title::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 0;
+            width: 80px;
+            height: 4px;
+            background-color: var(--accent-orange);
+            border-radius: 2px;
+        }
 
-    .logo {
-      font-size: 2.2rem;
-      margin: 0;
-      color: var(--white); /* Ensure logo color is white */
-      white-space: nowrap; /* Prevent logo from wrapping */
-    }
+        .hero-text {
+            font-size: 1.1rem;
+            color: var(--gray-text);
+            margin-bottom: 2rem;
+        }
 
-    /* Navigation for larger screens (default) */
-    .nav {
-        display: flex; /* Display links side by side */
-        gap: 1.5rem; /* Space between links */
-        /* Important: On desktop, make sure max-height and padding are reset */
-        max-height: none;
-        padding: 0;
-        position: static; /* Reset position for desktop */
-        width: auto;
-    }
+        /* --- Filter Controls (New Layout) --- */
+        .filter-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            padding: 1.5rem;
+            background-color: #f7f9fc;
+            border-radius: 10px;
+            border: 1px solid #e0e7ff;
+        }
 
-    .nav-link {
-      color: var(--white);
-      text-decoration: none;
-      font-size: 1.1rem;
-      transition: color 0.3s ease;
-      white-space: nowrap; /* Prevent links from wrapping */
-    }
+        .filter-group {
+            flex: 1 1 200px;
+            min-width: 180px;
+            text-align: right;
+        }
 
-    .nav-link:hover, .nav-link.active {
-      color: var(--accent-orange);
-    }
+        .filter-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            color: var(--dark-blue);
+            font-size: 0.95rem;
+        }
 
-    /* Hamburger Menu Icon - Hidden by default on desktop */
-    .menu-toggle {
-      display: none; /* Hidden on large screens */
-      flex-direction: column;
-      justify-content: space-around;
-      width: 30px;
-      height: 25px;
-      cursor: pointer;
-      z-index: 100;
-      padding: 5px;
-    }
+        .filter-group select, .filter-group input[type="text"] {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: var(--white);
+            transition: border-color 0.3s, box-shadow 0.3s;
+            box-sizing: border-box;
+            text-align: right;
+        }
 
-    .menu-toggle .bar {
-      width: 100%;
-      height: 3px;
-      background-color: var(--white);
-      border-radius: 5px;
-      transition: all 0.3s ease-in-out;
-    }
-
-    /* Main content styles */
-    .main-content-container { /* Renamed 'main.container' for consistency */
-      flex: 1;
-      text-align: center;
-      padding: 3rem 1rem;
-      max-width: 900px; /* Slightly wider for village grid */
-      margin: 2rem auto;
-      background: var(--white);
-      border-radius: 15px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-      position: relative;
-      z-index: 1;
-    }
-
-    .hero-title {
-      font-size: 2.5rem;
-      color: var(--primary-blue);
-      margin: 1.5rem 0 1rem;
-      position: relative;
-      padding-bottom: 10px;
-    }
-
-    .hero-title::after {
-      content: '';
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      bottom: 0;
-      width: 80px;
-      height: 4px;
-      background-color: var(--accent-orange);
-      border-radius: 2px;
-    }
-
-    .hero-text {
-      font-size: 1.1rem;
-      color: var(--gray-text);
-      margin-bottom: 2rem;
-    }
-
-    /* Village Grid Styles */
-    .village-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1.5rem;
-      padding: 1rem;
-      text-align: right; /* Align text right for Arabic */
-    }
-
-    .card {
-      background-color: #f8f8f8;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-    }
-
-    .card-title {
-      color: var(--dark-blue);
-      font-size: 1.8rem;
-      margin-top: 0;
-      margin-bottom: 1rem;
-      border-bottom: 2px solid var(--primary-blue);
-      padding-bottom: 0.5rem;
-    }
-
-    .card p {
-      font-size: 1rem;
-      color: var(--text-color);
-      margin-bottom: 0.8rem;
-    }
-
-    .card strong {
-      color: var(--primary-blue);
-    }
-
-    .applicants-info {
-        font-size: 0.95em;
-        color: var(--gray-text);
-        margin-top: 1rem;
-        border-top: 1px dashed #eee;
-        padding-top: 1rem;
-    }
-
-    /* Footer Styles - Consistent across all pages */
-    .footer {
-      margin-top: auto;
-      text-align: center;
-      color: var(--gray-text);
-      padding: 1.5rem;
-      font-size: 0.95rem;
-      background-color: #f0f0f0;
-      border-top: 1px solid #e5e5e5;
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-      .header .container {
-        flex-direction: row; /* Keep logo and toggle on one row */
-        justify-content: space-between;
-        align-items: center;
-      }
-      .nav {
-        display: flex;
-        flex-direction: column; /* Stack links vertically on mobile */
-        position: absolute;
-        top: 100%; /* Position right below the header */
-        left: 0;
-        width: 100%;
-        background: var(--dark-blue);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-        padding: 0; /* Reset padding for initial closed state */
-        border-top: 1px solid rgba(255, 255, 255, 0.06);
-        max-height: 0; /* Initially hidden */
-        overflow: hidden;
-        transition: max-height 0.32s cubic-bezier(.2,.9,.27,1), padding 0.24s ease-out;
-      }
-
-      .nav.open {
-        max-height: 60vh; /* enough height for many links on small screens */
-        padding: 0.6rem 0; /* vertical padding when open */
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-      }
-
-      .nav-link {
-        text-align: center;
-        padding: 0.6rem 0; /* Vertical padding for individual links */
-        font-size: 1.15rem;
-        width: 100%;
-        margin-bottom: 0;
-        border-bottom: 1px solid rgba(255,255,255,0.03);
-      }
-
-      .menu-toggle {
-        display: flex; /* Show hamburger icon on mobile */
-        background: rgba(255,255,255,0.04);
-      }
-
-      /* Animation for hamburger icon */
-      .menu-toggle.open .bar:nth-child(1) {
-        transform: translateY(10px) rotate(45deg);
-      }
-      .menu-toggle.open .bar:nth-child(2) {
-        opacity: 0;
-      }
-      .menu-toggle.open .bar:nth-child(3) {
-        transform: translateY(-10px) rotate(-45deg);
-      }
+        .filter-group select:focus, .filter-group input[type="text"]:focus {
+            border-color: var(--primary-blue);
+            box-shadow: var(--input-focus-shadow);
+            outline: none;
+        }
+        /* --- End Filter Controls --- */
 
 
-      .main-content-container { /* Adjusted for better mobile margins and padding */
-        margin: 1rem auto;
-        padding: 1.5rem 0.8rem;
-      }
-      .hero-title {
-        font-size: 2rem;
-      }
-      .hero-text {
-        font-size: 1rem;
-      }
-      .village-grid {
-        grid-template-columns: 1fr; /* Stack villages vertically */
-        padding: 0.5rem;
-      }
-      .card {
-        padding: 1rem;
-      }
-      .card-title {
-        font-size: 1.6rem;
-      }
-    }
+        /* Village Grid Styles - Slightly enhanced */
+        .village-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            padding: 1rem 0;
+            text-align: right;
+        }
 
-    @media (max-width: 480px) {
-      .logo {
-        font-size: 1.8rem;
-      }
-      .nav-link {
-        font-size: 1rem; /* Slightly smaller on very small screens */
-      }
-    }
-  </style>
+        .card {
+            background-color: #f8faff;
+            border: 1px solid #e0e7ff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border-right: 5px solid var(--primary-blue);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .card::before {
+            content: '📌 ' attr(data-governorate);
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: var(--accent-orange);
+            color: var(--white);
+            padding: 0.3rem 0.8rem;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            z-index: 2;
+        }
+
+        .card-title {
+            color: var(--dark-blue);
+            font-size: 1.7rem;
+            font-weight: 800;
+            margin-top: 0;
+            margin-bottom: 0.8rem;
+        }
+        
+        .card .location-detail {
+            font-size: 0.95rem;
+            color: var(--gray-text);
+            margin-bottom: 1rem;
+        }
+
+        .card strong {
+            color: var(--primary-blue);
+        }
+
+        .applicants-info {
+            font-size: 0.95em;
+            color: var(--gray-text);
+            margin-top: 1.5rem;
+            border-top: 1px dashed #cfcfcf;
+            padding-top: 1rem;
+            font-style: italic;
+        }
+
+        .no-results {
+            grid-column: 1 / -1;
+            font-size: 1.2rem;
+            color: #d32f2f;
+            padding: 2rem;
+            background-color: #fee;
+            border-radius: 10px;
+            border: 1px solid #fbc;
+            margin-top: 1rem;
+        }
+
+        /* Footer Styles - UNCHANGED */
+        .footer {
+            margin-top: auto;
+            text-align: center;
+            color: var(--gray-text);
+            padding: 1.5rem;
+            font-size: 0.95rem;
+            background-color: #f0f0f0;
+            border-top: 1px solid #e5e5e5;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .menu-toggle { display: flex; }
+            .nav { position: absolute; max-height: 0; }
+            .nav.open { max-height: 60vh; padding: 0.6rem 0; }
+
+            .main-content-container {
+                margin: 1rem auto;
+                padding: 1.5rem 0.8rem;
+                max-width: 100%;
+            }
+            .filter-controls {
+                flex-direction: column;
+                padding: 1rem;
+            }
+            .filter-group {
+                min-width: 100%;
+            }
+            .village-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-  <header class="header">
-    <div class="container">
-      <h1 class="logo">قرية متعلمة</h1>
-      <div class="menu-toggle" id="mobile-menu">
-          <span class="bar"></span>
-          <span class="bar"></span>
-          <span class="bar"></span>
-      </div>
-      <nav class="nav" id="main-nav">
-        <a href="../index.html" class="nav-link">الرئيسية</a>
-        <a href="./register.html" class="nav-link">التسجيل</a>
-        <a href="./exam-status.html" class="nav-link">الامتحان</a>
-        <a href="./status.html" class="nav-link">حالة الطلب</a>
-        <a href="./villages.html" class="nav-link active">القرى</a>
-        <a href="./students.html" class="nav-link">الطلاب</a>
-      </nav>
-    </div>
-  </header>
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">قرية متعلمة</h1>
+            <div class="menu-toggle" id="mobile-menu">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+            <nav class="nav" id="main-nav">
+                <a href="../index.html" class="nav-link">الرئيسية</a>
+                <a href="./register.html" class="nav-link">التسجيل</a>
+                <a href="./exam-status.html" class="nav-link">الامتحان</a>
+                <a href="./status.html" class="nav-link">حالة الطلب</a>
+                <a href="./villages.html" class="nav-link active">القرى</a>
+                <a href="./students.html" class="nav-link">الطلاب</a>
+            </nav>
+        </div>
+    </header>
 
-  <main class="main-content-container">
-    <section>
-      <h2 class="hero-title">القرى التعليمية</h2>
-      <p class="hero-text">تعرف على القرى المتاحة والقادة والمتقدمين.</p>
+    <main class="main-content-container">
+        <section>
+            <h2 class="hero-title">القرى والمدن التعليمية</h2>
+            <p class="hero-text">استخدم القوائم المنسدلة لتصفية المواقع حسب المحافظة والمدينة، أو ابحث باسم القائد.</p>
 
-      <div id="village-list" class="village-grid"></div>
-    </section>
-  </main>
+            <div class="filter-controls">
+                
+                <div class="filter-group">
+                    <label for="governorate-select">اختر المحافظة:</label>
+                    <select id="governorate-select">
+                        <option value="">جميع المحافظات</option>
+                    </select>
+                </div>
 
-  <footer class="footer">
-    <div class="container">
-      <p>&copy; 2025 منصة قرية متعلمة. جميع الحقوق محفوظة.</p>
-    </div>
-  </footer>
+                <div class="filter-group">
+                    <label for="city-select">اختر المدينة/المركز:</label>
+                    <select id="city-select" disabled>
+                        <option value="">جميع المدن</option>
+                    </select>
+                </div>
 
-  <script>
-    const villages = [
-      {
-        name: "قرية دشاشه",
-        leader: "محمد شعبان محمد عبدالرحيم",
-        rating: 4,
-        applicantsCount: 45,
-        youthCount: 20,    // New: Count of youth
-        childrenCount: 25  // New: Count of children
-      },
-      {
-        name: "قرية عزبة نصر",
-        leader: "عمرو جمال أحمد",
-        rating: 4,
-        applicantsCount: 50,
-        youthCount: 20,
-        childrenCount: 30
-      },
-      {
-        name: "قرية الريغة",
-        leader: "ليلى خالد محمود",
-        rating: 4,
-        applicantsCount: 45,
-        youthCount: 20,
-        childrenCount: 25
-      },
-      {
-        name: "مدينة سمسطا",
-        leader: "خالد منصور علي",
-        rating: 3,
-        applicantsCount: 50,
-        youthCount: 20,
-        childrenCount: 30
-      }
-    ];
+                <div class="filter-group">
+                    <label for="village-select">اختر القرية/الحي:</label>
+                    <select id="village-select" disabled>
+                        <option value="">جميع القرى والأحياء</option>
+                    </select>
+                </div>
 
-    const listContainer = document.getElementById("village-list");
+                <div class="filter-group">
+                    <label for="leader-search">البحث باسم القائد:</label>
+                    <input type="text" id="leader-search" placeholder="اكتب اسم القائد (ثلاثي/رباعي)..." />
+                </div>
 
-    villages.forEach((village) => {
-      const el = document.createElement("div");
-      el.className = "card";
-      el.innerHTML = `
-        <h3 class="card-title">${village.name}</h3>
-        <p>القائد: <strong>${village.leader}</strong></p>
-        <p>التقييم: ${"⭐".repeat(village.rating)}${"☆".repeat(5 - village.rating)}</p>
-        <p>عدد المتقدمين: ${village.applicantsCount}</p>
-        <p>الشباب: ${village.youthCount}</p>    <p>الأطفال: ${village.childrenCount}</p> <p class="applicants-info">للاطلاع على قائمة المتقدمين، يرجى التواصل مع الإدارة.</p>
-      `;
-      listContainer.appendChild(el);
-    });
+            </div>
 
-    // JavaScript for Mobile Menu Toggle (consistent across all pages)
-    const mobileMenu = document.getElementById('mobile-menu');
-    const mainNav = document.getElementById('main-nav');
+            <div id="village-list" class="village-grid">
+                </div>
+        </section>
+    </main>
 
-    // Check if elements exist before adding event listener
-    if (mobileMenu && mainNav) {
-      mobileMenu.addEventListener('click', () => {
-        mobileMenu.classList.toggle('open');
-        mainNav.classList.toggle('open');
-      });
-    }
-  </script>
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 منصة قرية متعلمة. جميع الحقوق محفوظة.</p>
+        </div>
+    </footer>
+
+    <script>
+        // قاعدة بيانات مصرية موسعة ومحدثة بأسماء قادة ثلاثية ورباعية
+        const locationData = [
+            // --- القاهرة ---
+            { governorate: "القاهرة", city: "المعادي", name: "حي المعادي", leader: "أحمد حسام الدين طه", rating: 5, applicantsCount: 120, youthCount: 70, childrenCount: 50 },
+            { governorate: "القاهرة", city: "شبرا", name: "شبرا الخيمة", leader: "فاطمة الزهراء علي محمد", rating: 4, applicantsCount: 80, youthCount: 40, childrenCount: 40 },
+            { governorate: "القاهرة", city: "التجمع الخامس", name: "حي اللوتس", leader: "يوسف خالد منصور", rating: 5, applicantsCount: 90, youthCount: 50, childrenCount: 40 },
+            { governorate: "القاهرة", city: "حلوان", name: "قرية كفر العلو", leader: "مريم علي إبراهيم", rating: 3, applicantsCount: 65, youthCount: 30, childrenCount: 35 },
+            { governorate: "القاهرة", city: "مدينة نصر", name: "حي الزهراء", leader: "خالد نبيل عبد الرحمن", rating: 4, applicantsCount: 105, youthCount: 60, childrenCount: 45 },
+
+            // --- الجيزة ---
+            { governorate: "الجيزة", city: "الهرم", name: "المنطقة الأثرية", leader: "سارة محمود علي السيد", rating: 4, applicantsCount: 95, youthCount: 55, childrenCount: 40 },
+            { governorate: "الجيزة", city: "الدقي", name: "حي الدقي", leader: "محمود يوسف إبراهيم", rating: 5, applicantsCount: 70, youthCount: 35, childrenCount: 35 },
+            { governorate: "الجيزة", city: "أوسيم", name: "قرية برطس", leader: "حسين محمد أحمد", rating: 3, applicantsCount: 55, youthCount: 25, childrenCount: 30 },
+            { governorate: "الجيزة", city: "البدرشين", name: "قرية سقارة", leader: "إيناس سعيد توفيق", rating: 4, applicantsCount: 40, youthCount: 18, childrenCount: 22 },
+            
+            // --- الإسكندرية ---
+            { governorate: "الإسكندرية", city: "المنتزة", name: "حي سيدي بشر", leader: "ياسمين محمد كمال", rating: 3, applicantsCount: 60, youthCount: 25, childrenCount: 35 },
+            { governorate: "الإسكندرية", city: "العجمي", name: "حي العجمي", leader: "علي مصطفى عبد اللطيف", rating: 4, applicantsCount: 88, youthCount: 50, childrenCount: 38 },
+            { governorate: "الإسكندرية", city: "برج العرب", name: "قرية بهيج", leader: "نورا فؤاد عثمان", rating: 3, applicantsCount: 30, youthCount: 10, childrenCount: 20 },
+            
+            // --- الشرقية ---
+            { governorate: "الشرقية", city: "الزقازيق", name: "حي القومية", leader: "أشرف كمال محمد", rating: 5, applicantsCount: 115, youthCount: 60, childrenCount: 55 },
+            { governorate: "الشرقية", city: "بلبيس", name: "مدينة بلبيس", leader: "هدى سعيد جابر", rating: 4, applicantsCount: 90, youthCount: 50, childrenCount: 40 },
+            { governorate: "الشرقية", city: "أبو حماد", name: "قرية الأسدية", leader: "طارق عبد الله مرسي", rating: 3, applicantsCount: 45, youthCount: 20, childrenCount: 25 },
+
+            // --- الدقهلية ---
+            { governorate: "الدقهلية", city: "المنصورة", name: "حي توريل", leader: "إياد زكريا حسين", rating: 5, applicantsCount: 110, youthCount: 60, childrenCount: 50 },
+            { governorate: "الدقهلية", city: "السنبلاوين", name: "قرية ميت غمر", leader: "حازم أحمد علي", rating: 4, applicantsCount: 75, youthCount: 40, childrenCount: 35 },
+            { governorate: "الدقهلية", city: "طلخا", name: "مدينة طلخا", leader: "منى جمال الصاوي", rating: 4, applicantsCount: 85, youthCount: 45, childrenCount: 40 },
+
+            // --- المنوفية ---
+            { governorate: "المنوفية", city: "شبين الكوم", name: "قرية كفر البتانون", leader: "هاني محمود إمام", rating: 4, applicantsCount: 55, youthCount: 25, childrenCount: 30 },
+            { governorate: "المنوفية", city: "تلا", name: "قرية كفر ربيع", leader: "سالي هشام فوزي", rating: 3, applicantsCount: 35, youthCount: 15, childrenCount: 20 },
+
+            // --- الغربية ---
+            { governorate: "الغربية", city: "المحلة الكبرى", name: "قرية محلة روح", leader: "مصطفى كامل مصطفى", rating: 3, applicantsCount: 55, youthCount: 25, childrenCount: 30 },
+            { governorate: "الغربية", city: "طنطا", name: "حي سيجر", leader: "كريم ناصر إبراهيم", rating: 5, applicantsCount: 100, youthCount: 55, childrenCount: 45 },
+
+            // --- القليوبية ---
+            { governorate: "القليوبية", city: "بنها", name: "مدينة بنها", leader: "يوسف أيمن السيد", rating: 4, applicantsCount: 85, youthCount: 45, childrenCount: 40 },
+            { governorate: "القليوبية", city: "قليوب", name: "قرية بلقس", leader: "نورهان مجدي سالم", rating: 3, applicantsCount: 40, youthCount: 20, childrenCount: 20 },
+
+            // --- كفر الشيخ ---
+            { governorate: "كفر الشيخ", city: "دسوق", name: "قرية شباس عمير", leader: "نوران علي عبد العزيز", rating: 3, applicantsCount: 45, youthCount: 20, childrenCount: 25 },
+            { governorate: "كفر الشيخ", city: "الرياض", name: "قرية الروس", leader: "فهد محمد جودة", rating: 4, applicantsCount: 30, youthCount: 15, childrenCount: 15 },
+            
+            // --- البحيرة ---
+            { governorate: "البحيرة", city: "دمنهور", name: "مدينة دمنهور", leader: "منال محمد عبد الحميد", rating: 5, applicantsCount: 70, youthCount: 40, childrenCount: 30 },
+            { governorate: "البحيرة", city: "أبو حمص", name: "قرية الأبقعين", leader: "سعد زغلول محمود", rating: 3, applicantsCount: 50, youthCount: 25, childrenCount: 25 },
+            
+            // --- بني سويف ---
+            { governorate: "بني سويف", city: "سمسطا", name: "قرية دشاشه", leader: "محمد شعبان محمد عبدالرحيم", rating: 4, applicantsCount: 45, youthCount: 20, childrenCount: 25 },
+            { governorate: "بني سويف", city: "سمسطا", name: "مدينة سمسطا", leader: "خالد منصور علي", rating: 3, applicantsCount: 50, youthCount: 20, childrenCount: 30 },
+            { governorate: "بني سويف", city: "الفشن", name: "قرية عزبة نصر", leader: "عمرو جمال أحمد السيد", rating: 4, applicantsCount: 50, youthCount: 20, childrenCount: 30 },
+            
+            // --- الفيوم ---
+            { governorate: "الفيوم", city: "طامية", name: "قرية كفر عميرة", leader: "علياء مصطفى جلال", rating: 3, applicantsCount: 40, youthCount: 15, childrenCount: 25 },
+            { governorate: "الفيوم", city: "الفيوم", name: "حي الجامعة", leader: "هشام إبراهيم عبد الحميد", rating: 4, applicantsCount: 60, youthCount: 30, childrenCount: 30 },
+
+            // --- المنيا ---
+            { governorate: "المنيا", city: "ملوي", name: "مدينة ملوي", leader: "زينب كمال حسني", rating: 4, applicantsCount: 40, youthCount: 15, childrenCount: 25 },
+            { governorate: "المنيا", city: "المنيا الجديدة", name: "حي البهنسا", leader: "حسين جابر محمد", rating: 3, applicantsCount: 35, youthCount: 10, childrenCount: 25 },
+            
+            // --- أسيوط ---
+            { governorate: "أسيوط", city: "أبنوب", name: "مدينة أبنوب", leader: "نورهان فتحي عثمان", rating: 5, applicantsCount: 55, youthCount: 30, childrenCount: 25 },
+            { governorate: "أسيوط", city: "أسيوط الجديدة", name: "حي الزهور", leader: "ماجد عصام خليل", rating: 4, applicantsCount: 45, youthCount: 20, childrenCount: 25 },
+            
+            // --- سوهاج ---
+            { governorate: "سوهاج", city: "جرجا", name: "قرية الزهايرة", leader: "علاء الدين فتحي", rating: 4, applicantsCount: 60, youthCount: 30, childrenCount: 30 },
+            { governorate: "سوهاج", city: "سوهاج", name: "حي الكوثر", leader: "أمل سامي رزق", rating: 5, applicantsCount: 75, youthCount: 40, childrenCount: 35 },
+            
+            // --- قنا ---
+            { governorate: "قنا", city: "نقادة", name: "قرية الحمران", leader: "طارق سليم حسين", rating: 4, applicantsCount: 60, youthCount: 30, childrenCount: 30 },
+            { governorate: "قنا", city: "قوص", name: "مدينة قوص", leader: "فداء حسن عبد العليم", rating: 3, applicantsCount: 40, youthCount: 20, childrenCount: 20 },
+            
+            // --- الأقصر ---
+            { governorate: "الأقصر", city: "الأقصر الجديدة", name: "حي الكرنك", leader: "عمران أحمد البيه", rating: 4, applicantsCount: 75, youthCount: 45, childrenCount: 30 },
+            { governorate: "الأقصر", city: "إسنا", name: "قرية توماس", leader: "نزار أيمن محمد", rating: 5, applicantsCount: 35, youthCount: 15, childrenCount: 20 },
+            
+            // --- أسوان ---
+            { governorate: "أسوان", city: "إدفو", name: "مدينة إدفو", leader: "هاجر عادل فؤاد", rating: 4, applicantsCount: 65, youthCount: 40, childrenCount: 25 },
+            { governorate: "أسوان", city: "كوم أمبو", name: "قرية المنشية", leader: "صلاح الدين مراد", rating: 4, applicantsCount: 55, youthCount: 30, childrenCount: 25 },
+
+            // --- البحر الأحمر ---
+            { governorate: "البحر الأحمر", city: "الغردقة", name: "حي الدهار", leader: "هشام علي السيد", rating: 5, applicantsCount: 40, youthCount: 25, childrenCount: 15 },
+            { governorate: "البحر الأحمر", city: "مرسى علم", name: "منطقة القلعان", leader: "دعاء كمال حامد", rating: 4, applicantsCount: 15, youthCount: 10, childrenCount: 5 },
+            
+            // --- السويس ---
+            { governorate: "السويس", city: "عتاقة", name: "حي عتاقة", leader: "نادية رشوان محمود", rating: 3, applicantsCount: 30, youthCount: 15, childrenCount: 15 },
+            
+            // --- الإسماعيلية ---
+            { governorate: "الإسماعيلية", city: "فايد", name: "حي الشجاعة", leader: "ريم عادل مصطفى", rating: 4, applicantsCount: 40, youthCount: 20, childrenCount: 20 },
+            
+            // --- بورسعيد ---
+            { governorate: "بورسعيد", city: "بور فؤاد", name: "حي العرب", leader: "سيف الدين محمد علي", rating: 5, applicantsCount: 35, youthCount: 18, childrenCount: 17 },
+            
+            // --- شمال سيناء ---
+            { governorate: "شمال سيناء", city: "العريش", name: "مدينة العريش", leader: "حازم إبراهيم سلامة", rating: 4, applicantsCount: 35, youthCount: 20, childrenCount: 15 },
+
+            // --- جنوب سيناء ---
+            { governorate: "جنوب سيناء", city: "دهب", name: "مدينة دهب", leader: "وائل سمير أمين", rating: 5, applicantsCount: 20, youthCount: 10, childrenCount: 10 },
+            { governorate: "جنوب سيناء", city: "شرم الشيخ", name: "حي الرويسات", leader: "عبير فوزي توفيق", rating: 4, applicantsCount: 25, youthCount: 15, childrenCount: 10 },
+            
+            // --- مطروح ---
+            { governorate: "مطروح", city: "مرسى مطروح", name: "حي العوام", leader: "جمال إبراهيم زكريا", rating: 3, applicantsCount: 25, youthCount: 15, childrenCount: 10 },
+            
+            // --- الوادي الجديد ---
+            { governorate: "الوادي الجديد", city: "الخارجة", name: "حي الوفاء", leader: "سامي يوسف حسين", rating: 4, applicantsCount: 20, youthCount: 10, childrenCount: 10 },
+            
+            // --- دمياط ---
+            { governorate: "دمياط", city: "فارسكور", name: "مدينة فارسكور", leader: "أحمد عبد الوهاب سليمان", rating: 4, applicantsCount: 50, youthCount: 25, childrenCount: 25 },
+            
+            // --- الأقصر --- (موقع إضافي)
+            { governorate: "الأقصر", city: "القرنة", name: "قرية الطارف", leader: "يحيى عبد الصبور محمد", rating: 3, applicantsCount: 30, youthCount: 15, childrenCount: 15 }
+            
+        ];
+
+        const listContainer = document.getElementById("village-list");
+        const govSelect = document.getElementById("governorate-select");
+        const citySelect = document.getElementById("city-select");
+        const villageSelect = document.getElementById("village-select");
+        const leaderSearch = document.getElementById("leader-search");
+
+        // --- 1. بناء القوائم المنسدلة الأولية ---
+        function populateGovernorates() {
+            // استخراج المحافظات الفريدة وترتيبها أبجديًا
+            const governorates = [...new Set(locationData.map(item => item.governorate))].sort();
+            governorates.forEach(gov => {
+                const option = document.createElement('option');
+                option.value = gov;
+                option.textContent = gov;
+                govSelect.appendChild(option);
+            });
+        }
+
+        // --- 2. تحديث قائمة المدن/المراكز بناءً على المحافظة ---
+        function populateCities(selectedGov) {
+            citySelect.innerHTML = '<option value="">جميع المدن</option>';
+            citySelect.disabled = true;
+            villageSelect.innerHTML = '<option value="">جميع القرى والأحياء</option>';
+            villageSelect.disabled = true;
+
+            if (selectedGov) {
+                // تصفية للحصول على المدن في المحافظة المختارة وترتيبها
+                const cities = [...new Set(
+                    locationData.filter(item => item.governorate === selectedGov).map(item => item.city)
+                )].sort();
+
+                cities.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city;
+                    option.textContent = city;
+                    citySelect.appendChild(option);
+                });
+                citySelect.disabled = false;
+            }
+        }
+
+        // --- 3. تحديث قائمة القرى/الأحياء بناءً على المدينة والمحافظة ---
+        function populateVillages(selectedGov, selectedCity) {
+            villageSelect.innerHTML = '<option value="">جميع القرى والأحياء</option>';
+            villageSelect.disabled = true;
+
+            if (selectedCity) {
+                // تصفية للحصول على القرى في المدينة والمحافظة المختارة وترتيبها
+                const villages = [...new Set(
+                    locationData.filter(item => item.governorate === selectedGov && item.city === selectedCity).map(item => item.name)
+                )].sort();
+
+                villages.forEach(village => {
+                    const option = document.createElement('option');
+                    option.value = village;
+                    option.textContent = village;
+                    villageSelect.appendChild(option);
+                });
+                villageSelect.disabled = false;
+            }
+        }
+
+        // --- 4. دالة التصفية الرئيسية والتقديم (Rendering) ---
+        function filterAndRenderVillages() {
+            const selectedGov = govSelect.value;
+            const selectedCity = citySelect.value;
+            const selectedVillage = villageSelect.value;
+            const leaderTerm = leaderSearch.value.trim().toLowerCase();
+
+            // تطبيق التصفية
+            const filtered = locationData.filter(village => {
+                // 1. تصفية المحافظة
+                const govMatch = !selectedGov || village.governorate === selectedGov;
+
+                // 2. تصفية المدينة
+                const cityMatch = !selectedCity || village.city === selectedCity;
+
+                // 3. تصفية القرية/الحي
+                const villageMatch = !selectedVillage || village.name === selectedVillage;
+
+                // 4. تصفية القائد (بحث جزئي)
+                const leaderMatch = !leaderTerm || village.leader.toLowerCase().includes(leaderTerm);
+
+                return govMatch && cityMatch && villageMatch && leaderMatch;
+            });
+
+            renderVillages(filtered);
+        }
+        
+        // --- 5. دالة عرض البطاقات ---
+        function renderVillages(villagesToRender) {
+            listContainer.innerHTML = ''; 
+
+            if (villagesToRender.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="no-results">
+                        ❌ لا توجد قرى أو مدن مطابقة لمعايير البحث المحددة.
+                    </div>
+                `;
+                return;
+            }
+
+            villagesToRender.forEach((village) => {
+                const el = document.createElement("div");
+                el.className = "card";
+                el.setAttribute('data-governorate', village.governorate);
+                el.innerHTML = `
+                    <h3 class="card-title">${village.name}</h3>
+                    <p class="location-detail">في <strong>${village.city}</strong>، محافظة <strong>${village.governorate}</strong></p>
+                    <p>القائد: <strong>${village.leader}</strong></p>
+                    <p>التقييم: ${"⭐".repeat(village.rating)}${"☆".repeat(5 - village.rating)}</p>
+                    <hr style="border: none; border-top: 1px dotted #e0e7ff; margin: 10px 0;">
+                    <p><strong>إحصائيات المتقدمين:</strong></p>
+                    <p>• الإجمالي: ${village.applicantsCount}</p>
+                    <p>• الشباب: ${village.youthCount}</p>
+                    <p>• الأطفال: ${village.childrenCount}</p> 
+                    <p class="applicants-info">للاطلاع على قائمة المتقدمين، يرجى التواصل مع الإدارة.</p>
+                `;
+                listContainer.appendChild(el);
+            });
+        }
+
+        // --- 6. إضافة مستمعات الأحداث (Event Listeners) ---
+        govSelect.addEventListener('change', () => {
+            const selectedGov = govSelect.value;
+            populateCities(selectedGov);
+            filterAndRenderVillages(); 
+        });
+
+        citySelect.addEventListener('change', () => {
+            const selectedGov = govSelect.value;
+            const selectedCity = citySelect.value;
+            populateVillages(selectedGov, selectedCity);
+            filterAndRenderVillages();
+        });
+
+        villageSelect.addEventListener('change', filterAndRenderVillages);
+        leaderSearch.addEventListener('input', filterAndRenderVillages);
+
+
+        // --- 7. تهيئة الصفحة عند التحميل ---
+        document.addEventListener('DOMContentLoaded', () => {
+            populateGovernorates();
+            filterAndRenderVillages(); // عرض الكل في البداية
+        });
+        
+        // JavaScript for Mobile Menu Toggle (UNCHANGED)
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mainNav = document.getElementById('main-nav');
+        if (mobileMenu && mainNav) {
+            mobileMenu.addEventListener('click', () => {
+                mobileMenu.classList.toggle('open');
+                mainNav.classList.toggle('open');
+            });
+        }
+    </script>
 </body>
 </html>
