@@ -318,39 +318,40 @@
   </div>
 
   <script>
-    const allQuestionsData = [
-      // 15 Multiple Choice Questions (MCQ) - 4 نقاط لكل سؤال (الإجمالي 60)
-      { type: "mcq", q: "كم يساوي 2 + 4؟", options: ["5", "6", "7", "8"], answer: "6", points: 4 },
-      { type: "mcq", q: "ما هو لون التفاح الأخضر؟", options: ["أحمر", "أصفر", "أخضر", "برتقالي"], answer: "أخضر", points: 4 },
-      { type: "mcq", q: "اختر الكلمة التي تبدأ بحرف 'ب'.", options: ["قلم", "كتاب", "باب", "شمس"], answer: "باب", points: 4 },
-      { type: "mcq", q: "كم عدد أرجل الكرسي؟", options: ["3", "4", "5", "2"], answer: "4", points: 4 },
-      { type: "mcq", q: "ما هو عكس كلمة 'ليل'؟", options: ["مساء", "نهار", "نوم", "ظلام"], answer: "نهار", points: 4 },
-      { type: "mcq", q: "ماذا نشرب عندما نشعر بالعطش؟", options: ["عصير", "حليب", "ماء", "شاي"], answer: "ماء", points: 4 },
-      { type: "mcq", q: "كم يساوي 7 - 2؟", options: ["4", "5", "6", "3"], answer: "5", points: 4 },
-      { type: "mcq", q: "ما هو الحيوان الذي يعطينا الحليب؟", options: ["خروف", "دجاجة", "بقرة", "كلب"], answer: "بقرة", points: 4 },
-      { type: "mcq", q: "أي الأشكال التالية له ثلاثة أضلاع؟", options: ["مربع", "دائرة", "مثلث", "مستطيل"], answer: "مثلث", points: 4 },
-      { type: "mcq", q: "في أي فصل تتساقط أوراق الشجر؟", options: ["الربيع", "الصيف", "الخريف", "الشتاء"], answer: "الخريف", points: 4 },
-      { type: "mcq", q: "ماذا يسمى المكان الذي ينام فيه الطائر؟", options: ["جحر", "قفص", "عش", "حظيرة"], answer: "عش", points: 4 },
-      { type: "mcq", q: "كم عدد الأيام في الأسبوع؟", options: ["5", "7", "6", "10"], answer: "7", points: 4 },
-      { type: "mcq", q: "أول حرف في الأبجدية العربية هو...", options: ["ب", "ت", "أ", "ج"], answer: "أ", points: 4 },
-      { type: "mcq", q: "نحن نتنفس باستخدام...", options: ["الأيدي", "العيون", "الرئتين", "الأرجل"], answer: "الرئتين", points: 4 },
-      { type: "mcq", q: "ما هو أصغر رقم بين هذه الأرقام؟", options: ["8", "5", "2", "1"], answer: "1", points: 4 },
+    // ...existing code...
+    const allQuestionsData = [
+      // 15 Multiple Choice Questions (MCQ) - 4 نقاط لكل سؤال (الإجمالي 60)
+      { type: "mcq", q: "كم يصبح 3 + 2؟", options: ["4", "5", "6", "7"], answer: "5", points: 4 },
+      { type: "mcq", q: "ما لون السماء في النهار عادةً؟", options: ["أحمر", "أخضر", "أزرق", "أسود"], answer: "أزرق", points: 4 },
+      { type: "mcq", q: "أي حيوان يقول 'مواء'؟", options: ["كلب", "قطة", "حصان", "بقرة"], answer: "قطة", points: 4 },
+      { type: "mcq", q: "كم يومًا في الأسبوع؟", options: ["5", "6", "7", "8"], answer: "7", points: 4 },
+      { type: "mcq", q: "أي شكل له أربعة أضلاع متساوية؟", options: ["مربع", "مثلث", "دائرة", "مستطيل"], answer: "مربع", points: 4 },
+      { type: "mcq", q: "ماذا نشرب عندما نحب الترويح عن العطش عادة؟", options: ["ماء", "تراب", "ورق", "صوف"], answer: "ماء", points: 4 },
+      { type: "mcq", q: "ما هو اليوم الذي يأتي بعد الجمعة؟", options: ["الخميس", "السبت", "الأحد", "الإثنين"], answer: "السبت", points: 4 },
+      { type: "mcq", q: "ما لون التفاح غالبًا؟", options: ["أخضر", "بنفسجي", "أسود", "ذهبي"], answer: "أخضر", points: 4 },
+      { type: "mcq", q: "ما هي الحاسة التي نرى بها؟", options: ["الشم", "اللمس", "البصر", "السمع"], answer: "البصر", points: 4 },
+      { type: "mcq", q: "أي من هذه أدوات الكتابة؟", options: ["ممحاة", "قلم", "مسطرة", "مقلمة"], answer: "قلم", points: 4 },
+      { type: "mcq", q: "أي من هذه فاكهة حمراء غالبًا؟", options: ["موز", "تفاح", "تمر", "خيار"], answer: "تفاح", points: 4 },
+      { type: "mcq", q: "ما هو الاتجاه الذي تشرق منه الشمس؟", options: ["الشمال", "الجنوب", "الشرق", "الغرب"], answer: "الشرق", points: 4 },
+      { type: "mcq", q: "ما العدد الذي يلي 9؟", options: ["8", "10", "11", "7"], answer: "10", points: 4 },
+      { type: "mcq", q: "ما وسيلة النقل التي تطير؟", options: ["سيارة", "قارب", "طائرة", "دراجة"], answer: "طائرة", points: 4 },
+      { type: "mcq", q: "أين نأكل الطعام عادة؟", options: ["في الثلاجة", "في المطبخ/سفرة", "في الحديقة فقط", "على السطح دائماً"], answer: "في المطبخ/سفرة", points: 4 },
 
+      // 5 True/False Questions - أسئلة صح وخطأ - 4 نقاط لكل سؤال (الإجمالي 20)
+      { type: "truefalse", q: "الماء ضروري للحياة.", options: ["صحيح", "خطأ"], answer: "صحيح", points: 4 },
+      { type: "truefalse", q: "القمر أكبر من الشمس.", options: ["صحيح", "خطأ"], answer: "خطأ", points: 4 },
+      { type: "truefalse", q: "النباتات تحتاج إلى ضوء الشمس لتنمو.", options: ["صحيح", "خطأ"], answer: "صحيح", points: 4 },
+      { type: "truefalse", q: "الثلج ساخن.", options: ["صحيح", "خطأ"], answer: "خطأ", points: 4 },
+      { type: "truefalse", q: "الطيور يمكنها الطيران.", options: ["صحيح", "خطأ"], answer: "صحيح", points: 4 },
 
-      // 5 True/False Questions - أسئلة صح وخطأ - 4 نقاط لكل سؤال (الإجمالي 20)
-      { type: "truefalse", q: "النملة أكبر من الفيل.", options: ["صحيح", "خطأ"], answer: "خطأ", points: 4 },
-      { type: "truefalse", q: "الشمس تشرق من جهة الشرق.", options: ["صحيح", "خطأ"], answer: "صحيح", points: 4 },
-      { type: "truefalse", q: "نحن نرتدي القبعة والقفازات في الصيف.", options: ["صحيح", "خطأ"], answer: "خطأ", points: 4 },
-      { type: "truefalse", q: "لون الدم أحمر.", options: ["صحيح", "خطأ"], answer: "صحيح", points: 4 },
-      { type: "truefalse", q: "الأسبوع يحتوي على 30 يومًا.", options: ["صحيح", "خطأ"], answer: "خطأ", points: 4 },
-
-      // 5 Essay Questions - أسئلة مقالية - 4 نقاط لكل سؤال (الإجمالي 20)
-      { type: "essay", q: "اكتب اسمك واسم والدتك.", placeholder: "اكتب الإجابة هنا...", points: 4 },
-      { type: "essay", q: "اذكر شيئين تفعلهما عندما تستيقظ من النوم في الصباح.", placeholder: "اكتب الإجابة هنا...", points: 4 },
-      { type: "essay", q: "ما هي لعبتك المفضلة ولماذا تحبها؟", placeholder: "اكتب إجابتك هنا...", points: 4 },
-      { type: "essay", q: "اكتب جملة واحدة عن أهمية تنظيف الأسنان.", placeholder: "اكتب إجابتك هنا...", points: 4 },
-      { type: "essay", q: "اكتب دائرة ومثلث هنا.", placeholder: "ملاحظة: هذا سؤال/كتابة.", points: 4 }
-    ];
+      // 5 Essay Questions - أسئلة مقالية - 4 نقاط لكل سؤال (الإجمالي 20)
+      { type: "essay", q: "اكتب اسمك واسم والدك.", placeholder: "اكتب اسمك واسم والدك هنا...", points: 4 },
+      { type: "essay", q: "ما طعامك المفضل ولماذا؟", placeholder: "اكتب إجابتك هنا...", points: 4 },
+      { type: "essay", q: "اذكر نشاطًا تحب فعله في الحديقة.", placeholder: "اكتب إجابتك هنا...", points: 4 },
+      { type: "essay", q: "اكتب جملة قصيرة عن المدرسة.", placeholder: "اكتب إجابتك هنا...", points: 4 },
+      { type: "essay", q: "ارسم دائرة ومثلث علي ورق ثم صفهما بكلمات قليلة.", placeholder: "ارسم وصف المقاطع هنا...", points: 4 }
+    ];
+// ...existing code...
 
     // Separate questions by type
     const mcqQuestions = allQuestionsData.filter(q => q.type === 'mcq');

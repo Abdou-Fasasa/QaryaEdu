@@ -170,7 +170,7 @@
 
       .form-section input[type="text"]:focus {
         border-color: var(--primary-blue);
-        box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.2);
+        box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
         outline: none;
       }
 
@@ -192,84 +192,62 @@
         transform: translateY(-2px);
       }
 
-      /* Result Table Styles */
-      .status-table {
-        width: 100%;
-        max-width: 600px;
+      /* Old table kept for compatibility but hidden when using new card list */
+      .status-table { display: none; }
+
+      /* Modern key-value card list */
+      .kv-list {
+        max-width: 720px;
         margin: 2rem auto;
-        border-collapse: collapse;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 0 1rem;
+      }
+      .kv-row {
+        display: grid;
+        grid-template-columns: 1fr 1.6fr;
+        gap: 14px;
+        align-items: center;
+        background: var(--white);
+        padding: 14px 16px;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(2,6,23,0.06);
+        border: 1px solid rgba(15,23,42,0.04);
+      }
+      /* in RTL the key should be on the right */
+      .kv-key {
         text-align: right;
-        background-color: #f9f9f9;
-        border-radius: 10px;
-        overflow: hidden; /* Ensures rounded corners apply to content */
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        font-weight: 700;
+        color: var(--primary-blue);
+        font-size: 1rem;
       }
-
-      .status-table th, .status-table td {
-        padding: 1rem;
-        border: 1px solid #eee;
-      }
-
-      .status-table th {
-        background-color: var(--primary-blue);
-        color: var(--white);
-        font-weight: bold;
-        text-align: right;
-        font-size: 1.1rem;
-      }
-
-      .status-table td {
-        background-color: var(--white);
+      .kv-value {
+        text-align: left;
+        direction: ltr; /* keep numeric values left-to-right for readability */
+        font-size: 1rem;
         color: var(--text-color);
       }
+      .kv-value strong { color: var(--dark-blue); font-weight: 700; }
+      .kv-value ul { margin: 0; padding-left: 1.1rem; list-style: disc; color: var(--text-color); }
 
-      .status-table tr:nth-child(even) td {
-        background-color: #f0f8ff; /* Lightest blue for even rows */
+      /* Status badges */
+      .status-badge {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 0.95rem;
       }
+      .status-accepted { background:#e7f9ef; color:#0b6a3a; border: 1px solid rgba(11,106,58,0.08); }
+      .status-rejected { background:#fff0f0; color:#9b1e1e; border: 1px solid rgba(155,30,30,0.06); }
+      .status-pending { background:#fff8e6; color:#b36b00; border: 1px solid rgba(179,107,0,0.06); }
 
-      .status-table .status-accepted {
-        color: #155724; /* Dark green for accepted */
-        font-weight: bold;
-        background-color: #d4edda; /* Light green background */
-      }
-
-      .status-table .status-rejected {
-        color: #721c24; /* Dark red for rejected */
-        font-weight: bold;
-        background-color: #f8d7da; /* Light red background */
-      }
-
-      .exam-info {
-        margin-top: 1.5rem;
-        padding: 1rem;
-        background-color: var(--light-blue);
-        border: 1px dashed var(--primary-blue);
-        border-radius: 8px;
-        text-align: right;
-        font-size: 1rem;
-        color: var(--dark-blue);
-      }
-
-      .exam-info p {
-        margin-bottom: 0.5rem;
-      }
-      .exam-info strong {
-        color: var(--primary-blue);
-      }
-
-      /* Error/Not Found Message */
-      .message-box {
-        margin-top: 1.5rem;
-        padding: 1rem;
-        border-radius: 8px;
-        font-weight: bold;
-        text-align: center;
-      }
-
-      .error-message {
-        background-color: #f8d7da;
-        color: #721c24;
-        border: 1px solid #f5c6cb;
+      .kv-note {
+        font-size: 0.95rem;
+        color: var(--gray-text);
       }
 
       /* Footer Styles - Consistent across all pages */
@@ -328,44 +306,13 @@
         background: rgba(255,255,255,0.04);
       }
 
-      /* Animation for hamburger icon */
-      .menu-toggle.open .bar:nth-child(1) {
-        transform: translateY(10px) rotate(45deg);
-      }
-      .menu-toggle.open .bar:nth-child(2) {
-        opacity: 0;
-      }
-      .menu-toggle.open .bar:nth-child(3) {
-        transform: translateY(-10px) rotate(-45deg);
+      .main.container {
+        margin: 1rem auto;
+        padding: 1.5rem 0.8rem;
       }
 
-
-        .main.container {
-          margin: 1rem auto;
-          padding: 1.5rem 0.8rem;
-          /* If there's still an overlap, consider adding a top margin to main.container */
-          /* margin-top: calc(1.5rem + 100px); // Example if header height is around 100px on mobile */
-        }
-        .hero-title {
-          font-size: 2rem;
-        }
-        .hero-text {
-          font-size: 1rem;
-        }
-        .form-section input[type="text"] {
-          font-size: 0.9rem;
-          padding: 0.7rem;
-        }
-        .btn-primary {
-          padding: 0.8rem 2rem;
-          font-size: 1.1rem;
-        }
-        .status-table {
-          font-size: 0.9rem;
-        }
-        .status-table th, .status-table td {
-            padding: 0.8rem;
-        }
+      .kv-row { grid-template-columns: 1fr 1fr; }
+      .kv-value { direction: rtl; text-align: right; } /* on small screens keep RTL values aligned */
       }
 
       @media (max-width: 480px) {
@@ -375,6 +322,9 @@
         .nav-link {
           font-size: 1rem; /* Slightly smaller on very small screens */
         }
+        .kv-row { padding: 12px; gap: 8px; border-radius: 10px; }
+        .kv-key { font-size: 0.95rem; }
+        .kv-value { font-size: 0.95rem; direction: rtl; text-align: right; }
       }
     </style>
   </head>
@@ -382,7 +332,7 @@
     <header class="header">
       <div class="container">
         <h1 class="logo">قرية متعلمة</h1>
-        <div class="menu-toggle" id="mobile-menu">
+        <div class="menu-toggle" id="mobile-menu" aria-label="قائمة الموقع" role="button" tabindex="0">
             <span class="bar"></span>
             <span class="bar"></span>
             <span class="bar"></span>
@@ -432,16 +382,16 @@ const applications = [
   {
     requestId: "rRMgT7",
     nationalId: "30901252201795",
-    status: "accepted", // جاري مراجعة الطلب
+    status: "accepted",
     name: "محمد احمد ربيع عبدالوهاب",
-    age: 16, // لتحديد إذا كان طفل أو شاب
+    age: 16,
     village: "قرية دشاشة",
     message: "جاري مراجعة الطلب. تابع حالة الطلب هنا",
   },
   {
     requestId: "R2wndw",
     nationalId: "30407242201148",
-    status: "accepted", // جاري مراجعة الطلب
+    status: "accepted",
     name: "داليا أحمد ربيع عبدالوهاب",
     age: 21,
     village: "قرية دشاشة",
@@ -450,14 +400,13 @@ const applications = [
   {
     requestId: "Godudl",
     nationalId: "30106062200801",
-    status: "accepted", // جاري مراجعة الطلب
+    status: "accepted",
     name: "ايه احمد ربيع عبد الوهاب",
     age: 24,
     village: "قرية دشاشة",
     message: "جاري مراجعة الطلب. تابع حالة الطلب هنا",
   }
 ];
-
 
       // Function to get the next Saturday, Sunday, and Monday dates
       function getNextExamDates() {
@@ -480,7 +429,6 @@ const applications = [
         }
         return dates;
       }
-
 
       document.getElementById("status-form").addEventListener("submit", function (e) {
         e.preventDefault();
@@ -510,51 +458,44 @@ const applications = [
 
           const totalExamCost = 3 * costPerDay; // 3 days exam
 
-          let tableHtml = `
-            <table class="status-table">
-              <thead>
-                <tr>
-                  <th>البيان</th>
-                  <th>القيمة</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr><td>رقم الطلب</td><td>${foundApplication.requestId}</td></tr>
-                <tr><td>الرقم القومي</td><td>${foundApplication.nationalId}</td></tr>
-                <tr><td>الاسم الكامل</td><td>${foundApplication.name}</td></tr>
-                <tr><td>السن</td><td>${foundApplication.age} سنة (${participantType})</td></tr>
-                <tr><td>القرية</td><td>${foundApplication.village}</td></tr>
-                <tr>
-                  <td>الحالة</td>
-                  <td class="${foundApplication.status === 'accepted' ? 'status-accepted' : (foundApplication.status === 'rejected' ? 'status-rejected' : '')}">
-                    ${foundApplication.status === 'accepted' ? 'مقبول ✅' : (foundApplication.status === 'rejected' ? 'مرفوض ❌' : 'قيد المراجعة ⏳')}
-                  </td>
-                </tr>
-          `;
+          // Build modern key-value card list
+          const statusClass = foundApplication.status === 'accepted' ? 'status-accepted' :
+                              (foundApplication.status === 'rejected' ? 'status-rejected' : 'status-pending');
+          const statusText = foundApplication.status === 'accepted' ? 'مقبول ✅' :
+                             (foundApplication.status === 'rejected' ? 'مرفوض ❌' : 'قيد المراجعة ⏳');
 
-          if (foundApplication.status === "accepted") {
-            const examDates = getNextExamDates(); // Get the next Sat, Sun, Mon dates dynamically
-            tableHtml += `
-                <tr><td>أيام الامتحان</td><td>3 أيام</td></tr>
-                <tr><td>تكلفة اليوم</td><td>${costPerDay} جنيه مصري (${participantType})</td></tr>
-                <tr><td>إجمالي تكلفة الامتحان</td><td>${totalExamCost} جنيه مصري</td></tr>
-                <tr>
-                    <td>تواريخ الامتحانات</td>
-                    <td>
-                        <ul>
-                            ${examDates.map(date => `<li>${date}</li>`).join('')}
-                        </ul>
-                    </td>
-                </tr>
+          let kvHtml = `<div class="kv-list">`;
+
+          function addRow(key, value) {
+            kvHtml += `
+              <div class="kv-row">
+                <div class="kv-key">${key}</div>
+                <div class="kv-value">${value}</div>
+              </div>
             `;
-          } else if (foundApplication.status === "rejected" && foundApplication.reason) {
-            tableHtml += `<tr><td>سبب الرفض</td><td>${foundApplication.reason}</td></tr>`;
-          } else if (foundApplication.status === "pending" && foundApplication.message) {
-            tableHtml += `<tr><td>ملاحظات</td><td>${foundApplication.message}</td></tr>`;
           }
 
-          tableHtml += `</tbody></table>`;
-          resultBox.innerHTML = tableHtml;
+          addRow('رقم الطلب', `<strong>${foundApplication.requestId}</strong>`);
+          addRow('الرقم القومي', `<strong>${foundApplication.nationalId}</strong>`);
+          addRow('الاسم الكامل', `<strong style="direction: rtl; display:block;">${foundApplication.name}</strong>`);
+          addRow('السن', `${foundApplication.age} سنة (${participantType})`);
+          addRow('القرية', `${foundApplication.village}`);
+          addRow('الحالة', `<span class="status-badge ${statusClass}">${statusText}</span>`);
+
+          if (foundApplication.status === "accepted") {
+            const examDates = getNextExamDates();
+            addRow('أيام الامتحان', `3 أيام`);
+            addRow('تكلفة اليوم', `${costPerDay} جنيه مصري (${participantType})`);
+            addRow('إجمالي تكلفة الامتحان', `<strong>${totalExamCost} جنيه مصري</strong>`);
+            addRow('تواريخ الامتحانات', `<ul>${examDates.map(d => `<li style="direction: rtl;">${d}</li>`).join('')}</ul>`);
+          } else if (foundApplication.status === "rejected" && foundApplication.reason) {
+            addRow('سبب الرفض', `${foundApplication.reason}`);
+          } else if (foundApplication.status === "pending" && foundApplication.message) {
+            addRow('ملاحظات', `${foundApplication.message}`);
+          }
+
+          kvHtml += `</div>`; // close kv-list
+          resultBox.innerHTML = kvHtml;
         } else {
           resultBox.innerHTML = `
             <p class="message-box error-message">❌ لم يتم العثور على طلب بهذا الرقم القومي ورقم الطلب المدخلين. يرجى التحقق من البيانات والمحاولة مرة أخرى.</p>
@@ -566,10 +507,19 @@ const applications = [
       const mobileMenu = document.getElementById('mobile-menu');
       const mainNav = document.getElementById('main-nav');
 
-      mobileMenu.addEventListener('click', () => {
-        mobileMenu.classList.toggle('open');
-        mainNav.classList.toggle('open');
-      });
+      if (mobileMenu && mainNav) {
+        mobileMenu.addEventListener('click', () => {
+          mobileMenu.classList.toggle('open');
+          mainNav.classList.toggle('open');
+        });
+        mobileMenu.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            mobileMenu.click();
+          }
+        });
+      }
     </script>
   </body>
 </html>
+// ...existing code...
