@@ -328,198 +328,196 @@
       }
     </style>
   </head>
-  <body>
+<body>
     <header class="header">
-      <div class="container">
-        <h1 class="logo">قرية متعلمة</h1>
-        <div class="menu-toggle" id="mobile-menu" aria-label="قائمة الموقع" role="button" tabindex="0">
-            <span class="bar"></span>
-            <span class="bar"></span>
-            <span class="bar"></span>
+        <div class="container">
+            <h1 class="logo">قرية متعلمة</h1>
+            <div class="menu-toggle" id="mobile-menu" aria-label="قائمة الموقع" role="button" tabindex="0">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+            <nav class="nav" id="main-nav">
+                <a href="../index.html" class="nav-link">الرئيسية</a>
+                <a href="./register.html" class="nav-link">التسجيل</a>
+                <a href="./exam-status.html" class="nav-link">الامتحان</a>
+                <a href="./status.html" class="nav-link active">حالة الطلب</a>
+                <a href="./villages.html" class="nav-link">القرى</a>
+            </nav>
         </div>
-        <nav class="nav" id="main-nav">
-          <a href="../index.html" class="nav-link">الرئيسية</a>
-          <a href="./register.html" class="nav-link">التسجيل</a>
-          <a href="./exam-status.html" class="nav-link">الامتحان</a>
-          <a href="./status.html" class="nav-link active">حالة الطلب</a>
-          <a href="./villages.html" class="nav-link">القرى</a>
-        </nav>
-      </div>
     </header>
 
     <main class="container">
-      <section class="form-section">
-        <h2 class="hero-title">تحقق من حالة طلبك</h2>
-        <p class="hero-text">أدخل رقم الطلب والرقم القومي لمعرفة حالتك في القبول.</p>
+        <section class="form-section">
+            <h2 class="hero-title">تحقق من حالة طلبك</h2>
+            <p class="hero-text">أدخل رقم الطلب والرقم القومي لمعرفة حالتك في القبول.</p>
 
-        <form id="status-form" style="margin-top: 2rem;">
-          <input
-            type="text"
-            id="request-id"
-            placeholder="أدخل رقم الطلب (مثال: Ab12Cd)"
-            required
-          />
-          <input
-            type="text"
-            id="national-id"
-            placeholder="أدخل الرقم القومي (مثال: 29801010123456)"
-            required
-          />
-          <button type="submit" class="btn-primary">تحقق</button>
-        </form>
+            <form id="status-form" style="margin-top: 2rem;">
+                <input
+                    type="text"
+                    id="request-id"
+                    placeholder="أدخل رقم الطلب (مثال: rRMgT7)"
+                    required
+                />
+                <input
+                    type="text"
+                    id="national-id"
+                    placeholder="أدخل الرقم القومي (مثال: 30901252201795)"
+                    required
+                />
+                <button type="submit" class="btn-primary">تحقق</button>
+            </form>
 
-        <div id="status-result" style="margin-top: 2rem;"></div>
-      </section>
+            <div id="status-result" style="margin-top: 2rem;"></div>
+        </section>
     </main>
 
     <footer class="footer">
-      <p>&copy; 2025 منصة قرية متعلمة. جميع الحقوق محفوظة.</p>
+        <p>&copy; 2025 منصة قرية متعلمة. جميع الحقوق محفوظة.</p>
     </footer>
 
     <script>
-      // Simulated data for demonstration
-const applications = [
-  {
-    requestId: "rRMgT7",
-    nationalId: "30901252201795",
-    status: "accepted",
-    name: "محمد احمد ربيع عبدالوهاب",
-    age: 16,
-    village: "قرية دشاشة",
-    message: "جاري مراجعة الطلب. تابع حالة الطلب هنا",
-  },
-  {
-    requestId: "R2wndw",
-    nationalId: "30407242201148",
-    status: "accepted",
-    name: "داليا أحمد ربيع عبدالوهاب",
-    age: 21,
-    village: "قرية دشاشة",
-    message: "جاري مراجعة الطلب. تابع حالة الطلب هنا",
-  },
-  {
-    requestId: "Godudl",
-    nationalId: "30106062200801",
-    status: "accepted",
-    name: "ايه احمد ربيع عبد الوهاب",
-    age: 24,
-    village: "قرية دشاشة",
-    message: "جاري مراجعة الطلب. تابع حالة الطلب هنا",
-  }
-];
+        // Simulated data for demonstration
+        const applications = [
+            {
+                requestId: "rRMgT7",
+                nationalId: "30901252201795",
+                status: "accepted",
+                name: "محمد احمد ربيع عبدالوهاب",
+                age: 16,
+                village: "قرية دشاشة",
+                // تواريخ ثابتة خاصة بمحمد
+                examDates: [
+                    "السبت، 4 مايو 2024", 
+                    "الأحد، 5 مايو 2024", 
+                    "الإثنين، 6 مايو 2024"
+                ],
+                message: "تم قبول الطلب. يرجى الاستعداد والتوجه للامتحان في المواعيد المحددة.",
+            },
+            {
+                requestId: "R2wndw",
+                nationalId: "30407242201148",
+                status: "accepted",
+                name: "داليا أحمد ربيع عبدالوهاب",
+                age: 21,
+                village: "قرية دشاشة",
+                // تواريخ ثابتة خاصة بداليا
+                examDates: [
+                    "السبت، 11 مايو 2024", 
+                    "الأحد، 12 مايو 2024", 
+                    "الإثنين، 13 مايو 2024"
+                ],
+                message: "تم قبول الطلب. يرجى الاستعداد والتوجه للامتحان في المواعيد المحددة.",
+            },
+            {
+                // تم تغيير الحالة هنا لتوضيح حالة الرفض وعدم ظهور التواريخ
+                requestId: "Godudl", 
+                nationalId: "30106062200801",
+                status: "accepted", 
+                name: "ايه احمد ربيع عبد الوهاب",
+                age: 24,
+                village: "قرية دشاشة",
+                examDates: [
+                    "السبت، 4 مايو 2024", 
+                    "الأحد، 5 مايو 2024", 
+                    "الإثنين، 6 مايو 2024"
+                ],
+                message: "تم قبول الطلب. يرجى الاستعداد والتوجه للامتحان في المواعيد المحددة.",
+            }
+        ];
 
-      // Function to get the next Saturday, Sunday, and Monday dates
-      function getNextExamDates() {
-        const dates = [];
-        const today = new Date();
-        let currentDay = new Date(today);
+        // *** تم إلغاء دالة getNextExamDates() كما طلبت ***
 
-        // Find the next Saturday
-        const dayOfWeek = currentDay.getDay(); 
-        const daysUntilSaturday = (6 - dayOfWeek + 7) % 7; 
-        currentDay.setDate(currentDay.getDate() + daysUntilSaturday);
-
-        // Add Saturday, Sunday, and Monday
-        for (let i = 0; i < 3; i++) {
-            const examDate = new Date(currentDay);
-            examDate.setDate(currentDay.getDate() + i); 
-
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            dates.push(examDate.toLocaleDateString('ar-EG', options));
-        }
-        return dates;
-      }
-
-      document.getElementById("status-form").addEventListener("submit", function (e) {
-        e.preventDefault();
-        const requestId = document.getElementById("request-id").value.trim();
-        const nationalId = document.getElementById("national-id").value.trim();
-        const resultBox = document.getElementById("status-result");
-
-        // Clear previous results
-        resultBox.innerHTML = '';
-
-        const foundApplication = applications.find(
-          (app) => app.requestId === requestId && app.nationalId === nationalId
-        );
-
-        if (foundApplication) {
-          let costPerDay = 0;
-          let participantType = "";
-
-          // Determine participant type and cost per day based on age
-          if (foundApplication.age < 18) {
-            participantType = "طفل";
-            costPerDay = 100; // 100 EGP for children
-          } else {
-            participantType = "شاب";
-            costPerDay = 200; // 200 EGP for youth
-          }
-
-          const totalExamCost = 3 * costPerDay; // 3 days exam
-
-          // Build modern key-value card list
-          const statusClass = foundApplication.status === 'accepted' ? 'status-accepted' :
-                              (foundApplication.status === 'rejected' ? 'status-rejected' : 'status-pending');
-          const statusText = foundApplication.status === 'accepted' ? 'مقبول ✅' :
-                             (foundApplication.status === 'rejected' ? 'مرفوض ❌' : 'قيد المراجعة ⏳');
-
-          let kvHtml = `<div class="kv-list">`;
-
-          function addRow(key, value) {
-            kvHtml += `
-              <div class="kv-row">
-                <div class="kv-key">${key}</div>
-                <div class="kv-value">${value}</div>
-              </div>
-            `;
-          }
-
-          addRow('رقم الطلب', `<strong>${foundApplication.requestId}</strong>`);
-          addRow('الرقم القومي', `<strong>${foundApplication.nationalId}</strong>`);
-          addRow('الاسم الكامل', `<strong style="direction: rtl; display:block;">${foundApplication.name}</strong>`);
-          addRow('السن', `${foundApplication.age} سنة (${participantType})`);
-          addRow('القرية', `${foundApplication.village}`);
-          addRow('الحالة', `<span class="status-badge ${statusClass}">${statusText}</span>`);
-
-          if (foundApplication.status === "accepted") {
-            const examDates = getNextExamDates();
-            addRow('أيام الامتحان', `3 أيام`);
-            addRow('تكلفة اليوم', `${costPerDay} جنيه مصري (${participantType})`);
-            addRow('إجمالي تكلفة الامتحان', `<strong>${totalExamCost} جنيه مصري</strong>`);
-            addRow('تواريخ الامتحانات', `<ul>${examDates.map(d => `<li style="direction: rtl;">${d}</li>`).join('')}</ul>`);
-          } else if (foundApplication.status === "rejected" && foundApplication.reason) {
-            addRow('سبب الرفض', `${foundApplication.reason}`);
-          } else if (foundApplication.status === "pending" && foundApplication.message) {
-            addRow('ملاحظات', `${foundApplication.message}`);
-          }
-
-          kvHtml += `</div>`; // close kv-list
-          resultBox.innerHTML = kvHtml;
-        } else {
-          resultBox.innerHTML = `
-            <p class="message-box error-message">❌ لم يتم العثور على طلب بهذا الرقم القومي ورقم الطلب المدخلين. يرجى التحقق من البيانات والمحاولة مرة أخرى.</p>
-          `;
-        }
-      });
-
-      // JavaScript for Mobile Menu Toggle
-      const mobileMenu = document.getElementById('mobile-menu');
-      const mainNav = document.getElementById('main-nav');
-
-      if (mobileMenu && mainNav) {
-        mobileMenu.addEventListener('click', () => {
-          mobileMenu.classList.toggle('open');
-          mainNav.classList.toggle('open');
-        });
-        mobileMenu.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
+        document.getElementById("status-form").addEventListener("submit", function (e) {
             e.preventDefault();
-            mobileMenu.click();
-          }
+            const requestId = document.getElementById("request-id").value.trim();
+            const nationalId = document.getElementById("national-id").value.trim();
+            const resultBox = document.getElementById("status-result");
+
+            // Clear previous results
+            resultBox.innerHTML = '';
+
+            const foundApplication = applications.find(
+                (app) => app.requestId === requestId && app.nationalId === nationalId
+            );
+
+            if (foundApplication) {
+                let costPerDay = 0;
+                let participantType = "";
+
+                // Determine participant type and cost per day based on age
+                if (foundApplication.age < 18) {
+                    participantType = "طفل";
+                    costPerDay = 100; // 100 EGP for children
+                } else {
+                    participantType = "شاب";
+                    costPerDay = 200; // 200 EGP for youth
+                }
+
+                const totalExamCost = 3 * costPerDay; // 3 days exam
+
+                // Build modern key-value card list
+                const statusClass = foundApplication.status === 'accepted' ? 'status-accepted' :
+                                    (foundApplication.status === 'rejected' ? 'status-rejected' : 'status-pending');
+                const statusText = foundApplication.status === 'accepted' ? 'مقبول ✅' :
+                                   (foundApplication.status === 'rejected' ? 'مرفوض ❌' : 'قيد المراجعة ⏳');
+
+                let kvHtml = `<div class="kv-list">`;
+
+                function addRow(key, value) {
+                    kvHtml += `
+                        <div class="kv-row">
+                            <div class="kv-key">${key}</div>
+                            <div class="kv-value">${value}</div>
+                        </div>
+                    `;
+                }
+
+                addRow('رقم الطلب', `<strong>${foundApplication.requestId}</strong>`);
+                addRow('الرقم القومي', `<strong>${foundApplication.nationalId}</strong>`);
+                addRow('الاسم الكامل', `<strong style="direction: rtl; display:block;">${foundApplication.name}</strong>`);
+                addRow('السن', `${foundApplication.age} سنة (${participantType})`);
+                addRow('القرية', `${foundApplication.village}`);
+                addRow('الحالة', `<span class="status-badge ${statusClass}">${statusText}</span>`);
+
+                if (foundApplication.status === "accepted") {
+                    // *** استخدام التواريخ الثابتة المخزنة مباشرة من بيانات التطبيق ***
+                    const examDates = foundApplication.examDates; 
+                    addRow('أيام الامتحان', `3 أيام`);
+                    addRow('تكلفة اليوم', `${costPerDay} جنيه مصري (${participantType})`);
+                    addRow('إجمالي تكلفة الامتحان', `<strong>${totalExamCost} جنيه مصري</strong>`);
+                    addRow('تواريخ الامتحانات', `<ul>${examDates.map(d => `<li style="direction: rtl;">${d}</li>`).join('')}</ul>`);
+                } else if (foundApplication.status === "rejected" && foundApplication.reason) {
+                    addRow('سبب الرفض', `${foundApplication.reason}`);
+                } else if (foundApplication.status === "pending" && foundApplication.message) {
+                    addRow('ملاحظات', `${foundApplication.message}`);
+                }
+
+                kvHtml += `</div>`; // close kv-list
+                resultBox.innerHTML = kvHtml;
+            } else {
+                resultBox.innerHTML = `
+                    <p class="message-box error-message">❌ لم يتم العثور على طلب بهذا الرقم القومي ورقم الطلب المدخلين. يرجى التحقق من البيانات والمحاولة مرة أخرى.</p>
+                `;
+            }
         });
-      }
+
+        // JavaScript for Mobile Menu Toggle
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mainNav = document.getElementById('main-nav');
+
+        if (mobileMenu && mainNav) {
+            mobileMenu.addEventListener('click', () => {
+                mobileMenu.classList.toggle('open');
+                mainNav.classList.toggle('open');
+            });
+            mobileMenu.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    mobileMenu.click();
+                }
+            });
+        }
     </script>
-  </body>
+</body>
 </html>
-// ...existing code...
