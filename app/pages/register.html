@@ -352,234 +352,186 @@
   </style>
 </head>
 <body>
-  <header class="header">
-    <div class="container">
-      <h1 class="logo">قرية متعلمة</h1>
-      <div class="menu-toggle" id="mobile-menu">
-          <span class="bar"></span>
-          <span class="bar"></span>
-          <span class="bar"></span>
+    <header class="header">
+      <div class="container">
+        <h1 class="logo">قرية متعلمة</h1>
+        <div class="menu-toggle" id="mobile-menu">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </div>
+        <nav class="nav" id="main-nav">
+          <a href="../index.html" class="nav-link">الرئيسية</a>
+          <a href="./register.html" class="nav-link active">التسجيل</a>
+          <a href="./exam-status.html" class="nav-link">الامتحان</a>
+          <a href="./status.html" class="nav-link">حالة الطلب</a>
+          <a href="./villages.html" class="nav-link">القرى</a>
+        </nav>
       </div>
-      <nav class="nav" id="main-nav">
-        <a href="../index.html" class="nav-link">الرئيسية</a>
-        <a href="./register.html" class="nav-link active">التسجيل</a>
-        <a href="./exam-status.html" class="nav-link">الامتحان</a>
-        <a href="./status.html" class="nav-link">حالة الطلب</a>
-        <a href="./villages.html" class="nav-link">القرى</a>
-      </nav>
+    </header>
+
+    <main class="main-content-container"> 
+        <section>
+            <h2 class="hero-title">نموذج التسجيل</h2>
+            <p class="hero-text">يرجى تعبئة البيانات بدقة للالتحاق بالبرنامج.</p>
+
+            <form id="register-form" class="form"> 
+                <div class="form-group">
+                    <label for="name">الاسم الكامل</label>
+                    <input type="text" id="name" name="name" required placeholder="اكتب اسمك بالكامل" />
+                </div>
+
+                <div class="form-group">
+                    <label for="nationalId">الرقم القومي</label>
+                    <input type="text" id="nationalId" name="nationalId" required placeholder="مثال: 29801010123456" />
+                </div>
+
+                <div class="form-group">
+                    <label for="dob">تاريخ الميلاد</label>
+                    <input type="date" id="dob" name="dob" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="gender">الجنس</label>
+                    <select id="gender" name="gender" required>
+                        <option value="">اختر الجنس...</option>
+                        <option value="ذكر">ذكر</option>
+                        <option value="أنثى">أنثى</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="ageCategory">فئة العمر</label>
+                    <select id="ageCategory" name="ageCategory" required>
+                        <option value="">اختر الفئة...</option>
+                        <option value="طفل">طفل (8-17 سنة)</option>
+                        <option value="شاب">شاب (18-35 سنة)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="leaderCode">كود القائد</label>
+                    <input type="text" id="leaderCode" name="leaderCode" required placeholder="ادخل كود القائد" />
+                </div>
+
+                <button type="submit" class="btn-primary">إرسال التسجيل</button>
+            </form>
+
+            <div id="register-result" class="error-message" style="display: none; margin-top: 1rem;"></div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 منصة قرية متعلمة. جميع الحقوق محفوظة.</p>
+        </div>
+    </footer>
+
+    <div id="registration-modal" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7); /* خلفية معتمة */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        text-align: center;
+    ">
+        <div style="
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            font-family: 'Cairo', sans-serif;
+            direction: rtl;
+        ">
+            <h3 style="
+                color: #d9534f;
+                font-size: 1.5rem;
+                margin-top: 0;
+                border-bottom: 3px solid #f0ad4e;
+                padding-bottom: 10px;
+            ">
+                🔔 تنويه هام: إغلاق التقديم
+            </h3>
+            <p style="color: #333; font-size: 1.1rem; line-height: 1.8;">
+                **عفواً، لقد تم إغلاق باب التقديمات لهذا الشهر.**
+                <br>
+                تم استيفاء العدد المطلوب من الطلاب لجميع المحافظات والقرى.
+            </p>
+            <p style="color: #5cb85c; font-weight: bold;">
+                نتطلع لاستقبال طلباتكم **الشهر القادم**.
+            </p>
+            <button id="modal-close-btn" style="
+                background-color: #1d4ed8;
+                color: #ffffff;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 1rem;
+                margin-top: 20px;
+                transition: background-color 0.3s;
+            ">
+                حسناً، فهمت (للذهاب للرئيسية)
+            </button>
+        </div>
     </div>
-  </header>
 
-  <main class="main-content-container"> <section>
-      <h2 class="hero-title">نموذج التسجيل</h2>
-      <p class="hero-text">يرجى تعبئة البيانات بدقة للالتحاق بالبرنامج.</p>
-
-      <form id="register-form" class="form"> <div class="form-group">
-          <label for="name">الاسم الكامل</label>
-          <input type="text" id="name" name="name" required placeholder="اكتب اسمك بالكامل" />
-        </div>
-
-        <div class="form-group">
-          <label for="nationalId">الرقم القومي</label>
-          <input type="text" id="nationalId" name="nationalId" required placeholder="مثال: 29801010123456" />
-        </div>
-
-        <div class="form-group">
-          <label for="dob">تاريخ الميلاد</label>
-          <input type="date" id="dob" name="dob" required />
-        </div>
-
-        <div class="form-group">
-          <label for="gender">الجنس</label>
-          <select id="gender" name="gender" required>
-            <option value="">اختر الجنس...</option>
-            <option value="ذكر">ذكر</option>
-            <option value="أنثى">أنثى</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="ageCategory">فئة العمر</label>
-          <select id="ageCategory" name="ageCategory" required>
-            <option value="">اختر الفئة...</option>
-            <option value="طفل">طفل (8-17 سنة)</option>
-            <option value="شاب">شاب (18-35 سنة)</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="leaderCode">كود القائد</label>
-          <input type="text" id="leaderCode" name="leaderCode" required placeholder="ادخل كود القائد" />
-        </div>
-
-        <button type="submit" class="btn-primary">إرسال التسجيل</button>
-      </form>
-
-      <div id="register-result" class="success-message" style="display: none; margin-top: 1rem;"></div>
-    </section>
-  </main>
-
-  <footer class="footer">
-    <div class="container">
-      <p>&copy; 2025 منصة قرية متعلمة. جميع الحقوق محفوظة.</p>
-    </div>
-  </footer>
-
-  <script>
-    // Function to generate a 6-character random request ID
-    function generateRequestId() {
-      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-      let result = '';
-      const charactersLength = characters.length;
-      for (let i = 0; i < 6; i++) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
-      }
-      return result;
-    }
-
-    document.getElementById("register-form").addEventListener("submit", function (e) {
-      e.preventDefault(); // Prevent default form submission
-
-      const name = document.getElementById("name").value.trim();
-      const nationalId = document.getElementById("nationalId").value.trim();
-      const dob = document.getElementById("dob").value; // YYYY-MM-DD format
-      const gender = document.getElementById("gender").value;
-      const ageCategory = document.getElementById("ageCategory").value;
-      const leaderCode = document.getElementById("leaderCode").value.trim(); // Get leader code
-      const registerResultDiv = document.getElementById("register-result");
-
-      // Clear previous messages and classes
-      registerResultDiv.style.display = "none";
-      registerResultDiv.classList.remove('success-message', 'error-message');
-
-      // --- Validation ---
-      if (!name || !nationalId || !dob || !gender || !ageCategory || !leaderCode) {
-        displayMessage("❌ يرجى ملء جميع الحقول المطلوبة.", 'error');
-        return;
-      }
-
-      // Validate National ID length (e.g., 14 digits for Egypt)
-      if (!/^\d{14}$/.test(nationalId)) {
-        displayMessage("❌ الرقم القومي يجب أن يتكون من 14 رقمًا فقط.", 'error');
-        return;
-      }
-
-
-      // Validate Leader Code (case-sensitive)
-      const correctLeaderCode = "Abdou2003"; // This should ideally come from a secure backend
-      if (leaderCode !== correctLeaderCode) {
-        displayMessage("❌ كود القائد غير صحيح. يرجى التأكد من الكود.", 'error');
-        return;
-      }
-
-      const birthDate = new Date(dob);
-      const today = new Date();
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const m = today.getMonth() - birthDate.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-        age--; // Adjust age if birthday hasn't occurred yet this year
-      }
-
-      let isValidAge = true;
-      let ageError = "";
-
-      if (ageCategory === "طفل") {
-        if (age < 8 || age > 17) {
-          isValidAge = false;
-          ageError = `عمر الطفل يجب أن يكون بين 8 و 17 سنة. العمر المدخل: ${age} سنة.`;
+    <script>
+        // دالة لإظهار الرسائل أسفل النموذج
+        function displayMessage(msg, type) {
+            const registerResultDiv = document.getElementById("register-result");
+            registerResultDiv.classList.remove('success-message', 'error-message');
+            registerResultDiv.classList.add(`${type}-message`);
+            registerResultDiv.innerHTML = msg;
+            registerResultDiv.style.display = "block";
         }
-      } else if (ageCategory === "شاب") {
-        if (age < 18 || age > 35) {
-          isValidAge = false;
-          ageError = `عمر الشاب يجب أن يكون بين 18 و 35 سنة. العمر المدخل: ${age} سنة.`;
+
+        // إيقاف التقديم بالكامل - عند الضغط على زر "إرسال التسجيل"
+        document.getElementById("register-form").addEventListener("submit", function (e) {
+            e.preventDefault(); 
+
+            const closingMessage = `
+                ❌ **عفواً، لقد تم إغلاق باب التقديمات لهذا الشهر.** <br>تم استيفاء العدد المطلوب من الطلاب لجميع المحافظات والقري.
+                <br>
+                <br>نتطلع لاستقبال طلباتكم **الشهر القادم**.
+            `;
+
+            displayMessage(closingMessage, 'error');
+        });
+
+        // 1. منطق إظهار الإشعار المنبثق عند تحميل الصفحة
+        const registrationModal = document.getElementById('registration-modal');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+
+        // إظهار المودال مباشرة عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', () => {
+            registrationModal.style.display = 'flex';
+        });
+
+        // 2. منطق إغلاق الإشعار والذهاب للصفحة الرئيسية
+        modalCloseBtn.addEventListener('click', () => {
+            // يتم توجيه المستخدم مباشرة إلى الصفحة الرئيسية
+            window.location.href = "../index.html"; 
+        });
+
+
+        // JavaScript for Mobile Menu Toggle (kept for site navigation functionality)
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mainNav = document.getElementById('main-nav');
+
+        if (mobileMenu && mainNav) {
+            mobileMenu.addEventListener('click', () => {
+                mobileMenu.classList.toggle('open');
+                mainNav.classList.toggle('open');
+            });
         }
-      }
-
-      if (!isValidAge) {
-        displayMessage(`❌ خطأ في العمر: ${ageError}`, 'error');
-        return;
-      }
-
-      // Generate a unique Request ID
-      const requestId = generateRequestId();
-
-      // --- Telegram Bot details ---
-      // IMPORTANT: Replace with your actual bot token and chat ID
-      const botToken = "7542961188:AAFQDDg9hlwVyYOaZuVF3ni-J5KrUXz1fAI";
-      const chatId = "1213902845"; // Make sure this chatId is correct and the bot has permission
-
-      // Construct the message for Telegram
-      const message = `
-📝 *طلب تسجيل جديد*
------------------------------
-*رقم الطلب*: \`${requestId}\`
-👤 *الاسم الكامل*: ${name}
-🆔 *الرقم القومي*: ${nationalId}
-🎂 *تاريخ الميلاد*: ${dob} (${age} سنة)
-🚻 *الجنس*: ${gender}
-👶 *فئة العمر*: ${ageCategory}
-👑 *كود القائد*: ${leaderCode}
------------------------------
-`;
-
-      // Display a loading message
-      displayMessage("⏳ جارٍ إرسال طلبك...", 'success');
-
-      // Send data to Telegram Bot API
-      fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: message,
-          parse_mode: "Markdown"
-        })
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.ok) {
-          displayMessage(
-            `✅ تم إرسال طلب التسجيل بنجاح! رقم طلبك هو: 
-            <br><code>${requestId}</code>
-            <br>يرجى الاحتفاظ به لأنه سيستخدم دائمًا لمتابعة طلبك.`,
-            'success'
-          );
-          console.log("Registration data sent to Telegram successfully!");
-          this.reset(); // Clear the form after successful submission
-        } else {
-          let errorMessage = `❌ حدث خطأ أثناء إرسال الطلب: ${data.description || "خطأ غير معروف"}. يرجى المحاولة مرة أخرى.`;
-          if (data.description && data.description.includes("chat not found")) {
-            errorMessage += "\n💡 **ملاحظة:** قد يكون هناك مشكلة في معرّف المحادثة (Chat ID) أو لم تبدأ المحادثة مع البوت بعد.";
-          }
-          displayMessage(errorMessage, 'error');
-          console.error("Failed to send message to Telegram:", data.description);
-        }
-      })
-      .catch(error => {
-        displayMessage("❌ حدث خطأ في الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت.", 'error');
-        console.error("Error sending message to Telegram:", error);
-      });
-    });
-
-    function displayMessage(msg, type) {
-      const registerResultDiv = document.getElementById("register-result");
-      registerResultDiv.classList.remove('success-message', 'error-message');
-      registerResultDiv.classList.add(`${type}-message`);
-      registerResultDiv.innerHTML = msg;
-      registerResultDiv.style.display = "block";
-    }
-
-    // JavaScript for Mobile Menu Toggle (consistent across all pages)
-    const mobileMenu = document.getElementById('mobile-menu');
-    const mainNav = document.getElementById('main-nav');
-
-    // Check if elements exist before adding event listener
-    if (mobileMenu && mainNav) {
-      mobileMenu.addEventListener('click', () => {
-        mobileMenu.classList.toggle('open');
-        mainNav.classList.toggle('open');
-      });
-    }
-  </script>
+    </script>
 </body>
 </html>
