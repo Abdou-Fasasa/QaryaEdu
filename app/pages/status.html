@@ -380,19 +380,15 @@
         // Simulated data for demonstration
         const applications = [
             {
-                requestId: "rRMgT7",
+                requestId: "KhsVgE",
                 nationalId: "30901252201795",
-                status: "accepted",
+                status: "rejected",
                 name: "محمد احمد ربيع عبدالوهاب",
                 age: 16,
                 village: "قرية دشاشة",
                 // تواريخ ثابتة خاصة بمحمد
-                examDates: [
-                    "السبت، 4 مايو 2024", 
-                    "الأحد، 5 مايو 2024", 
-                    "الإثنين، 6 مايو 2024"
-                ],
-                message: "تم قبول الطلب. يرجى الاستعداد والتوجه للامتحان في المواعيد المحددة.",
+                examDates: [],
+                reason: "تم رفض الطلب بسبب استيفاء الاعداد المطلوبة.",
             },
             {
                 requestId: "R2wndw",
@@ -413,19 +409,32 @@
                 // تم تغيير الحالة هنا لتوضيح حالة الرفض وعدم ظهور التواريخ
                 requestId: "VIBatA", 
                 nationalId: "30106062200801",
-                status: "pending", 
+                status: "rejected", 
                 name: "ايه احمد ربيع عبد الوهاب",
                 age: 24,
                 village: "قرية دشاشة",
                 examDates: [],
+                reason: "تم رفض الطلب بسبب استيفاء الاعداد المطلوبة.",
             },
             {
                 // تم تغيير الحالة هنا لتوضيح حالة الرفض وعدم ظهور التواريخ
                 requestId: "tFDSBX", 
                 nationalId: "30807302200853",
-                status: "pending", 
+                status: "rejected", 
                 name: "سعيد طه سعيد امبارك",
                 age: 17,
+                village: "قرية دشاشة",
+                examDates: [],
+                reason: "تم رفض الطلب بسبب استيفاء الاعداد المطلوبة.",
+                
+            },
+            {
+                // تم تغيير الحالة هنا لتوضيح حالة الرفض وعدم ظهور التواريخ
+                requestId: "Xt8xXh", 
+                nationalId: "30807302200853",
+                status: "pending", 
+                name:" فرحه عبدالسلام شعبان عبدالسلام",
+                age: 24,
                 village: "قرية دشاشة",
                 examDates: [],
                 
