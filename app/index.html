@@ -378,6 +378,29 @@
     }
     .overlay.open { opacity: 1; pointer-events: auto; }
 
+    /* Maintenance Notification Banner */
+    .maintenance-notification {
+      background-color: #dc2626; /* Red background for maintenance */
+      color: var(--white);
+      padding: 1rem 0;
+      text-align: center;
+      position: relative;
+      z-index: 40;
+    }
+    .maintenance-notification .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .maintenance-notification p {
+      margin: 0;
+      font-size: 1.1rem;
+      flex: 1;
+      max-width: 80%;
+    }
+
     /* Job Notification Banner */
     .job-notification {
       background-color: var(--accent-orange);
@@ -625,6 +648,11 @@
         </nav>
       </div>
     </header>
+    <section class="maintenance-notification">
+      <div class="container">
+        <p>نعتذر لجميع طلابنا، جاري الآن صيانة وتحديثات على المنصة، لذلك تم تأجيل امتحانات جميعها. شكراً لكم، جاري الآن التحديث.</p>
+      </div>
+    </section>
     <section class="hero">
       <div class="container">
         <h2>أهلاً بك في منصة قرية متعلمة</h2>

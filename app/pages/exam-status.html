@@ -283,6 +283,29 @@
       to { opacity: 1; transform: scale(1); }
     }
 
+    /* Maintenance Notification Banner */
+    .maintenance-notification {
+      background-color: #dc2626; /* Red background for maintenance */
+      color: var(--white);
+      padding: 1rem 0;
+      text-align: center;
+      position: relative;
+      z-index: 40;
+    }
+    .maintenance-notification .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .maintenance-notification p {
+      margin: 0;
+      font-size: 1.1rem;
+      flex: 1;
+      max-width: 80%;
+    }
+
     /* Responsive for gallery */
     @media (max-width: 768px) {
       .gallery-grid {
@@ -412,196 +435,260 @@
 </head>
 <body>
 
-  <header class="header">
-    <div class="container">
-      <h1 class="logo">قرية متعلمة</h1>
-      <div class="menu-toggle" id="mobile-menu">
-          <span class="bar"></span>
-          <span class="bar"></span>
-          <span class="bar"></span>
-      </div>
-      <nav class="nav" id="main-nav">
-        <a href="../index.html" class="nav-link">الرئيسية</a>
-        <a href="./register.html" class="nav-link">التسجيل</a>
-        <a href="./exam-status.html" class="nav-link active">الامتحان</a>
-        <a href="./status.html" class="nav-link">حالة الطلب</a>
-        <a href="./villages.html" class="nav-link">القرى</a>
-      </nav>
+  <header class="header">
+    <div class="container">
+      <h1 class="logo">قرية متعلمة</h1>
+      <div class="menu-toggle" id="mobile-menu">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+      </div>
+      <nav class="nav" id="main-nav">
+        <a href="../index.html" class="nav-link">الرئيسية</a>
+        <a href="./register.html" class="nav-link">التسجيل</a>
+        <a href="./exam-status.html" class="nav-link active">الامتحان</a>
+        <a href="./status.html" class="nav-link">حالة الطلب</a>
+        <a href="./villages.html" class="nav-link">القرى</a>
+      </nav>
+    </div>
+  </header>
+  
+    <section class="maintenance-notification">
+    <div class="container">
+      <p>نعتذر لجميع طلابنا، جاري الآن صيانة وتحديثات على المنصة، لذلك تم تأجيل امتحانات جميعها. شكراً لكم، جاري الآن التحديث.</p>
+    </div>
+  </section>
+
+  <main class="main-content-container">
+    <h2 class="hero-title">موعد الامتحان</h2>
+    <p id="date">التاريخ...</p>
+    <p id="clock">الساعة الآن...</p>
+    <p id="countdown">جارٍ الحساب...</p>
+
+    <form id="exam-form">
+      <input type="text" id="leader-code" placeholder="كود القائد" required />
+      <input type="text" id="request-id" placeholder="رقم الطلب" required />
+      <button type="submit" class="btn-primary">دخول الامتحان</button>
+    </form>
+  </main>
+  <footer class="footer">
+    <div class="container">
+        &copy; 2025 منصة قرية متعلمة
+    </div>
+  </footer>
+
+    <div id="maintenance-modal" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.9); /* خلفية داكنة جداً */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999; /* تأكد أنه يغطي كل شيء */
+        text-align: center;
+        visibility: hidden; /* يبدأ مخفياً بواسطة CSS */
+        opacity: 0;
+        transition: opacity 0.5s;
+    ">
+        <div style="
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            font-family: 'Cairo', sans-serif;
+            direction: rtl;
+            box-shadow: 0 10px 30px rgba(255, 0, 0, 0.5);
+            border: 5px solid #d9534f;
+        ">
+            <h3 style="
+                color: #d9534f; /* أحمر تحذيري */
+                font-size: 1.8rem;
+                margin-top: 0;
+                margin-bottom: 20px;
+            ">
+                ⚠️ إيقاف مؤقت لأعمال الصيانة ⚠️
+            </h3>
+            <p style="color: #333; font-size: 1.2rem; line-height: 1.8; font-weight: 600;">
+                نعتذر لجميع طلابنا، جاري الآن صيانة وتحديثات شاملة على المنصة لتحسين تجربتكم.
+                <br>
+                **تم تأجيل جميع الامتحانات حتى إشعار آخر.**
+            </p>
+            <p style="color: #6c757d; font-size: 1rem; margin-top: 25px;">
+                شكراً لتفهمكم وصبركم. سنعود قريباً بخدمات أفضل!
+            </p>
+        </div>
     </div>
-  </header>
 
-  <main class="main-content-container">
-    <h2 class="hero-title">موعد الامتحان</h2>
-    <p id="date">التاريخ...</p>
-    <p id="clock">الساعة الآن...</p>
-    <p id="countdown">جارٍ الحساب...</p>
 
-    <form id="exam-form">
-      <input type="text" id="leader-code" placeholder="كود القائد" required />
-      <input type="text" id="request-id" placeholder="رقم الطلب" required />
-      <button type="submit" class="btn-primary">دخول الامتحان</button>
-    </form>
-  </main>
-  <footer class="footer">
-    <div class="container">
-        &copy; 2025 منصة قرية متعلمة
-    </div>
-  </footer>
+  <script>
+    // --- وظائف الإشعار المنبثق للصيانة ---
+    const maintenanceModal = document.getElementById('maintenance-modal');
 
-  <script>
-    const date = document.getElementById("date");
-    const clock = document.getElementById("clock");
-    const countdown = document.getElementById("countdown");
-    const form = document.getElementById("exam-form");
-
-    // Define the valid user credentials
-    const validCredentials = [
-      { leaderCode: "Abdou2003", requestId: "R2wndw" },
-
-    ];
-
-    const EXAM_START_HOUR = 19; // 7 PM
-    const EXAM_END_HOUR = 20;   // 8 PM (1 hour later)
-    const EXAM_DAYS = [0, 1, 6]; // 0 = Sunday, 1 = Monday, 6 = Saturday
-
-    const dayNames = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
-
-    // This function finds the next *upcoming* exam start time
-    function getNextExamOpenTime(currentEgyptTime) {
-      let nextOpen = new Date(currentEgyptTime);
-      let foundNextExam = false;
-
-      // Iterate through current day + next 6 days to find the next exam day
-      for (let i = 0; i < 7; i++) {
-        const tempDate = new Date(currentEgyptTime);
-        tempDate.setDate(currentEgyptTime.getDate() + i); // Go to current day + i days
-        tempDate.setHours(EXAM_START_HOUR, 0, 0, 0); // Set to 7 PM for that specific day
-
-        if (EXAM_DAYS.includes(tempDate.getDay())) {
-          if (tempDate.getTime() > currentEgyptTime.getTime()) {
-            // Found a future exam day where the start time is still ahead of current time
-            nextOpen = tempDate;
-            foundNextExam = true;
-            break;
-          }
-        }
-      }
-
-      // Fallback if no future exam found within next 7 days (e.g., if current time is past Monday 8 PM)
-      // This ensures we always find the next valid exam day for countdown
-      if (!foundNextExam) {
-          let futureDate = new Date(currentEgyptTime);
-          futureDate.setDate(futureDate.getDate() + 1); // Start checking from tomorrow
-          while (!EXAM_DAYS.includes(futureDate.getDay())) {
-              futureDate.setDate(futureDate.getDate() + 1);
-          }
-          futureDate.setHours(EXAM_START_HOUR, 0, 0, 0);
-          nextOpen = futureDate;
-      }
-      return nextOpen;
-    }
-
-    function update() {
-      const now = new Date();
-      // Get Egypt time directly using toLocaleString with timeZone
-      const egyptTime = new Date(now.toLocaleString("en-US", { timeZone: "Africa/Cairo" }));
-      const currentDay = egyptTime.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
-      const currentHour = egyptTime.getHours();
-
-      date.textContent = `التاريخ: ${egyptTime.toLocaleDateString("ar-EG")}`;
-      clock.textContent = `الساعة الآن: ${egyptTime.toLocaleTimeString("ar-EG", { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
-
-      const examStartToday = new Date(egyptTime);
-      examStartToday.setHours(EXAM_START_HOUR, 0, 0, 0);
-
-      const examEndToday = new Date(egyptTime);
-      examEndToday.setHours(EXAM_END_HOUR, 0, 0, 0);
-
-      // Check if it's an exam day
-      if (EXAM_DAYS.includes(currentDay)) {
-        if (egyptTime >= examStartToday && egyptTime < examEndToday) {
-          // --- During the 1-hour exam period (7 PM to 8 PM) ---
-          const diff = examEndToday - egyptTime;
-          const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-          const s = Math.floor((diff % (1000 * 60)) / 1000);
-
-          countdown.textContent = `✅ الامتحان مفتوح الآن! متبقي على الإغلاق: ${m} دقيقة، ${s} ثانية`;
-          form.style.display = "flex"; // Show the form
-        } else if (egyptTime < examStartToday) {
-          // --- Exam day, but before 7 PM ---
-          const diffToOpen = examStartToday - egyptTime;
-          const h = Math.floor((diffToOpen % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-          const m = Math.floor((diffToOpen % (1000 * 60 * 60)) / (1000 * 60));
-          const s = Math.floor((diffToOpen % (1000 * 60)) / 1000);
-
-          countdown.textContent = `العد التنازلي لفتح الامتحان اليوم: ${h} ساعة، ${m} دقيقة، ${s} ثانية`;
-          form.style.display = "none"; // Hide the form
-        } else { // egyptTime >= examEndToday (Past 8 PM on exam day)
-          // --- Exam day, but after 8 PM ---
-          const nextExamOpen = getNextExamOpenTime(egyptTime); // Find next exam open time (could be tomorrow or next Saturday)
-          const diffToOpen = nextExamOpen - egyptTime;
-
-          const d = Math.floor(diffToOpen / (1000 * 60 * 60 * 24));
-          const h = Math.floor((diffToOpen % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-          const m = Math.floor((diffToOpen % (1000 * 60 * 60)) / (1000 * 60));
-          const s = Math.floor((diffToOpen % (1000 * 60)) / 1000);
-
-          let countdownText = `انتهى الامتحان لهذا اليوم. سيفتح الامتحان القادم في: `;
-          if (d > 0) countdownText += `${d} يوم، `;
-          countdownText += `${h} ساعة، ${m} دقيقة، ${s} ثانية`;
-          countdown.textContent = countdownText;
-          form.style.display = "none"; // Hide the form
-        }
-      } else {
-        // --- Not an exam day (Tuesday, Wednesday, Thursday, Friday) ---
-        const nextExamOpen = getNextExamOpenTime(egyptTime);
-        const diffToOpen = nextExamOpen - egyptTime;
-
-        const d = Math.floor(diffToOpen / (1000 * 60 * 60 * 24));
-        const h = Math.floor((diffToOpen % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const m = Math.floor((diffToOpen % (1000 * 60 * 60)) / (1000 * 60));
-        const s = Math.floor((diffToOpen % (1000 * 60)) / 1000);
-
-        let countdownText = `${dayNames[currentDay]}: لا توجد امتحانات اليوم. سيفتح الامتحان في الموعد القادم: `;
-        if (d > 0) countdownText += `${d} يوم، `;
-        countdownText += `${h} ساعة، ${m} دقيقة، ${s} ثانية`;
-        countdown.textContent = countdownText;
-        form.style.display = "none"; // Hide the form
-      }
-    }
-
-    // Initial call and set interval for updates
-    update();
-    setInterval(update, 1000);
-
-    form.addEventListener("submit", function (e) {
-      e.preventDefault();
-      const leader = document.getElementById("leader-code").value.trim();
-      const request = document.getElementById("request-id").value.trim();
-
-      // Check if the entered credentials match any in the validCredentials array
-      const isValid = validCredentials.some(cred =>
-        cred.leaderCode === leader && cred.requestId === request
-      );
-
-      if (isValid) {
-        window.location.href = "./exam.html"; // Redirect to the actual exam page (needs to exist)
-      } else {
-        alert("❌ كود القائد أو رقم الطلب غير صحيح.");
-      }
+    // إظهار الإشعار المنبثق فور تحميل DOM
+    document.addEventListener('DOMContentLoaded', () => {
+        maintenanceModal.style.visibility = 'visible';
+        maintenanceModal.style.opacity = '1';
+        // منع التمرير على الصفحة بالكامل
+        document.body.style.overflow = 'hidden'; 
     });
 
-    // JavaScript for Mobile Menu Toggle (copied from other pages)
-    const mobileMenu = document.getElementById('mobile-menu');
-    const mainNav = document.getElementById('main-nav');
 
-    // Check if elements exist before adding event listener
-    if (mobileMenu && mainNav) {
-      mobileMenu.addEventListener('click', () => {
-        mobileMenu.classList.toggle('open');
-        mainNav.classList.toggle('open');
-      });
-    }
-  </script>
+    // --- الكود الأصلي للصفحة (لن يعمل بسبب المودال الذي يغطي الشاشة) ---
+    const date = document.getElementById("date");
+    const clock = document.getElementById("clock");
+    const countdown = document.getElementById("countdown");
+    const form = document.getElementById("exam-form");
+
+    // Define the valid user credentials
+    const validCredentials = [
+      { leaderCode: "Abdou2003", requestId: "R2wndw" },
+    ];
+
+    const EXAM_START_HOUR = 19; // 7 PM
+    const EXAM_END_HOUR = 20;   // 8 PM (1 hour later)
+    const EXAM_DAYS = [0, 1, 6]; // 0 = Sunday, 1 = Monday, 6 = Saturday
+
+    const dayNames = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+
+    // This function finds the next *upcoming* exam start time
+    function getNextExamOpenTime(currentEgyptTime) {
+      let nextOpen = new Date(currentEgyptTime);
+      let foundNextExam = false;
+
+      // Iterate through current day + next 6 days to find the next exam day
+      for (let i = 0; i < 7; i++) {
+        const tempDate = new Date(currentEgyptTime);
+        tempDate.setDate(currentEgyptTime.getDate() + i); // Go to current day + i days
+        tempDate.setHours(EXAM_START_HOUR, 0, 0, 0); // Set to 7 PM for that specific day
+
+        if (EXAM_DAYS.includes(tempDate.getDay())) {
+          if (tempDate.getTime() > currentEgyptTime.getTime()) {
+            // Found a future exam day where the start time is still ahead of current time
+            nextOpen = tempDate;
+            foundNextExam = true;
+            break;
+          }
+        }
+      }
+
+      // Fallback if no future exam found within next 7 days
+      if (!foundNextExam) {
+          let futureDate = new Date(currentEgyptTime);
+          futureDate.setDate(futureDate.getDate() + 1); 
+          while (!EXAM_DAYS.includes(futureDate.getDay())) {
+              futureDate.setDate(futureDate.getDate() + 1);
+          }
+          futureDate.setHours(EXAM_START_HOUR, 0, 0, 0);
+          nextOpen = futureDate;
+      }
+      return nextOpen;
+    }
+
+    function update() {
+      const now = new Date();
+      // Get Egypt time directly using toLocaleString with timeZone
+      const egyptTime = new Date(now.toLocaleString("en-US", { timeZone: "Africa/Cairo" }));
+      const currentDay = egyptTime.getDay(); 
+      const currentHour = egyptTime.getHours();
+
+      date.textContent = `التاريخ: ${egyptTime.toLocaleDateString("ar-EG")}`;
+      clock.textContent = `الساعة الآن: ${egyptTime.toLocaleTimeString("ar-EG", { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+
+      const examStartToday = new Date(egyptTime);
+      examStartToday.setHours(EXAM_START_HOUR, 0, 0, 0);
+
+      const examEndToday = new Date(egyptTime);
+      examEndToday.setHours(EXAM_END_HOUR, 0, 0, 0);
+
+      // Check if it's an exam day
+      if (EXAM_DAYS.includes(currentDay)) {
+        if (egyptTime >= examStartToday && egyptTime < examEndToday) {
+          // --- During the 1-hour exam period (7 PM to 8 PM) ---
+          const diff = examEndToday - egyptTime;
+          const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+          countdown.textContent = `✅ الامتحان مفتوح الآن! متبقي على الإغلاق: ${m} دقيقة، ${s} ثانية`;
+          form.style.display = "flex"; 
+        } else if (egyptTime < examStartToday) {
+          // --- Exam day, but before 7 PM ---
+          const diffToOpen = examStartToday - egyptTime;
+          const h = Math.floor((diffToOpen % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const m = Math.floor((diffToOpen % (1000 * 60 * 60)) / (1000 * 60));
+          const s = Math.floor((diffToOpen % (1000 * 60)) / 1000);
+
+          countdown.textContent = `العد التنازلي لفتح الامتحان اليوم: ${h} ساعة، ${m} دقيقة، ${s} ثانية`;
+          form.style.display = "none"; 
+        } else { // egyptTime >= examEndToday (Past 8 PM on exam day)
+          // --- Exam day, but after 8 PM ---
+          const nextExamOpen = getNextExamOpenTime(egyptTime); 
+          const diffToOpen = nextExamOpen - egyptTime;
+
+          const d = Math.floor(diffToOpen / (1000 * 60 * 60 * 24));
+          const h = Math.floor((diffToOpen % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const m = Math.floor((diffToOpen % (1000 * 60 * 60)) / (1000 * 60));
+          const s = Math.floor((diffToOpen % (1000 * 60)) / 1000);
+
+          let countdownText = `انتهى الامتحان لهذا اليوم. سيفتح الامتحان القادم في: `;
+          if (d > 0) countdownText += `${d} يوم، `;
+          countdownText += `${h} ساعة، ${m} دقيقة، ${s} ثانية`;
+          countdown.textContent = countdownText;
+          form.style.display = "none"; 
+        }
+      } else {
+        // --- Not an exam day ---
+        const nextExamOpen = getNextExamOpenTime(egyptTime);
+        const diffToOpen = nextExamOpen - egyptTime;
+
+        const d = Math.floor(diffToOpen / (1000 * 60 * 60 * 24));
+        const h = Math.floor((diffToOpen % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const m = Math.floor((diffToOpen % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((diffToOpen % (1000 * 60)) / 1000);
+
+        let countdownText = `${dayNames[currentDay]}: لا توجد امتحانات اليوم. سيفتح الامتحان في الموعد القادم: `;
+        if (d > 0) countdownText += `${d} يوم، `;
+        countdownText += `${h} ساعة، ${m} دقيقة، ${s} ثانية`;
+        countdown.textContent = countdownText;
+        form.style.display = "none"; 
+      }
+    }
+
+    // Initial call and set interval for updates
+    update();
+    setInterval(update, 1000);
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      const leader = document.getElementById("leader-code").value.trim();
+      const request = document.getElementById("request-id").value.trim();
+
+      // Check if the entered credentials match any in the validCredentials array
+      const isValid = validCredentials.some(cred =>
+        cred.leaderCode === leader && cred.requestId === request
+      );
+
+      if (isValid) {
+        window.location.href = "./exam.html"; // Redirect to the actual exam page (needs to exist)
+      } else {
+        alert("❌ كود القائد أو رقم الطلب غير صحيح.");
+      }
+    });
+
+    // JavaScript for Mobile Menu Toggle (copied from other pages)
+    const mobileMenu = document.getElementById('mobile-menu');
+    const mainNav = document.getElementById('main-nav');
+
+    // Check if elements exist before adding event listener
+    if (mobileMenu && mainNav) {
+      mobileMenu.addEventListener('click', () => {
+        mobileMenu.classList.toggle('open');
+        mainNav.classList.toggle('open');
+      });
+    }
+  </script>
 </body>
 </html>
