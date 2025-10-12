@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>امتحان الطالب | قرية متعلمة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* ---------------------------------------------------------------------- */
+/* 1. تعريف المتغيرات والألوان (Modern & Professional Palette) */
+/* ---------------------------------------------------------------------- */
+:root {
+    --primary-blue: #007bff;        /* أزرق أساسي للأزرار والعناوين */
+    --selected-dark-blue: #004d99;  /* أزرق داكن جداً للخيار المحدد (Darker Shade) */
+    --accent-color: #28a745;        /* أخضر للنجاح/التركيز */
+    --text-dark: #212529;           /* نص أسود داكن */
+    --text-light: #ffffff;          /* نص أبيض */
+    --bg-page: #f8f9fa;             /* خلفية فاتحة للصفحة */
+    --bg-card: #ffffff;             /* خلفية البطاقة (الامتحان) */
+    --border-light: #e9ecef;        /* حد خفيف */
+    --shadow-main: 0 0.5rem 1rem rgba(0, 0, 0, 0.08); /* ظل خفيف */
+    --radius: 12px;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 2. التنسيقات الأساسية للجسم والخط (Body & Typography) */
+/* ---------------------------------------------------------------------- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Cairo', sans-serif, Arial;
+    background-color: var(--bg-page);
+    color: var(--text-dark);
+    line-height: 1.6;
+    direction: rtl; /* دعم اللغة العربية */
+    text-align: right;
+    min-height: 100vh;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 3. تنسيقات الرأس (Header) - شريط عريض متجاوب */
+/* ---------------------------------------------------------------------- */
+header {
+    background-color: var(--primary-blue);
+    padding: 1.8rem 1rem; /* زيادة الـ Padding لتكون أكثر بروزاً */
+    color: var(--text-light);
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+}
+
+.logo {
+    font-size: 2.8rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 4. حاوية الامتحان (Container) - بطاقة مركزية أنيقة */
+/* ---------------------------------------------------------------------- */
+.exam-container {
+    max-width: 1000px;
+    width: 95%; /* تأخذ 95% من العرض على الشاشات الصغيرة */
+    margin: 3rem auto;
+    background: var(--bg-card);
+    padding: 35px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-main);
+}
+
+h2 {
+    text-align: center;
+    color: var(--primary-blue);
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 3px solid var(--accent-color);
+    padding-bottom: 10px;
+    width: 50%;
+    min-width: 250px;
+    margin: 0 auto 2.5rem;
+}
+
+.exam-container > p {
+    text-align: center;
+    color: var(--text-dark);
+    font-weight: 500;
+    margin-bottom: 2rem;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 5. تنسيق حقول بيانات الطالب (Input Fields) */
+/* ---------------------------------------------------------------------- */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+label {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-dark);
+}
+
+input[type="text"], select, textarea {
+    width: 100%;
+    padding: 0.9rem 1.2rem;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    font-size: 1rem;
+    background: var(--bg-page);
+    transition: border-color 0.3s, box-shadow 0.3s;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+input[type="text"]:focus, select:focus, textarea:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+
+textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 6. تنسيقات الأسئلة (Question Structure) - تم تحديثه ليكون في مستطيل عصري */
+/* ---------------------------------------------------------------------- */
+.question {
+    /* تصميم المستطيل الأنيق للسؤال */
+    padding: 20px; 
+    margin-bottom: 30px; 
+    border: 2px solid var(--primary-blue); 
+    border-radius: 10px; 
+    background-color: #e9f0ff; /* خلفية زرقاء فاتحة جداً */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.question:last-child {
+    /* لا نحتاج لـ border-bottom بعد الآن */
+    border-bottom: 2px solid var(--primary-blue); /* احتفظ بالحدود المطبقة أعلاه */
+    margin-bottom: 30px; 
+}
+
+.question p {
+    font-weight: 700;
+    font-size: 1.2rem; /* حجم خط أكبر قليلاً */
+    color: var(--text-dark);
+    margin-bottom: 0; /* لا حاجة لمسافة سفلية داخل المستطيل */
+    /* ضمان التفاف النص بشكل صحيح */
+    overflow-wrap: break-word; 
+    word-wrap: break-word; 
+}
+
+/* ---------------------------------------------------------------------- */
+/* 7. تنسيق خيارات الإجابة (Options Grid) - أهم جزء متجاوب */
+/* ---------------------------------------------------------------------- */
+.options-grid {
+    /* نستخدم Grid لضمان أفضل تجاوب وتنسيق للأعمدة */
+    display: grid;
+    /* auto-fit: املأ المساحة المتاحة
+       minmax: الحد الأدنى للعرض 220 بكسل، الحد الأقصى 1fr (توزيع متساوٍ)
+    */
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px; /* المسافة بين الخيارات */
+    margin-top: 15px;
+}
+
+/* إظهار زر الراديو الأصلي وتنسيقه ليتناسب مع الـ Label كصندوق */
+.options-grid input[type="radio"] {
+    display: inline-block; 
+    width: 18px; 
+    height: 18px;
+    margin-right: 10px; /* NEW: مسافة إلى يسار زر الراديو (بين الزر والنص) */
+    margin-left: 0; /* NEW: إلغاء Margin Left */
+    vertical-align: middle; 
+    accent-color: var(--selected-dark-blue); 
+}
+
+/* تنسيق الـ Label (العنصر المرئي للاختيار) */
+.options-grid label {
+    /* NEW: استخدام row-reverse لعكس الترتيب وجعل زر الراديو على اليمين (في RTL) */
+    display: flex;
+    flex-direction: row-reverse; 
+    align-items: center; 
+    /* بما أننا عكسنا الاتجاه، flex-start تعني اليمين في RTL */
+    justify-content: flex-start; 
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--text-dark);
+    padding: 12px 20px;
+    border-radius: 8px;
+    background: var(--bg-card);
+    border: 2px solid var(--border-light);
+    transition: all 0.25s ease;
+    text-align: right; 
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.options-grid label:hover {
+    border-color: var(--primary-blue);
+    background-color: #f0f7ff;
+}
+
+/* **اللون الأزرق الداكن للخيار الذي يختاره المستخدم** */
+/* هذا Selector يتطلب أن يكون الـ <input> متبوعاً بالـ <label> مباشرة في الـ HTML */
+.options-grid input[type="radio"]:checked + label {
+    background-color: var(--selected-dark-blue); 
+    color: var(--text-light); /* نص أبيض */
+    border-color: var(--selected-dark-blue);
+    font-weight: 700;
+    /* إلغاء تأثير التحريك ليتناسب مع الزر الأصلي */
+    transform: none; 
+    box-shadow: 0 4px 8px rgba(0, 77, 153, 0.4);
+}
+
+/* ---------------------------------------------------------------------- */
+/* 8. زر الإرسال (Submit Button) */
+/* ---------------------------------------------------------------------- */
+button[type="submit"] {
+    display: block;
+    width: 90%;
+    max-width: 350px;
+    margin: 3.5rem auto 1rem;
+    padding: 1.1rem 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-light);
+    background: var(--accent-color);
+    border: none;
+    cursor: pointer;
+    border-radius: 8px;
+    box-shadow: 0 6px 15px rgba(40, 167, 69, 0.3);
+    transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s;
+}
+
+button[type="submit"]:hover {
+    background: #1e7e34;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(40, 167, 69, 0.4);
+}
+
+button[type="submit"]:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+}
+
+/* ---------------------------------------------------------------------- */
+/* 9. تنسيق عرض النتيجة (Result) */
+/* ---------------------------------------------------------------------- */
+.result {
+    text-align: center;
+    margin-top: 3rem;
+    font-size: 1.6rem;
+    font-weight: 700;
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    border: 2px solid;
+    box-shadow: var(--shadow-main);
+    display: none;
+}
+
+.result.pass {
+    background-color: #d4edda;
+    color: #155724;
+    border-color: #c3e6cb;
+}
+
+.result.fail {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-color: #f5c6cb;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 10. التنسيقات المتجاوبة (Responsive Design) */
+/* ---------------------------------------------------------------------- */
+
+/* الشاشات المتوسطة (Tablets: 768px and below) */
+@media (max-width: 768px) {
+    header {
+        padding: 1.5rem 1rem;
+    }
+    .logo {
+        font-size: 2.2rem;
+    }
+    .exam-container {
+        padding: 20px;
+        margin: 1.5rem auto;
+    }
+    h2 {
+        font-size: 1.8rem;
+    }
+    /* على الأجهزة اللوحية، نجعل الحد الأدنى للعرض أصغر لتظهر الخيارات في عمودين */
+    .options-grid {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 10px;
+    }
+}
+
+/* الشاشات الصغيرة (Mobile: 480px and below) */
+@media (max-width: 480px) {
+    .logo {
+        font-size: 1.8rem;
+    }
+    .exam-container {
+        padding: 15px;
+        margin: 1rem auto;
+    }
+    h2 {
+        font-size: 1.6rem;
+        width: 80%;
+    }
+    .question p {
+        font-size: 1.05rem;
+    }
+    /* على الهواتف، نجبر الشبكة على عمود واحد لسهولة القراءة */
+    .options-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    .options-grid label {
+        padding: 10px 15px;
+        text-align: right;
+    }
+    button[type="submit"] {
+        padding: 1rem;
+        font-size: 1.1rem;
+    }
+    .result {
+        font-size: 1.4rem;
+    }
+}
+
+    </style>
+</head>
+
+<body>
+
+      <header>
+            <h1 class="logo">قرية متعلمة</h1>
+          </header>
+
+      <div class="exam-container">
+            <h2>امتحان الطالب</h2>
+
+            <form id="exam-form">
+                  <label for="student-name">الاسم الكامل</label>
+                  <input type="text" id="student-name" required placeholder="مثال: محمد أحمد" />
+
+                  <label for="request-id">رقم الطلب</label>
+                  <input type="text" id="request-id" required placeholder="مثال: 12345" />
+
+                  <label for="exam-day">اختر اليوم</label>
+                  <select id="exam-day" required>
+                        <option value="">-- اختر اليوم --</option>
+                        <option value="الأحد">الأحد</option>
+                        <option value="الاثنين">الاثنين</option>
+                      </select>
+
+                  <div id="questions"></div>
+
+                  <button type="submit">إرسال الامتحان</button>
+                </form>
+
+            <div id="result" class="result"></div>
+          </div>
+
+     
+    <script>
+        const allQuestionsData = [
+    // 5 أسئلة تاريخ وجغرافيا (4 نقاط لكل سؤال - الإجمالي 20)
+    {
+        type: "mcq",
+        q: "ما هي المدينة التي كانت تُعرف سابقاً باسم 'القسطنطينية'؟",
+        options: ["بغداد", "إسطنبول", "دمشق", "روما"],
+        answer: "إسطنبول",
+        points: 4
+    },
+    {
+        type: "mcq",
+        q: "ما هو اسم أطول نهر في العالم؟",
+        options: ["الأمازون", "النيل", "اليانغتسي", "المسيسيبي"],
+        answer: "النيل",
+        points: 4
+    },
+    {
+        type: "mcq",
+        q: "من هو القائد الذي وحد القبائل المغولية وأسس إمبراطورية واسعة في القرن الثالث عشر؟",
+        options: ["صلاح الدين الأيوبي", "تيمورلنك", "جنكيز خان", "هارون الرشيد"],
+        answer: "جنكيز خان",
+        points: 4
+    },
+    {
+        type: "mcq",
+        q: "ما هي الدولة التي تتكون من أكثر من 17,000 جزيرة وهي الأكبر من حيث الجزر؟",
+        options: ["الفلبين", "اليابان", "ماليزيا", "إندونيسيا"],
+        answer: "إندونيسيا",
+        points: 4
+    },
+    {
+        type: "mcq",
+        q: "ماذا يطلق على خطوط الطول والعرض التي تستخدم لتحديد المواقع على الخريطة؟",
+        options: ["الزوايا", "المسارات", "الإحداثيات", "المحاور"],
+        answer: "الإحداثيات",
+        points: 4
+    },
+
+    // 5 أسئلة لغة وأدب عربي (4 نقاط لكل سؤال - الإجمالي 20)
+    {
+        type: "mcq",
+        q: "من هو مؤلف 'ألف ليلة وليلة'؟",
+        options: ["طه حسين", "نجيب محفوظ", "لم يعرف مؤلف واحد محدد", "أحمد شوقي"],
+        answer: "لم يعرف مؤلف واحد محدد",
+        points: 4
+    },
+    {
+        type: "mcq",
+        q: "في اللغة العربية، ما هو جمع كلمة 'أخطبوط'؟",
+        options: ["أخاطب", "أخاطيب", "أخطبوطات", "أخطابيط"],
+        answer: "أخاطيب",
+        points: 4
+    },
+    {
+        type: "mcq",
+        q: "ماذا يعني مصطلح 'البلاغة'؟",
+        options: ["كثرة الكلام", "فصاحة اللسان وحسن البيان", "صعوبة الفهم", "قراءة الكتب"],
+        answer: "فصاحة اللسان وحسن البيان",
+        points: 4
+    },
+    {
+        type: "mcq",
+        q: "شاعر لقب بـ 'أمير الشعراء' في العصر الحديث، فمن هو؟",
+        options: ["حافظ إبراهيم", "المتنبي", "أحمد شوقي", "جبران خليل جبران"],
+        answer: "أحمد شوقي",
+        points: 4
+    },
+    {
+        type: "mcq",
+        q: "ما هو نوع الكلمة 'مكتبة' من حيث الاشتقاق؟",
+        options: ["اسم فاعل", "اسم مفعول", "اسم آلة", "اسم مكان"],
+        answer: "اسم مكان",
+        points: 4
+    },
+
+    // 5 أسئلة معلومات عامة وفنون (4 نقاط لكل سؤال - الإجمالي 20)
+    {
+        type: "mcq",
+        q: "من هو الرسام الذي رسم لوحة 'الموناليزا'؟",
+        options: ["فان جوخ", "بابلو بيكاسو", "ليوناردو دا فينشي", "كلود مونيه"],
+        answer: "ليوناردو دا فينشي",
+        points: 4
+    },
+    {
+        type: "mcq",
+        q: "ما هو الجزء الوحيد من جسم الإنسان الذي لا يصله الدم؟",
+        options: ["الغضاريف", "القرنية", "الشعر", "الأظافر"],
+        answer: "القرنية",
+        points: 4
+    },
+    {
+        type: "mcq",
+        q: "في أي قارة تقع دولة 'نيوزيلندا'؟",
+        options: ["آسيا", "أوروبا", "أستراليا (أوقيانوسيا)", "أفريقيا"],
+        answer: "أستراليا (أوقيانوسيا)",
+        points: 4
+    },
+    {
+        type: "mcq",
+        q: "ماذا يسمى الشخص الذي يدرس التاريخ ويحلل الوثائق التاريخية؟",
+        options: ["عالم النبات", "عالم الآثار", "الجغرافي", "المؤرخ"],
+        answer: "المؤرخ",
+        points: 4
+    },
+    {
+        type: "mcq",
+        q: "ما هو أكبر حيوان على وجه الأرض حاليًا؟",
+        options: ["الفيل الأفريقي", "الحوت الأزرق", "الزرافة", "الدب القطبي"],
+        answer: "الحوت الأزرق",
+        points: 4
+    },
+
+    // 5 أسئلة ترو/فولس (صحيح/خطأ) عامة (4 نقاط لكل سؤال - الإجمالي 20)
+    {
+        type: "truefalse",
+        q: "عاصمة كندا هي مدينة تورنتو.",
+        options: ["صحيح", "خطأ"],
+        answer: "خطأ", // العاصمة هي أوتاوا
+        points: 4
+    },
+    {
+        type: "truefalse",
+        q: "البيانو هو آلة وترية.",
+        options: ["صحيح", "خطأ"],
+        answer: "صحيح",
+        points: 4
+    },
+    {
+        type: "truefalse",
+        q: "الحرب العالمية الأولى بدأت في القرن التاسع عشر.",
+        options: ["صحيح", "خطأ"],
+        answer: "خطأ", // بدأت في القرن العشرين (1914)
+        points: 4
+    },
+    {
+        type: "truefalse",
+        q: "مدينة مراكش تقع في دولة الجزائر.",
+        options: ["صحيح", "خطأ"],
+        answer: "خطأ", // تقع في المغرب
+        points: 4
+    },
+    {
+        type: "truefalse",
+        q: "يطلق على المجموعة الشمسية اسم 'درب التبانة'.",
+        options: ["صحيح", "خطأ"],
+        answer: "خطأ", // درب التبانة هو المجرة التي تنتمي إليها المجموعة الشمسية
+        points: 4
+    },
+
+    // 5 أسئلة مقالية (إجابة قصيرة) تتطلب تفكيراً عاماً (4 نقاط لكل سؤال - الإجمالي 20)
+    {
+        type: "essay",
+        q: "اذكر اثنتين من عجائب الدنيا السبع الجديدة.",
+        placeholder: "اكتب اثنتين من العجائب (مثل: سور الصين العظيم، البتراء، تاج محل)...",
+        points: 4
+    },
+    {
+        type: "essay",
+        q: "ما هي عملة اليابان؟ وكيف يُكتب رمزها؟",
+        placeholder: "العملة: ... الرمز: ...",
+        points: 4
+    },
+    {
+        type: "essay",
+        q: "ماذا يُقصد بمفهوم 'التنمية المستدامة' باختصار؟",
+        placeholder: "اشرح باختصار (تلبية احتياجات الجيل الحالي دون التضحية بالاحتياجات المستقبلية)...",
+        points: 4
+    },
+    {
+        type: "essay",
+        q: "اذكر اسم اثنين من الكتب أو الروايات التي نالت شهرة عالمية (غير القرآن الكريم).",
+        placeholder: "اذكر كتابين مشهورين...",
+        points: 4
+    },
+    {
+        type: "essay",
+        q: "اذكر أهمية واحدة للانترنت في حياتنا اليومية.",
+        placeholder: "اذكر أهمية واحدة محددة (مثل: التواصل، البحث عن المعلومة)...",
+        points: 4
+    }
+];
+
+
+        // Separate questions by type
+        const mcqQuestions = allQuestionsData.filter(q => q.type === 'mcq');
+        const trueFalseQuestions = allQuestionsData.filter(q => q.type === 'truefalse');
+        const essayQuestions = allQuestionsData.filter(q => q.type === 'essay');
+
+        // Shuffle and select the required number of questions for each type
+        const selectedMcq = mcqQuestions.sort(() => 0.5 - Math.random()).slice(0, 15);
+        const selectedTrueFalse = trueFalseQuestions.sort(() => 0.5 - Math.random()).slice(0, 5);
+        const selectedEssay = essayQuestions.sort(() => 0.5 - Math.random()).slice(0, 5);
+
+        // Combine all selected questions and shuffle them again to mix types
+        const selectedQuestions = [...selectedMcq, ...selectedTrueFalse, ...selectedEssay].sort(() => 0.5 - Math.random());
+
+        const questionsContainer = document.getElementById("questions");
+
+        selectedQuestions.forEach((q, index) => {
+            const div = document.createElement("div");
+            div.classList.add("question");
+
+            // Display points for each question
+            div.innerHTML = `<p>(${q.points} نقاط) ${index + 1}. ${q.q}</p>`;
+
+            if (q.type === 'mcq' || q.type === 'truefalse') {
+                const optionsGrid = document.createElement("div");
+                optionsGrid.classList.add("options-grid");
+                q.options.forEach(opt => {
+                    const label = document.createElement("label");
+                    const input = document.createElement("input");
+                    input.type = "radio";
+                    input.name = `q${index}`; // Unique name for each question
+                    input.value = opt;
+                    input.required = true;
+                    label.appendChild(input);
+                    label.appendChild(document.createTextNode(` ${opt}`));
+                    optionsGrid.appendChild(label);
+                });
+                div.appendChild(optionsGrid);
+            } else if (q.type === 'essay') {
+                const textarea = document.createElement("textarea");
+                textarea.id = `q${index}`; // Unique ID for essay textarea
+                textarea.name = `q${index}`;
+                textarea.placeholder = q.placeholder || "اكتب إجابتك هنا...";
+                textarea.required = true; // Make essay questions required
+                div.appendChild(textarea);
+            }
+            questionsContainer.appendChild(div);
+        });
+
+        document.getElementById("exam-form").addEventListener("submit", function (e) {
+            e.preventDefault();
+            const name = document.getElementById("student-name").value.trim();
+            const requestId = document.getElementById("request-id").value.trim();
+            const day = document.getElementById("exam-day").value;
+
+            // Calculate total points (which is now guaranteed to be 100)
+            const totalPoints = selectedQuestions.reduce((sum, q) => sum + (q.points || 0), 0);
+
+            let studentScore = 0;
+
+            selectedQuestions.forEach((q, i) => {
+                if (q.type === 'mcq' || q.type === 'truefalse') {
+                    const selected = document.querySelector(`input[name="q${i}"]:checked`);
+                    if (selected && selected.value === q.answer) {
+                        studentScore += q.points;
+                    }
+                } else if (q.type === 'essay') {
+                    const essayAnswer = document.getElementById(`q${i}`).value.trim();
+                    if (essayAnswer !== '') {
+                        // يتم منح النقاط الكاملة للسؤال المقالي إذا كانت الإجابة غير فارغة لغرض التقدير التلقائي. 
+                        // التقييم الحقيقي سيكون يدوياً.
+                        studentScore += q.points;
+                    }
+                }
+            });
+
+            // Percentage is calculated out of 100 (studentScore / 100 * 100)
+            const percentage = Math.round((studentScore / totalPoints) * 100);
+            const resultDiv = document.getElementById("result");
+
+            // Show the result division and its content
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = `✅ النتيجة الإجمالية: ${studentScore} من ${totalPoints} نقطة (${percentage}%)`;
+            resultDiv.classList.remove('pass', 'fail'); // Clear previous classes
+
+            if (percentage < 50) {
+                resultDiv.textContent += " 😔 راسب. يجب الإعادة.";
+                resultDiv.classList.add('fail');
+            } else {
+                resultDiv.textContent += " 🎉 ناجح! تهانينا.";
+                resultDiv.classList.add('pass');
+            }
+
+            // Telegram Bot Integration (Use your token and chat ID)
+            const botToken = "7960767519:AAHJIrusFrFyb3Mr0BHBKZo8BGgKemkfABE";
+            const chatId = "1213902845";
+            const msg = `📋 *نتيجة امتحان الطالب*\n👤 الاسم: ${name}\n🆔 رقم الطلب: ${requestId}\n📅 اليوم: ${day}\n📊 النتيجة: ${studentScore} من ${totalPoints} (${percentage}%) ${percentage < 50 ? '(راسب)' : '(ناجح)'}\n\n*ملاحظة:* النتيجة النهائية تعتمد على التقييم اليدوي للأسئلة المقالية.`;
+
+            fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: msg,
+                    parse_mode: "Markdown"
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.ok) {
+                        console.log("Message sent to Telegram successfully!");
+                    } else {
+                        console.error("Failed to send message to Telegram:", data.description);
+                        alert("حدث خطأ أثناء إرسال النتيجة. يرجى المحاولة مرة أخرى أو إبلاغ المسؤول.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error sending message to Telegram:", error);
+                    alert("حدث خطأ في الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت.");
+                });
+        });
+    </script>
+</body>
+
+</html>
