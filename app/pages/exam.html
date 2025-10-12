@@ -1,478 +1,533 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>امتحان الطالب | قرية متعلمة</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-      <style>
-        /* تعريف المتغيرات والألوان */
-        :root {
-            --primary-blue: #1d4ed8; /* أزرق أساسي */
-            --dark-blue: #1e3a8a; /* أزرق داكن للهيدر */
-            --light-blue: #e0f2fe; /* أزرق فاتح للتأثيرات */
-            --accent-green: #10b981; /* أخضر مميز للأزرار */
-            --dark-green: #059669;
-            --text-color: #333; /* لون النص الأساسي */
-            --light-bg: #eef2ff; /* خلفية فاتحة للصفحة */
-            --white: #ffffff;
-            --gray-text: #888;
-            --border-color: #d1d5db;
-            --question-border: #e2e8f0; /* خط فاصل للأسئلة */
-            --pass-color: #059669; /* أخضر للنجاح */
-            --fail-color: #dc2626; /* أحمر للرسوب */
-        }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>امتحان الطالب | قرية متعلمة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* ---------------------------------------------------------------------- */
+/* 1. تعريف المتغيرات والألوان (Modern & Professional Palette) */
+/* ---------------------------------------------------------------------- */
+:root {
+    --primary-blue: #007bff;        /* أزرق أساسي للأزرار والعناوين */
+    --selected-dark-blue: #004d99;  /* أزرق داكن جداً للخيار المحدد (Darker Shade) */
+    --accent-color: #28a745;        /* أخضر للنجاح/التركيز */
+    --text-dark: #212529;           /* نص أسود داكن */
+    --text-light: #ffffff;          /* نص أبيض */
+    --bg-page: #f8f9fa;             /* خلفية فاتحة للصفحة */
+    --bg-card: #ffffff;             /* خلفية البطاقة (الامتحان) */
+    --border-light: #e9ecef;        /* حد خفيف */
+    --shadow-main: 0 0.5rem 1rem rgba(0, 0, 0, 0.08); /* ظل خفيف */
+    --radius: 12px;
+}
 
-        /* تنسيقات الجسم والخلفية */
-        body {
-            font-family: 'Cairo', sans-serif;
-            background: linear-gradient(to bottom, var(--light-bg), var(--white));
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-            line-height: 1.6;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            direction: rtl; /* دعم اللغة العربية */
-            text-align: right; /* محاذاة النص لليمين */
-        }
+/* ---------------------------------------------------------------------- */
+/* 2. التنسيقات الأساسية للجسم والخط (Body & Typography) */
+/* ---------------------------------------------------------------------- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
-        /* تنسيقات الرأس */
-        header {
-            background: var(--dark-blue);
-            padding: 1.5rem;
-            color: var(--white);
-            text-align: center;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            margin-bottom: 2rem;
-        }
-        .logo {
-            font-size: 2.2rem;
-            margin: 0;
-        }
+body {
+    font-family: 'Cairo', sans-serif, Arial;
+    background-color: var(--bg-page);
+    color: var(--text-dark);
+    line-height: 1.6;
+    direction: rtl; /* دعم اللغة العربية */
+    text-align: right;
+    min-height: 100vh;
+}
 
-        /* تنسيقات حاوية الامتحان الرئيسية */
-        .exam-container {
-            flex: 1;
-            max-width: 900px;
-            margin: 2rem auto;
-            background: var(--white);
-            padding: 2.5rem;
-            border-radius: 1rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-        }
+/* ---------------------------------------------------------------------- */
+/* 3. تنسيقات الرأس (Header) - شريط عريض متجاوب */
+/* ---------------------------------------------------------------------- */
+header {
+    background-color: var(--primary-blue);
+    padding: 1.8rem 1rem; /* زيادة الـ Padding لتكون أكثر بروزاً */
+    color: var(--text-light);
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+}
 
-        /* تنسيقات العنوان H2 */
-        h2 {
-            text-align: center;
-            color: var(--primary-blue);
-            margin-bottom: 2.5rem;
-            font-size: 2.2rem;
-            position: relative;
-            padding-bottom: 10px;
-        }
-        h2::after {
-            content: '';
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            bottom: 0;
-            width: 70px;
-            height: 4px;
-            background-color: var(--accent-green);
-            border-radius: 2px;
-        }
+.logo {
+    font-size: 2.8rem;
+    font-weight: 700;
+    margin: 0;
+}
 
-        /* تنسيقات حقول الإدخال */
-        label {
-            font-weight: 600;
-            display: block;
-            margin-bottom: 0.7rem;
-            color: var(--dark-blue);
-            font-size: 1.05rem;
-        }
+/* ---------------------------------------------------------------------- */
+/* 4. حاوية الامتحان (Container) - بطاقة مركزية أنيقة */
+/* ---------------------------------------------------------------------- */
+.exam-container {
+    max-width: 1000px;
+    width: 95%; /* تأخذ 95% من العرض على الشاشات الصغيرة */
+    margin: 3rem auto;
+    background: var(--bg-card);
+    padding: 35px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-main);
+}
 
-        input[type="text"], select, textarea {
-            width: 100%;
-            padding: 1rem;
-            border: 1px solid var(--border-color);
-            border-radius: 0.75rem;
-            margin-bottom: 1.8rem;
-            font-size: 1rem;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-            text-align: right;
-            box-sizing: border-box;
-        }
+h2 {
+    text-align: center;
+    color: var(--primary-blue);
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 3px solid var(--accent-color);
+    padding-bottom: 10px;
+    width: 50%;
+    min-width: 250px;
+    margin: 0 auto 2.5rem;
+}
 
-        input[type="text"]:focus, select:focus, textarea:focus {
-            border-color: var(--primary-blue);
-            box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.2);
-            outline: none;
-        }
-        textarea {
-            min-height: 120px;
-            resize: vertical;
-        }
+.exam-container > p {
+    text-align: center;
+    color: var(--text-dark);
+    font-weight: 500;
+    margin-bottom: 2rem;
+}
 
-        /* تنسيقات الأسئلة */
-        .question {
-            margin-bottom: 2.5rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 2px dashed var(--question-border);
-        }
+/* ---------------------------------------------------------------------- */
+/* 5. تنسيق حقول بيانات الطالب (Input Fields) */
+/* ---------------------------------------------------------------------- */
+.form-group {
+    margin-bottom: 1.5rem;
+}
 
-        .question:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
+label {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-dark);
+}
 
-        .question p {
-            margin-bottom: 1.2rem;
-            font-weight: 700;
-            font-size: 1.15rem;
-            color: var(--text-color);
-        }
+input[type="text"], select, textarea {
+    width: 100%;
+    padding: 0.9rem 1.2rem;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    font-size: 1rem;
+    background: var(--bg-page);
+    transition: border-color 0.3s, box-shadow 0.3s;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+}
 
-        /* تنسيقات خيارات الإجابة */
-        .options-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px 25px;
-        }
+input[type="text"]:focus, select:focus, textarea:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+    outline: none;
+}
 
-        .options-grid label {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            font-weight: 400;
-            color: #4a5568;
-            padding: 10px 5px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            transition: background-color 0.2s ease, border-color 0.2s ease;
-        }
+textarea {
+    min-height: 100px;
+    resize: vertical;
+}
 
-        .options-grid label:hover {
-            background-color: #f0f4f8;
-            border-color: var(--light-blue);
-        }
-        
-        /* تلوين الخيار المحدد */
-        .options-grid input[type="radio"]:checked + span {
-            font-weight: 700;
-            color: var(--primary-blue);
-        }
+/* ---------------------------------------------------------------------- */
+/* 6. تنسيقات الأسئلة (Question Structure) - تم تحديثه ليكون في مستطيل عصري */
+/* ---------------------------------------------------------------------- */
+.question {
+    /* تصميم المستطيل الأنيق للسؤال */
+    padding: 20px; 
+    margin-bottom: 30px; 
+    border: 2px solid var(--primary-blue); 
+    border-radius: 10px; 
+    background-color: #e9f0ff; /* خلفية زرقاء فاتحة جداً */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
 
-        .options-grid input[type="radio"] {
-            margin-left: 10px;
-            margin-top: 0;
-            margin-bottom: 0;
-            width: auto;
-            accent-color: var(--primary-blue);
-            transform: scale(1.2);
-        }
+.question:last-child {
+    /* لا نحتاج لـ border-bottom بعد الآن */
+    border-bottom: 2px solid var(--primary-blue); /* احتفظ بالحدود المطبقة أعلاه */
+    margin-bottom: 30px; 
+}
 
-        /* تنسيقات زر الإرسال */
-        button {
-            display: block;
-            background-color: var(--accent-green);
-            color: var(--white);
-            border: none;
-            padding: 1rem 3rem;
-            font-size: 1.2rem;
-            border-radius: 0.75rem;
-            cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            margin: 2.5rem auto 0;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
+.question p {
+    font-weight: 700;
+    font-size: 1.2rem; /* حجم خط أكبر قليلاً */
+    color: var(--text-dark);
+    margin-bottom: 0; /* لا حاجة لمسافة سفلية داخل المستطيل */
+    /* ضمان التفاف النص بشكل صحيح */
+    overflow-wrap: break-word; 
+    word-wrap: break-word; 
+}
 
-        button:hover {
-            background-color: var(--dark-green);
-            transform: translateY(-2px);
-        }
-        button:active {
-            transform: translateY(0);
-            background-color: #047857;
-        }
+/* ---------------------------------------------------------------------- */
+/* 7. تنسيق خيارات الإجابة (Options Grid) - أهم جزء متجاوب */
+/* ---------------------------------------------------------------------- */
+.options-grid {
+    /* نستخدم Grid لضمان أفضل تجاوب وتنسيق للأعمدة */
+    display: grid;
+    /* auto-fit: املأ المساحة المتاحة
+       minmax: الحد الأدنى للعرض 220 بكسل، الحد الأقصى 1fr (توزيع متساوٍ)
+    */
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px; /* المسافة بين الخيارات */
+    margin-top: 15px;
+}
 
-        /* تنسيقات عرض النتيجة */
-        .result {
-            text-align: center;
-            margin-top: 3rem;
-            font-size: 1.6rem;
-            font-weight: bold;
-            padding: 1.5rem;
-            border-radius: 12px;
-            border: 2px solid;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            display: none; /* Hide until submission */
-        }
+/* إظهار زر الراديو الأصلي وتنسيقه ليتناسب مع الـ Label كصندوق */
+.options-grid input[type="radio"] {
+    display: inline-block; 
+    width: 18px; 
+    height: 18px;
+    margin-right: 10px; /* NEW: مسافة إلى يسار زر الراديو (بين الزر والنص) */
+    margin-left: 0; /* NEW: إلغاء Margin Left */
+    vertical-align: middle; 
+    accent-color: var(--selected-dark-blue); 
+}
 
-        .result.pass {
-            background-color: #d1fae5;
-            color: var(--pass-color);
-            border-color: var(--pass-color);
-        }
+/* تنسيق الـ Label (العنصر المرئي للاختيار) */
+.options-grid label {
+    /* NEW: استخدام row-reverse لعكس الترتيب وجعل زر الراديو على اليمين (في RTL) */
+    display: flex;
+    flex-direction: row-reverse; 
+    align-items: center; 
+    /* بما أننا عكسنا الاتجاه، flex-start تعني اليمين في RTL */
+    justify-content: flex-start; 
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--text-dark);
+    padding: 12px 20px;
+    border-radius: 8px;
+    background: var(--bg-card);
+    border: 2px solid var(--border-light);
+    transition: all 0.25s ease;
+    text-align: right; 
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
 
-        .result.fail {
-            background-color: #fee2e2;
-            color: var(--fail-color);
-            border-color: var(--fail-color);
-        }
+.options-grid label:hover {
+    border-color: var(--primary-blue);
+    background-color: #f0f7ff;
+}
 
+/* **اللون الأزرق الداكن للخيار الذي يختاره المستخدم** */
+/* هذا Selector يتطلب أن يكون الـ <input> متبوعاً بالـ <label> مباشرة في الـ HTML */
+.options-grid input[type="radio"]:checked + label {
+    background-color: var(--selected-dark-blue); 
+    color: var(--text-light); /* نص أبيض */
+    border-color: var(--selected-dark-blue);
+    font-weight: 700;
+    /* إلغاء تأثير التحريك ليتناسب مع الزر الأصلي */
+    transform: none; 
+    box-shadow: 0 4px 8px rgba(0, 77, 153, 0.4);
+}
 
-        /* التنسيقات المتجاوبة (Responsive) */
-        @media (max-width: 768px) {
-            .exam-container {
-                padding: 1.5rem;
-                margin: 1rem auto;
-            }
-            h2 {
-                font-size: 1.8rem;
-                margin-bottom: 2rem;
-            }
-            input[type="text"], select, textarea {
-                padding: 0.8rem;
-                margin-bottom: 1.5rem;
-            }
-            .question {
-                margin-bottom: 2rem;
-                padding-bottom: 1rem;
-            }
-            .question p {
-                font-size: 1.05rem;
-            }
-            .options-grid {
-                grid-template-columns: 1fr;
-            }
-            .options-grid label {
-                padding: 8px 5px;
-            }
-            button {
-                padding: 0.9rem 2.5rem;
-                font-size: 1.1rem;
-            }
-            .result {
-                font-size: 1.4rem;
-                padding: 1rem;
-            }
-        }
+/* ---------------------------------------------------------------------- */
+/* 8. زر الإرسال (Submit Button) */
+/* ---------------------------------------------------------------------- */
+button[type="submit"] {
+    display: block;
+    width: 90%;
+    max-width: 350px;
+    margin: 3.5rem auto 1rem;
+    padding: 1.1rem 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-light);
+    background: var(--accent-color);
+    border: none;
+    cursor: pointer;
+    border-radius: 8px;
+    box-shadow: 0 6px 15px rgba(40, 167, 69, 0.3);
+    transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s;
+}
 
-        @media (max-width: 480px) {
-            .exam-container {
-                padding: 1rem;
-            }
-            h2 {
-                font-size: 1.6rem;
-            }
-            input[type="text"], select, textarea {
-                font-size: 0.9rem;
-            }
-            .question p {
-                font-size: 1rem;
-            }
-            button {
-                padding: 0.8rem 2rem;
-                font-size: 1rem;
-            }
-            .result {
-                font-size: 1.2rem;
-            }
-        }
+button[type="submit"]:hover {
+    background: #1e7e34;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(40, 167, 69, 0.4);
+}
+
+button[type="submit"]:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+}
+
+/* ---------------------------------------------------------------------- */
+/* 9. تنسيق عرض النتيجة (Result) */
+/* ---------------------------------------------------------------------- */
+.result {
+    text-align: center;
+    margin-top: 3rem;
+    font-size: 1.6rem;
+    font-weight: 700;
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    border: 2px solid;
+    box-shadow: var(--shadow-main);
+    display: none;
+}
+
+.result.pass {
+    background-color: #d4edda;
+    color: #155724;
+    border-color: #c3e6cb;
+}
+
+.result.fail {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-color: #f5c6cb;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 10. التنسيقات المتجاوبة (Responsive Design) */
+/* ---------------------------------------------------------------------- */
+
+/* الشاشات المتوسطة (Tablets: 768px and below) */
+@media (max-width: 768px) {
+    header {
+        padding: 1.5rem 1rem;
+    }
+    .logo {
+        font-size: 2.2rem;
+    }
+    .exam-container {
+        padding: 20px;
+        margin: 1.5rem auto;
+    }
+    h2 {
+        font-size: 1.8rem;
+    }
+    /* على الأجهزة اللوحية، نجعل الحد الأدنى للعرض أصغر لتظهر الخيارات في عمودين */
+    .options-grid {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 10px;
+    }
+}
+
+/* الشاشات الصغيرة (Mobile: 480px and below) */
+@media (max-width: 480px) {
+    .logo {
+        font-size: 1.8rem;
+    }
+    .exam-container {
+        padding: 15px;
+        margin: 1rem auto;
+    }
+    h2 {
+        font-size: 1.6rem;
+        width: 80%;
+    }
+    .question p {
+        font-size: 1.05rem;
+    }
+    /* على الهواتف، نجبر الشبكة على عمود واحد لسهولة القراءة */
+    .options-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    .options-grid label {
+        padding: 10px 15px;
+        text-align: right;
+    }
+    button[type="submit"] {
+        padding: 1rem;
+        font-size: 1.1rem;
+    }
+    .result {
+        font-size: 1.4rem;
+    }
+}
+
     </style>
 </head>
+
 <body>
 
-  <header>
-    <h1 class="logo">قرية متعلمة</h1>
-  </header>
+      <header>
+            <h1 class="logo">قرية متعلمة</h1>
+          </header>
 
-  <div class="exam-container">
-    <h2>امتحان الطالب</h2>
+      <div class="exam-container">
+            <h2>امتحان الطالب</h2>
 
-    <form id="exam-form">
-      <label for="student-name">الاسم الكامل</label>
-      <input type="text" id="student-name" required placeholder="مثال: محمد أحمد" />
+            <form id="exam-form">
+                  <label for="student-name">الاسم الكامل</label>
+                  <input type="text" id="student-name" required placeholder="مثال: محمد أحمد" />
 
-      <label for="request-id">رقم الطلب</label>
-      <input type="text" id="request-id" required placeholder="مثال: 12345" />
+                  <label for="request-id">رقم الطلب</label>
+                  <input type="text" id="request-id" required placeholder="مثال: 12345" />
 
-      <label for="exam-day">اختر اليوم</label>
-      <select id="exam-day" required>
-        <option value="">-- اختر اليوم --</option>
-        <option value="السبت">السبت</option>
-        <option value="الأحد">الأحد</option>
-        <option value="الاثنين">الاثنين</option>
-      </select>
+                  <label for="exam-day">اختر اليوم</label>
+                  <select id="exam-day" required>
+                        <option value="">-- اختر اليوم --</option>
+                        <option value="الأحد">الأحد</option>
+                        <option value="الاثنين">الاثنين</option>
+                      </select>
 
-      <div id="questions"></div>
+                  <div id="questions"></div>
 
-      <button type="submit">إرسال الامتحان</button>
-    </form>
+                  <button type="submit">إرسال الامتحان</button>
+                </form>
 
-    <div id="result" class="result"></div>
-  </div>
+            <div id="result" class="result"></div>
+          </div>
 
-  <script>
-    // ...existing code...
-    const allQuestionsData = [
-      // 15 Multiple Choice Questions (MCQ) - 4 نقاط لكل سؤال (الإجمالي 60)
-      { type: "mcq", q: "كم يصبح 3 + 2؟", options: ["4", "5", "6", "7"], answer: "5", points: 4 },
-      { type: "mcq", q: "ما لون السماء في النهار عادةً؟", options: ["أحمر", "أخضر", "أزرق", "أسود"], answer: "أزرق", points: 4 },
-      { type: "mcq", q: "أي حيوان يقول 'مواء'؟", options: ["كلب", "قطة", "حصان", "بقرة"], answer: "قطة", points: 4 },
-      { type: "mcq", q: "كم يومًا في الأسبوع؟", options: ["5", "6", "7", "8"], answer: "7", points: 4 },
-      { type: "mcq", q: "أي شكل له أربعة أضلاع متساوية؟", options: ["مربع", "مثلث", "دائرة", "مستطيل"], answer: "مربع", points: 4 },
-      { type: "mcq", q: "ماذا نشرب عندما نحب الترويح عن العطش عادة؟", options: ["ماء", "تراب", "ورق", "صوف"], answer: "ماء", points: 4 },
-      { type: "mcq", q: "ما هو اليوم الذي يأتي بعد الجمعة؟", options: ["الخميس", "السبت", "الأحد", "الإثنين"], answer: "السبت", points: 4 },
-      { type: "mcq", q: "ما لون التفاح غالبًا؟", options: ["أخضر", "بنفسجي", "أسود", "ذهبي"], answer: "أخضر", points: 4 },
-      { type: "mcq", q: "ما هي الحاسة التي نرى بها؟", options: ["الشم", "اللمس", "البصر", "السمع"], answer: "البصر", points: 4 },
-      { type: "mcq", q: "أي من هذه أدوات الكتابة؟", options: ["ممحاة", "قلم", "مسطرة", "مقلمة"], answer: "قلم", points: 4 },
-      { type: "mcq", q: "أي من هذه فاكهة حمراء غالبًا؟", options: ["موز", "تفاح", "تمر", "خيار"], answer: "تفاح", points: 4 },
-      { type: "mcq", q: "ما هو الاتجاه الذي تشرق منه الشمس؟", options: ["الشمال", "الجنوب", "الشرق", "الغرب"], answer: "الشرق", points: 4 },
-      { type: "mcq", q: "ما العدد الذي يلي 9؟", options: ["8", "10", "11", "7"], answer: "10", points: 4 },
-      { type: "mcq", q: "ما وسيلة النقل التي تطير؟", options: ["سيارة", "قارب", "طائرة", "دراجة"], answer: "طائرة", points: 4 },
-      { type: "mcq", q: "أين نأكل الطعام عادة؟", options: ["في الثلاجة", "في المطبخ/سفرة", "في الحديقة فقط", "على السطح دائماً"], answer: "في المطبخ/سفرة", points: 4 },
+     
+    <script>
+        const allQuestionsData = [
+            // 15 Multiple Choice Questions (MCQ) - 4 نقاط لكل سؤال (الإجمالي 60)
+            { type: "mcq", q: "كم يساوي 5 + 3؟", options: ["7", "8", "9", "10"], answer: "8", points: 4 },
+            { type: "mcq", q: "ماذا يسمى صوت الكلب؟", options: ["مواء", "نباح", "صهيل", "زئير"], answer: "نباح", points: 4 },
+            { type: "mcq", q: "ما هي عاصمة مصر؟", options: ["الإسكندرية", "القاهرة", "الأقصر", "أسوان"], answer: "القاهرة", points: 4 },
+            { type: "mcq", q: "كم إصبعاً في يد واحدة؟", options: ["4", "5", "6", "10"], answer: "5", points: 4 },
+            { type: "mcq", q: "ما هو عكس كلمة 'كبير'؟", options: ["ضخم", "عظيم", "صغير", "طويل"], answer: "صغير", points: 4 },
+            { type: "mcq", q: "ماذا يسمى صغير البقرة؟", options: ["جرو", "حمل", "عجل", "هر"], answer: "عجل", points: 4 },
+            { type: "mcq", q: "ما هو الشهر الأول في السنة الميلادية؟", options: ["فبراير", "يناير", "مارس", "ديسمبر"], answer: "يناير", points: 4 },
+            { type: "mcq", q: "كم يساوي 10 - 4؟", options: ["5", "6", "7", "4"], answer: "6", points: 4 },
+            { type: "mcq", q: "ما هو الشيء الذي نراه في الليل ويضيء؟", options: ["الشمس", "القمر", "السحاب", "الرمل"], answer: "القمر", points: 4 },
+            { type: "mcq", q: "ما هو اللون الذي ينتج عن خلط الأحمر والأصفر؟", options: ["الأخضر", "البرتقالي", "البنفسجي", "الأزرق"], answer: "البرتقالي", points: 4 },
+            { type: "mcq", q: "ما هي الفاكهة الصفراء التي تأكلها القرود عادة؟", options: ["تفاح", "موز", "برتقال", "عنب"], answer: "موز", points: 4 },
+            { type: "mcq", q: "ماذا نستخدم لتنظيف الأسنان؟", options: ["ماء فقط", "صابون", "فرشاة ومعجون", "منشفة"], answer: "فرشاة ومعجون", points: 4 },
+            { type: "mcq", q: "ما العدد الزوجي الأكبر من 6 والأصغر من 10؟", options: ["7", "8", "9", "11"], answer: "8", points: 4 },
+            { type: "mcq", q: "ما هو الفصل الذي تكون فيه الأجواء حارة جداً؟", options: ["الخريف", "الشتاء", "الربيع", "الصيف"], answer: "الصيف", points: 4 },
+            { type: "mcq", q: "أي من هذه أداة قياس طول؟", options: ["ميزان", "ساعة", "شريط قياس", "ملعقة"], answer: "شريط قياس", points: 4 },
 
-      // 5 True/False Questions - أسئلة صح وخطأ - 4 نقاط لكل سؤال (الإجمالي 20)
-      { type: "truefalse", q: "الماء ضروري للحياة.", options: ["صحيح", "خطأ"], answer: "صحيح", points: 4 },
-      { type: "truefalse", q: "القمر أكبر من الشمس.", options: ["صحيح", "خطأ"], answer: "خطأ", points: 4 },
-      { type: "truefalse", q: "النباتات تحتاج إلى ضوء الشمس لتنمو.", options: ["صحيح", "خطأ"], answer: "صحيح", points: 4 },
-      { type: "truefalse", q: "الثلج ساخن.", options: ["صحيح", "خطأ"], answer: "خطأ", points: 4 },
-      { type: "truefalse", q: "الطيور يمكنها الطيران.", options: ["صحيح", "خطأ"], answer: "صحيح", points: 4 },
+            // 5 True/False Questions - أسئلة صح وخطأ - 4 نقاط لكل سؤال (الإجمالي 20)
+            { type: "truefalse", q: "الأرض تدور حول الشمس.", options: ["صحيح", "خطأ"], answer: "صحيح", points: 4 },
+            { type: "truefalse", q: "السمك يعيش في الهواء.", options: ["صحيح", "خطأ"], answer: "خطأ", points: 4 },
+            { type: "truefalse", q: "الساعة تشير إلى الوقت.", options: ["صحيح", "خطأ"], answer: "صحيح", points: 4 },
+            { type: "truefalse", q: "الأسبوع يحتوي على 3 أيام.", options: ["صحيح", "خطأ"], answer: "خطأ", points: 4 },
+            { type: "truefalse", q: "أوراق الشجر خضراء غالباً.", options: ["صحيح", "خطأ"], answer: "صحيح", points: 4 },
 
-      // 5 Essay Questions - أسئلة مقالية - 4 نقاط لكل سؤال (الإجمالي 20)
-      { type: "essay", q: "اكتب اسمك واسم والدك.", placeholder: "اكتب اسمك واسم والدك هنا...", points: 4 },
-      { type: "essay", q: "ما طعامك المفضل ولماذا؟", placeholder: "اكتب إجابتك هنا...", points: 4 },
-      { type: "essay", q: "اذكر نشاطًا تحب فعله في الحديقة.", placeholder: "اكتب إجابتك هنا...", points: 4 },
-      { type: "essay", q: "اكتب جملة قصيرة عن المدرسة.", placeholder: "اكتب إجابتك هنا...", points: 4 },
-      { type: "essay", q: "ارسم دائرة ومثلث علي ورق ثم صفهما بكلمات قليلة.", placeholder: "ارسم وصف المقاطع هنا...", points: 4 }
-    ];
-// ...existing code...
+            // 5 Essay Questions - أسئلة مقالية - 4 نقاط لكل سؤال (الإجمالي 20)
+            { type: "essay", q: "اذكر 3 من الفواكه التي تحبها.", placeholder: "اكتب الفواكه الثلاثة هنا...", points: 4 },
+            { type: "essay", q: "ماذا تفعل لمساعدة والدتك في المنزل؟", placeholder: "اذكر عملين أو أكثر...", points: 4 },
+            { type: "essay", q: "اكتب جملة بسيطة تصف فيها نفسك (مثال: أنا طالب مجتهد).", placeholder: "اكتب إجابتك هنا...", points: 4 },
+            { type: "essay", q: "اذكر شيئين تعلمتهما اليوم في المدرسة أو المنزل.", placeholder: "اذكر شيئين تعلمتهما...", points: 4 },
+            { type: "essay", q: "ماذا تريد أن تصبح عندما تكبر؟ ولماذا؟", placeholder: "اذكر الوظيفة والسبب...", points: 4 }
+        ];
 
-    // Separate questions by type
-    const mcqQuestions = allQuestionsData.filter(q => q.type === 'mcq');
-    const trueFalseQuestions = allQuestionsData.filter(q => q.type === 'truefalse');
-    const essayQuestions = allQuestionsData.filter(q => q.type === 'essay');
 
-    // Shuffle and select the required number of questions for each type
-    const selectedMcq = mcqQuestions.sort(() => 0.5 - Math.random()).slice(0, 15);
-    const selectedTrueFalse = trueFalseQuestions.sort(() => 0.5 - Math.random()).slice(0, 5);
-    const selectedEssay = essayQuestions.sort(() => 0.5 - Math.random()).slice(0, 5);
+        // Separate questions by type
+        const mcqQuestions = allQuestionsData.filter(q => q.type === 'mcq');
+        const trueFalseQuestions = allQuestionsData.filter(q => q.type === 'truefalse');
+        const essayQuestions = allQuestionsData.filter(q => q.type === 'essay');
 
-    // Combine all selected questions and shuffle them again to mix types
-    const selectedQuestions = [...selectedMcq, ...selectedTrueFalse, ...selectedEssay].sort(() => 0.5 - Math.random());
+        // Shuffle and select the required number of questions for each type
+        const selectedMcq = mcqQuestions.sort(() => 0.5 - Math.random()).slice(0, 15);
+        const selectedTrueFalse = trueFalseQuestions.sort(() => 0.5 - Math.random()).slice(0, 5);
+        const selectedEssay = essayQuestions.sort(() => 0.5 - Math.random()).slice(0, 5);
 
-    const questionsContainer = document.getElementById("questions");
+        // Combine all selected questions and shuffle them again to mix types
+        const selectedQuestions = [...selectedMcq, ...selectedTrueFalse, ...selectedEssay].sort(() => 0.5 - Math.random());
 
-    selectedQuestions.forEach((q, index) => {
-      const div = document.createElement("div");
-      div.classList.add("question");
+        const questionsContainer = document.getElementById("questions");
 
-      // Display points for each question
-      div.innerHTML = `<p>(${q.points} نقاط) ${index + 1}. ${q.q}</p>`;
+        selectedQuestions.forEach((q, index) => {
+            const div = document.createElement("div");
+            div.classList.add("question");
 
-      if (q.type === 'mcq' || q.type === 'truefalse') {
-        const optionsGrid = document.createElement("div");
-        optionsGrid.classList.add("options-grid");
-        q.options.forEach(opt => {
-          const label = document.createElement("label");
-          const input = document.createElement("input");
-          input.type = "radio";
-          input.name = `q${index}`; // Unique name for each question
-          input.value = opt;
-          input.required = true;
-          label.appendChild(input);
-          label.appendChild(document.createTextNode(` ${opt}`));
-          optionsGrid.appendChild(label);
-        });
-        div.appendChild(optionsGrid);
-      } else if (q.type === 'essay') {
-        const textarea = document.createElement("textarea");
-        textarea.id = `q${index}`; // Unique ID for essay textarea
-        textarea.name = `q${index}`;
-        textarea.placeholder = q.placeholder || "اكتب إجابتك هنا...";
-        textarea.required = true; // Make essay questions required
-        div.appendChild(textarea);
-      }
-      questionsContainer.appendChild(div);
-    });
+            // Display points for each question
+            div.innerHTML = `<p>(${q.points} نقاط) ${index + 1}. ${q.q}</p>`;
 
-    document.getElementById("exam-form").addEventListener("submit", function (e) {
-      e.preventDefault();
-      const name = document.getElementById("student-name").value.trim();
-      const requestId = document.getElementById("request-id").value.trim();
-      const day = document.getElementById("exam-day").value;
-      
-      // Calculate total points (which is now guaranteed to be 100)
-      const totalPoints = selectedQuestions.reduce((sum, q) => sum + (q.points || 0), 0);
-      
-      let studentScore = 0;
-      
-      selectedQuestions.forEach((q, i) => {
-        if (q.type === 'mcq' || q.type === 'truefalse') {
-          const selected = document.querySelector(`input[name="q${i}"]:checked`);
-          if (selected && selected.value === q.answer) {
-            studentScore += q.points;
-          }
-        } else if (q.type === 'essay') {
-          const essayAnswer = document.getElementById(`q${i}`).value.trim();
-          if (essayAnswer !== '') { 
-            // يتم منح النقاط الكاملة للسؤال المقالي إذا كانت الإجابة غير فارغة لغرض التقدير التلقائي. 
-            // التقييم الحقيقي سيكون يدوياً.
-            studentScore += q.points;
-          }
-        }
-      });
+            if (q.type === 'mcq' || q.type === 'truefalse') {
+                const optionsGrid = document.createElement("div");
+                optionsGrid.classList.add("options-grid");
+                q.options.forEach(opt => {
+                    const label = document.createElement("label");
+                    const input = document.createElement("input");
+                    input.type = "radio";
+                    input.name = `q${index}`; // Unique name for each question
+                    input.value = opt;
+                    input.required = true;
+                    label.appendChild(input);
+                    label.appendChild(document.createTextNode(` ${opt}`));
+                    optionsGrid.appendChild(label);
+                });
+                div.appendChild(optionsGrid);
+            } else if (q.type === 'essay') {
+                const textarea = document.createElement("textarea");
+                textarea.id = `q${index}`; // Unique ID for essay textarea
+                textarea.name = `q${index}`;
+                textarea.placeholder = q.placeholder || "اكتب إجابتك هنا...";
+                textarea.required = true; // Make essay questions required
+                div.appendChild(textarea);
+            }
+            questionsContainer.appendChild(div);
+        });
 
-      // Percentage is calculated out of 100 (studentScore / 100 * 100)
-      const percentage = Math.round((studentScore / totalPoints) * 100); 
-      const resultDiv = document.getElementById("result");
-      
-      // Show the result division and its content
-      resultDiv.style.display = 'block';
-      resultDiv.textContent = `✅ النتيجة الإجمالية: ${studentScore} من ${totalPoints} نقطة (${percentage}%)`;
-      resultDiv.classList.remove('pass', 'fail'); // Clear previous classes
+        document.getElementById("exam-form").addEventListener("submit", function (e) {
+            e.preventDefault();
+            const name = document.getElementById("student-name").value.trim();
+            const requestId = document.getElementById("request-id").value.trim();
+            const day = document.getElementById("exam-day").value;
 
-      if (percentage < 50) {
-        resultDiv.textContent += " 😔 راسب. يجب الإعادة.";
-        resultDiv.classList.add('fail');
-      } else {
-        resultDiv.textContent += " 🎉 ناجح! تهانينا.";
-        resultDiv.classList.add('pass');
-      }
+            // Calculate total points (which is now guaranteed to be 100)
+            const totalPoints = selectedQuestions.reduce((sum, q) => sum + (q.points || 0), 0);
 
-      // Telegram Bot Integration (Use your token and chat ID)
-      const botToken = "7960767519:AAHJIrusFrFyb3Mr0BHBKZo8BGgKemkfABE"; 
-      const chatId = "1213902845"; 
-      const msg = `📋 *نتيجة امتحان الطالب*\n👤 الاسم: ${name}\n🆔 رقم الطلب: ${requestId}\n📅 اليوم: ${day}\n📊 النتيجة: ${studentScore} من ${totalPoints} (${percentage}%) ${percentage < 50 ? '(راسب)' : '(ناجح)'}\n\n*ملاحظة:* النتيجة النهائية تعتمد على التقييم اليدوي للأسئلة المقالية.`;
+            let studentScore = 0;
 
-      fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: msg,
-          parse_mode: "Markdown"
-        })
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.ok) {
-          console.log("Message sent to Telegram successfully!");
-        } else {
-          console.error("Failed to send message to Telegram:", data.description);
-          alert("حدث خطأ أثناء إرسال النتيجة. يرجى المحاولة مرة أخرى أو إبلاغ المسؤول.");
-        }
-      })
-      .catch(error => {
-        console.error("Error sending message to Telegram:", error);
-        alert("حدث خطأ في الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت.");
-      });
-    });
-  </script>
+            selectedQuestions.forEach((q, i) => {
+                if (q.type === 'mcq' || q.type === 'truefalse') {
+                    const selected = document.querySelector(`input[name="q${i}"]:checked`);
+                    if (selected && selected.value === q.answer) {
+                        studentScore += q.points;
+                    }
+                } else if (q.type === 'essay') {
+                    const essayAnswer = document.getElementById(`q${i}`).value.trim();
+                    if (essayAnswer !== '') {
+                        // يتم منح النقاط الكاملة للسؤال المقالي إذا كانت الإجابة غير فارغة لغرض التقدير التلقائي. 
+                        // التقييم الحقيقي سيكون يدوياً.
+                        studentScore += q.points;
+                    }
+                }
+            });
+
+            // Percentage is calculated out of 100 (studentScore / 100 * 100)
+            const percentage = Math.round((studentScore / totalPoints) * 100);
+            const resultDiv = document.getElementById("result");
+
+            // Show the result division and its content
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = `✅ النتيجة الإجمالية: ${studentScore} من ${totalPoints} نقطة (${percentage}%)`;
+            resultDiv.classList.remove('pass', 'fail'); // Clear previous classes
+
+            if (percentage < 50) {
+                resultDiv.textContent += " 😔 راسب. يجب الإعادة.";
+                resultDiv.classList.add('fail');
+            } else {
+                resultDiv.textContent += " 🎉 ناجح! تهانينا.";
+                resultDiv.classList.add('pass');
+            }
+
+            // Telegram Bot Integration (Use your token and chat ID)
+            const botToken = "7960767519:AAHJIrusFrFyb3Mr0BHBKZo8BGgKemkfABE";
+            const chatId = "1213902845";
+            const msg = `📋 *نتيجة امتحان الطالب*\n👤 الاسم: ${name}\n🆔 رقم الطلب: ${requestId}\n📅 اليوم: ${day}\n📊 النتيجة: ${studentScore} من ${totalPoints} (${percentage}%) ${percentage < 50 ? '(راسب)' : '(ناجح)'}\n\n*ملاحظة:* النتيجة النهائية تعتمد على التقييم اليدوي للأسئلة المقالية.`;
+
+            fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: msg,
+                    parse_mode: "Markdown"
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.ok) {
+                        console.log("Message sent to Telegram successfully!");
+                    } else {
+                        console.error("Failed to send message to Telegram:", data.description);
+                        alert("حدث خطأ أثناء إرسال النتيجة. يرجى المحاولة مرة أخرى أو إبلاغ المسؤول.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error sending message to Telegram:", error);
+                    alert("حدث خطأ في الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت.");
+                });
+        });
+    </script>
 </body>
+
 </html>

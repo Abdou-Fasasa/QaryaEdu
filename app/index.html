@@ -258,61 +258,72 @@
       border-top: 1px solid #e5e5e5;
     }
 
-   /* Responsive adjustments */
-    @media (max-width: 768px) {
-      .header .container {
-        flex-direction: row; /* Keep logo and toggle on one row */
-        justify-content: space-between;
-        align-items: center;
-      }
-      
-      .nav {
-        display: flex;
-        flex-direction: column; /* Stack links vertically on mobile */
-        position: absolute;
-        top: 100%; /* Position right below the header */
-        left: 0;
-        width: 100%;
-        background: var(--dark-blue);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-        padding: 0; /* Reset padding for initial closed state */
-        border-top: 1px solid rgba(255, 255, 255, 0.06);
-        max-height: 0; /* Initially hidden */
-        overflow: hidden;
-        transition: max-height 0.32s cubic-bezier(.2,.9,.27,1), padding 0.24s ease-out;
-      }
+ /* التعديلات المتجاوبة (Responsive adjustments) */
+        @media (max-width: 768px) {
+            .header .container {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
 
-      .nav.open {
-        max-height: 60vh; /* enough height for many links on small screens */
-        padding: 0.6rem 0; /* vertical padding when open */
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-      }
+            .nav {
+                /* قائمة التنقل في وضع الجوال */
+                display: flex;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                right: 0;
+                width: 100%;
+                background: var(--deeper-blue);
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+                padding: 0;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.35s cubic-bezier(.2, .9, .27, 1);
+            }
 
-      .nav-link {
-        text-align: center;
-        padding: 0.6rem 0; /* Vertical padding for individual links */
-        font-size: 1.15rem;
-        width: 100%;
-        margin-bottom: 0;
-        border-bottom: 1px solid rgba(255,255,255,0.03);
-      }
+            .nav.open {
+                max-height: 70vh;
+                padding: 0.6rem 0;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
 
-      .menu-toggle {
-        display: flex; /* Show hamburger icon on mobile */
-        background: rgba(255,255,255,0.04);
-      }
+            .nav-link {
+                text-align: center;
+                padding: 0.8rem 0;
+                font-size: 1.2rem;
+                width: 100%;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                transform: none;
+            }
 
-      /* Animation for hamburger icon */
-      .menu-toggle.open .bar:nth-child(1) {
-        transform: translateY(10px) rotate(45deg);
-      }
-      .menu-toggle.open .bar:nth-child(2) {
-        opacity: 0;
-      }
-      .menu-toggle.open .bar:nth-child(3) {
-        transform: translateY(-10px) rotate(-45deg);
-      }
+            .nav-link:hover {
+                transform: none;
+            }
+
+            .nav-link::after {
+                content: none;
+                /* إلغاء الشريط السفلي في قائمة الموبايل */
+            }
+
+            .menu-toggle {
+                display: flex;
+            }
+
+            /* Animation for hamburger icon */
+            .menu-toggle.open .bar:nth-child(1) {
+                transform: translateY(11px) rotate(45deg);
+            }
+
+            .menu-toggle.open .bar:nth-child(2) {
+                opacity: 0;
+            }
+
+            .menu-toggle.open .bar:nth-child(3) {
+                transform: translateY(-11px) rotate(-45deg);
+            }
 
       .hero {
         padding: 3rem 1rem;
@@ -648,11 +659,6 @@
         </nav>
       </div>
     </header>
-    <section class="maintenance-notification">
-      <div class="container">
-        <p>نعتذر لجميع طلابنا، جاري الآن صيانة وتحديثات على المنصة، لذلك تم تأجيل امتحانات جميعها. شكراً لكم، جاري الآن التحديث.</p>
-      </div>
-    </section>
     <section class="hero">
       <div class="container">
         <h2>أهلاً بك في منصة قرية متعلمة</h2>

@@ -1,694 +1,720 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>الامتحان | قرية متعلمة</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    /* Global styles and variables, consistent across all pages */
-    :root {
-      --primary-blue: #1d4ed8;
-      --dark-blue: #1e3a8a;
-      --light-blue: #e0f2fe;
-      --accent-orange: #f59e0b;
-      --text-color: #333;
-      --light-bg: #eef2ff;
-      --white: #ffffff;
-      --gray-text: #888;
-      --border-color: #93c5fd;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>الامتحان | قرية متعلمة</title>
+    
+    <!-- استخدام خط القاهرة (Cairo) من جوجل فونت لتصميم عربي متناسق -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* أنماط عامة ومتغيرات CSS */
+        :root {
+            /* الألوان الأساسية */
+            --primary-blue: #1d4ed8;
+            /* أزرق أساسي */
+            --dark-blue: #1e3a8a;
+            /* أزرق داكن (خلفية الهيدر) */
+            --deeper-blue: #172554;
+            /* أزرق أغمق للتدرج */
+            --light-blue: #e0f2fe;
+            /* أزرق فاتح */
+            --accent-orange: #f59e0b;
+            /* برتقالي مميز (للتأثيرات) */
 
-    body {
-      font-family: 'Cairo', sans-serif;
-      background: linear-gradient(to bottom, var(--light-bg), var(--white));
-      color: var(--text-color);
-      margin: 0;
-      padding: 0;
-      line-height: 1.6;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
+            /* ألوان النص والخلفية */
+            --text-color: #333;
+            --light-bg: #eef2ff;
+            /* خلفية فاتحة للجسم */
+            --white: #ffffff;
+            --gray-text: #888;
+            --border-color: #93c5fd;
+            --error-red: #ef4444;
+        }
 
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 1rem;
-    }
+        * {
+            box-sizing: border-box;
+        }
 
-    /* Header styles - Consistent across all pages */
-    .header {
-      background: var(--dark-blue);
-      padding: 1rem 0;
-      color: var(--white);
-      text-align: center;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      position: relative;
-      z-index: 10;
-    }
+        body {
+            font-family: 'Cairo', sans-serif;
+            /* تطبيق الخط الرئيسي */
+            background: linear-gradient(to bottom, var(--light-bg), var(--white));
+            /* تدرج خفيف للخلفية */
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            /* لضمان أن الفوتر في الأسفل */
+        }
 
-    .header .container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 1rem;
-    }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
 
-    .logo {
-      font-size: 2.2rem;
-      margin: 0;
-      color: var(--white);
-      white-space: nowrap;
-    }
+        /* --- أنماط الرأس (Header) المحسّنة --- */
+        .header {
+            /* تدرج لوني أعمق لجاذبية أكبر */
+            background: linear-gradient(135deg, var(--dark-blue) 0%, var(--deeper-blue) 100%);
+            padding: 1rem 0;
+            color: var(--white);
+            /* ظل أعمق وأكثر بروزاً */
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            position: sticky;
+            /* تثبيت الهيدر في الأعلى */
+            top: 0;
+            z-index: 100;
+            /* أولوية عالية */
+        }
 
-    /* Navigation for larger screens (default) */
-    .nav {
-        display: flex;
-        gap: 1.5rem;
-        max-height: none;
-        padding: 0;
-        position: static;
-        width: auto;
-    }
+        .header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
 
-    .nav-link {
-      color: var(--white);
-      text-decoration: none;
-      font-size: 1.1rem;
-      transition: color 0.3s ease;
-      white-space: nowrap;
-    }
+        .logo {
+            font-size: 2.2rem;
+            margin: 0;
+            color: var(--white);
+            white-space: nowrap;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
 
-    .nav-link:hover, .nav-link.active {
-      color: var(--accent-orange);
-    }
+        /* Navigation for larger screens */
+        .nav {
+            display: flex;
+            gap: 2rem;
+            max-height: none;
+            padding: 0;
+            position: static;
+            width: auto;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
 
-    /* Hamburger Menu Icon - Hidden by default on desktop */
-    .menu-toggle {
-      display: none;
-      flex-direction: column;
-      justify-content: space-around;
-      width: 30px;
-      height: 25px;
-      cursor: pointer;
-      z-index: 100;
-      padding: 5px;
-    }
+        /* إخفاء شريط التمرير الأصلي للتنظيف */
+        .nav::-webkit-scrollbar {
+            display: none
+        }
 
-    .menu-toggle .bar {
-      width: 100%;
-      height: 3px;
-      background-color: var(--white);
-      border-radius: 5px;
-      transition: all 0.3s ease-in-out;
-    }
+        .nav {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
 
-    /* Main content container */
-    .main-content-container {
-      flex: 1;
-      text-align: center;
-      padding: 2rem 1rem;
-      max-width: 800px;
-      margin: 2rem auto;
-      background: var(--white);
-      border-radius: 15px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-      position: relative;
-      z-index: 1;
-    }
+        /* --- أنماط روابط التنقل (Navigation Links) --- */
+        .nav-link {
+            color: var(--white);
+            text-decoration: none;
+            font-size: 1.15rem;
+            white-space: nowrap;
+            display: inline-block;
+            padding: 0.5rem 0;
+            position: relative;
+            transition: color 0.3s ease, transform 0.2s ease;
+        }
 
-    .hero-title {
-      font-size: 2.5rem;
-      color: var(--primary-blue);
-      margin: 1.5rem 0 1rem;
-      position: relative;
-      padding-bottom: 10px;
-    }
+        .nav-link::after {
+            /* شريط سفلي متحرك (مؤثر) */
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 0%;
+            height: 3px;
+            background-color: var(--accent-orange);
+            transition: width 0.3s cubic-bezier(0.2, 0.9, 0.27, 1);
+            border-radius: 2px;
+        }
 
-    .hero-title::after {
-      content: '';
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      bottom: 0;
-      width: 80px;
-      height: 4px;
-      background-color: var(--accent-orange);
-      border-radius: 2px;
-    }
+        .nav-link:hover {
+            color: var(--accent-orange);
+            transform: translateY(-3px);
+            /* رفع خفيف على التحويم */
+        }
 
-    #date, #clock, #countdown {
-      font-size: 1.8rem;
-      color: var(--accent-orange);
-      background: #fff3cd;
-      padding: 0.8rem 1.5rem;
-      border-radius: 12px;
-      display: inline-block;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 4px 10px rgba(245, 158, 11, 0.2);
-      transition: all 0.3s ease;
-      font-weight: 700;
-    }
+        .nav-link:hover::after,
+        .nav-link.active::after {
+            width: 100%;
+            /* تمديد الشريط السفلي */
+            right: 0;
+        }
 
-    #countdown {
-      color: var(--dark-blue);
-      border: 2px solid var(--border-color);
-      background-color: var(--light-blue);
-      box-shadow: 0 4px 10px rgba(29, 78, 216, 0.15);
-    }
+        .nav-link.active {
+            color: var(--accent-orange);
+            font-weight: 700;
+        }
 
-    #exam-form {
-      display: none; /* Controlled by JavaScript */
-      margin-top: 2.5rem;
-      padding: 1.5rem;
-      border: 1px solid #eee;
-      border-radius: 10px;
-      background-color: #f9f9f9;
-      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
-      flex-direction: column; /* For centering inputs */
-      align-items: center; /* For centering inputs */
-    }
+        /* --- أيقونة قائمة الهامبرغر (Menu Toggle) --- */
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            justify-content: space-around;
+            width: 40px;
+            height: 32px;
+            cursor: pointer;
+            z-index: 60;
+            padding: 8px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: background 0.3s ease, border-color 0.3s ease;
+        }
 
-    input[type="text"] {
-      padding: 1rem;
-      width: 90%;
-      max-width: 350px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      margin-bottom: 1.2rem;
-      font-size: 1.1rem;
-      transition: border-color 0.3s ease, box-shadow 0.3s ease;
-      text-align: right; /* For Arabic text direction */
-      box-sizing: border-box;
-    }
+        .menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
 
-    input[type="text"]:focus {
-      border-color: var(--primary-blue);
-      box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.2);
-      outline: none;
-    }
+        .menu-toggle:focus {
+            outline: 3px solid rgba(245, 158, 11, 0.5);
+            outline-offset: 1px;
+        }
 
-    .btn-primary {
-      background-color: var(--primary-blue);
-      color: var(--white);
-      padding: 0.9rem 2.5rem;
-      font-size: 1.2rem;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background-color 0.3s ease, transform 0.2s ease;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      display: inline-block;
-      min-width: 180px;
-      max-width: 250px;
-      box-sizing: border-box;
-    }
+        .menu-toggle .bar {
+            width: 100%;
+            height: 4px;
+            background-color: var(--white);
+            border-radius: 5px;
+            transition: all 0.3s cubic-bezier(0.86, 0, 0.07, 1);
+        }
 
-    .btn-primary:hover {
-      background-color: #2563eb;
-      transform: translateY(-2px);
-    }
+        /* محتوى الصفحة الرئيسي */
+        .main-content-container {
+            flex: 1;
+            text-align: center;
+            padding: 2rem 1rem;
+            max-width: 800px;
+            margin: 2rem auto;
+            background: var(--white);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            position: relative;
+            z-index: 1;
+        }
 
-    .btn-primary:active {
-      transform: translateY(0);
-      background-color: #1a42a8;
-    }
+        .hero-title {
+            font-size: 2.5rem;
+            color: var(--primary-blue);
+            margin: 1.5rem 0 1rem;
+            position: relative;
+            padding-bottom: 10px;
+        }
 
-    .footer {
-      margin-top: auto;
-      text-align: center;
-      color: var(--gray-text);
-      padding: 1.5rem;
-      font-size: 0.95rem;
-      background-color: #f0f0f0;
-      border-top: 1px solid #e5e5e5;
-    }
+        .hero-title::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 0;
+            width: 80px;
+            height: 4px;
+            background-color: var(--accent-orange);
+            border-radius: 2px;
+        }
 
-    /* Gallery Section Styles */
-    .gallery {
-      padding: 4rem 1rem;
-      background: linear-gradient(to bottom, var(--light-bg), var(--white));
-      margin: 2rem auto;
-      max-width: 1200px;
-    }
+        #date,
+        #clock,
+        #countdown {
+            font-size: 1.8rem;
+            color: var(--dark-blue);
+            background: var(--light-blue);
+            padding: 0.8rem 1.5rem;
+            border-radius: 12px;
+            display: block; /* لضمان أخذ سطر كامل */
+            margin: 1rem auto; /* توسيط المسافة */
+            max-width: 90%;
+            box-shadow: 0 4px 10px rgba(29, 78, 216, 0.15);
+            transition: all 0.3s ease;
+            font-weight: 700;
+        }
+        
+        #countdown {
+            color: var(--dark-blue);
+            border: 2px solid var(--border-color);
+            background-color: var(--light-blue);
+            font-size: 1.6rem;
+        }
 
-    .gallery h2 {
-      text-align: center;
-      font-size: 2.5rem;
-      color: var(--primary-blue);
-      margin-bottom: 2rem;
-      animation: fadeIn 2s ease-in-out;
-    }
+        #exam-form {
+            display: none;
+            margin-top: 2.5rem;
+            padding: 1.5rem;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
+            flex-direction: column;
+            align-items: center;
+        }
 
-    .gallery-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1.5rem;
-    }
+        input[type="text"] {
+            padding: 1rem;
+            width: 90%;
+            max-width: 350px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin-bottom: 1.2rem;
+            font-size: 1.1rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            text-align: right;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
 
-    .gallery-item {
-      overflow: hidden;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      transition: transform 0.3s ease;
-      animation: zoomIn 2s ease-in-out;
-    }
+        input[type="text"]:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.2);
+            outline: none;
+        }
 
-    .gallery-item:hover {
-      transform: scale(1.05);
-    }
+        .btn-primary {
+            background-color: var(--primary-blue);
+            color: var(--white);
+            padding: 0.9rem 2.5rem;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            display: inline-block;
+            min-width: 180px;
+            max-width: 250px;
+            box-sizing: border-box;
+        }
 
-    .gallery-item img {
-      width: 100%;
-      height: 200px;
-      object-fit: cover;
-      transition: transform 0.3s ease;
-    }
+        .btn-primary:hover {
+            background-color: #2563eb;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 10px rgba(29, 78, 216, 0.3);
+        }
 
-    .gallery-item:hover img {
-      transform: scale(1.1);
-    }
+        .btn-primary:active {
+            transform: translateY(0);
+            background-color: #1a42a8;
+            box-shadow: none;
+        }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+        .footer {
+            margin-top: auto;
+            text-align: center;
+            color: var(--gray-text);
+            padding: 1.5rem;
+            font-size: 0.95rem;
+            background-color: #f0f0f0;
+            border-top: 1px solid #e5e5e5;
+        }
 
-    @keyframes zoomIn {
-      from { opacity: 0; transform: scale(0.8); }
-      to { opacity: 1; transform: scale(1); }
-    }
+        /* Message Box Styles (بديل لـ alert) */
+        #app-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--error-red);
+            color: var(--white);
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+            transform: translateY(-50px);
+            z-index: 200;
+            font-weight: 600;
+            min-width: 250px;
+            text-align: center;
+        }
 
-    /* Maintenance Notification Banner */
-    .maintenance-notification {
-      background-color: #dc2626; /* Red background for maintenance */
-      color: var(--white);
-      padding: 1rem 0;
-      text-align: center;
-      position: relative;
-      z-index: 40;
-    }
-    .maintenance-notification .container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-    .maintenance-notification p {
-      margin: 0;
-      font-size: 1.1rem;
-      flex: 1;
-      max-width: 80%;
-    }
+        #app-message.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
 
-    /* Responsive for gallery */
-    @media (max-width: 768px) {
-      .gallery-grid {
-        grid-template-columns: 1fr;
-      }
-      .gallery h2 {
-        font-size: 2rem;
-      }
-      .gallery-item {
-        padding: 1.5rem;
-      }
-    }
 
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-      .header .container {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-      }
-      
-      .nav {
-        display: flex;
-        flex-direction: column; /* Stack links vertically on mobile */
-        position: absolute;
-        top: 100%; /* Position right below the header */
-        left: 0;
-        width: 100%;
-        background: var(--dark-blue);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-        padding: 0; /* Reset padding for initial closed state */
-        border-top: 1px solid rgba(255, 255, 255, 0.06);
-        max-height: 0; /* Initially hidden */
-        overflow: hidden;
-        transition: max-height 0.32s cubic-bezier(.2,.9,.27,1), padding 0.24s ease-out;
-      }
+        /* التعديلات المتجاوبة (Responsive adjustments) */
+        @media (max-width: 768px) {
+            .header .container {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
 
-      .nav.open {
-        max-height: 60vh; /* enough height for many links on small screens */
-        padding: 0.6rem 0; /* vertical padding when open */
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-      }
+            .nav {
+                /* قائمة التنقل في وضع الجوال */
+                display: flex;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                right: 0;
+                width: 100%;
+                background: var(--deeper-blue);
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+                padding: 0;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.35s cubic-bezier(.2, .9, .27, 1);
+            }
 
-      .nav-link {
-        text-align: center;
-        padding: 0.6rem 0; /* Vertical padding for individual links */
-        font-size: 1.15rem;
-        width: 100%;
-        margin-bottom: 0;
-        border-bottom: 1px solid rgba(255,255,255,0.03);
-      }
+            .nav.open {
+                max-height: 70vh;
+                padding: 0.6rem 0;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
 
-      .menu-toggle {
-        display: flex; /* Show hamburger icon on mobile */
-        background: rgba(255,255,255,0.04);
-      }
+            .nav-link {
+                text-align: center;
+                padding: 0.8rem 0;
+                font-size: 1.2rem;
+                width: 100%;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                transform: none;
+            }
 
-      /* Animation for hamburger icon */
-      .menu-toggle.open .bar:nth-child(1) {
-        transform: translateY(10px) rotate(45deg);
-      }
-      .menu-toggle.open .bar:nth-child(2) {
-        opacity: 0;
-      }
-      .menu-toggle.open .bar:nth-child(3) {
-        transform: translateY(-10px) rotate(-45deg);
-      }
+            .nav-link:hover {
+                transform: none;
+            }
 
-      .hero-title {
-        font-size: 2rem;
-      }
+            .nav-link::after {
+                content: none;
+                /* إلغاء الشريط السفلي في قائمة الموبايل */
+            }
 
-      #date, #clock, #countdown {
-        font-size: 1.5rem;
-        padding: 0.6rem 1rem;
-      }
+            .menu-toggle {
+                display: flex;
+            }
 
-      input[type="text"] {
-        width: 95%;
-        padding: 0.8rem;
-        font-size: 1rem;
-      }
+            /* Animation for hamburger icon */
+            .menu-toggle.open .bar:nth-child(1) {
+                transform: translateY(11px) rotate(45deg);
+            }
 
-      .btn-primary {
-        width: 90%;
-        max-width: 300px;
-        min-width: unset;
-        margin: 0.5rem auto;
-        padding: 0.8rem 2rem;
-        font-size: 1.1rem;
-      }
+            .menu-toggle.open .bar:nth-child(2) {
+                opacity: 0;
+            }
 
-      .main-content-container {
-        margin: 1rem auto;
-        padding: 1.5rem 0.8rem;
-      }
-    }
+            .menu-toggle.open .bar:nth-child(3) {
+                transform: translateY(-11px) rotate(-45deg);
+            }
 
-    @media (max-width: 480px) {
-      .logo {
-        font-size: 1.8rem;
-      }
-      .nav-link {
-        font-size: 1rem;
-      }
-      .hero-title {
-        font-size: 1.8rem;
-      }
+            #app-message {
+                right: 50%;
+                transform: translateX(50%);
+                max-width: 90%;
+            }
 
-      #date, #clock, #countdown {
-        font-size: 1.3rem;
-        padding: 0.5rem 0.8rem;
-      }
+            .hero-title {
+                font-size: 2rem;
+            }
 
-      input[type="text"] {
-        max-width: 95%;
-        padding: 0.7rem;
-      }
+            #date,
+            #clock,
+            #countdown {
+                font-size: 1.5rem;
+                padding: 0.6rem 1rem;
+            }
 
-      .btn-primary {
-        font-size: 1rem;
-        padding: 0.7rem 1.5rem;
-      }
-    }
-  </style>
+            input[type="text"] {
+                width: 95%;
+                padding: 0.8rem;
+                font-size: 1rem;
+            }
+
+            .btn-primary {
+                width: 90%;
+                max-width: 300px;
+                min-width: unset;
+                margin: 0.5rem auto;
+                padding: 0.8rem 2rem;
+                font-size: 1.1rem;
+            }
+
+            .main-content-container {
+                margin: 1rem auto;
+                padding: 1.5rem 0.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .logo {
+                font-size: 1.8rem;
+            }
+
+            .nav-link {
+                font-size: 1rem;
+            }
+
+            .hero-title {
+                font-size: 1.8rem;
+            }
+
+            #date,
+            #clock,
+            #countdown {
+                font-size: 1.3rem;
+                padding: 0.5rem 0.8rem;
+            }
+
+            input[type="text"] {
+                max-width: 95%;
+                padding: 0.7rem;
+            }
+
+            .btn-primary {
+                font-size: 1rem;
+                padding: 0.7rem 1.5rem;
+            }
+        }
+    </style>
 </head>
+
 <body>
 
-  <header class="header">
-    <div class="container">
-      <h1 class="logo">قرية متعلمة</h1>
-      <div class="menu-toggle" id="mobile-menu">
-          <span class="bar"></span>
-          <span class="bar"></span>
-          <span class="bar"></span>
-      </div>
-      <nav class="nav" id="main-nav">
-        <a href="../index.html" class="nav-link">الرئيسية</a>
-        <a href="./register.html" class="nav-link">التسجيل</a>
-        <a href="./exam-status.html" class="nav-link active">الامتحان</a>
-        <a href="./status.html" class="nav-link">حالة الطلب</a>
-        <a href="./villages.html" class="nav-link">القرى</a>
-      </nav>
-    </div>
-  </header>
-  
-    <section class="maintenance-notification">
-    <div class="container">
-      <p>نعتذر لجميع طلابنا، جاري الآن صيانة وتحديثات على المنصة، لذلك تم تأجيل امتحانات جميعها. شكراً لكم، جاري الآن التحديث.</p>
-    </div>
-  </section>
+    <!-- صندوق رسائل مخصص (بديل لـ alert) -->
+    <div id="app-message" role="alert" aria-live="assertive"></div>
 
-  <main class="main-content-container">
-    <h2 class="hero-title">موعد الامتحان</h2>
-    <p id="date">التاريخ...</p>
-    <p id="clock">الساعة الآن...</p>
-    <p id="countdown">جارٍ الحساب...</p>
+    <!-- رأس الصفحة (Header) -->
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">قرية متعلمة</h1>
+            
+            <!-- زر قائمة الجوال (Hamburger Menu) -->
+            <button class="menu-toggle" id="mobile-menu" aria-label="Toggle navigation menu">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
 
-    <form id="exam-form">
-      <input type="text" id="leader-code" placeholder="كود القائد" required />
-      <input type="text" id="request-id" placeholder="رقم الطلب" required />
-      <button type="submit" class="btn-primary">دخول الامتحان</button>
-    </form>
-  </main>
-  <footer class="footer">
-    <div class="container">
-        &copy; 2025 منصة قرية متعلمة
-    </div>
-  </footer>
-
-    <div id="maintenance-modal" style="
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.9); /* خلفية داكنة جداً */
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999; /* تأكد أنه يغطي كل شيء */
-        text-align: center;
-        visibility: hidden; /* يبدأ مخفياً بواسطة CSS */
-        opacity: 0;
-        transition: opacity 0.5s;
-    ">
-        <div style="
-            background-color: #ffffff;
-            padding: 40px;
-            border-radius: 15px;
-            max-width: 500px;
-            width: 90%;
-            font-family: 'Cairo', sans-serif;
-            direction: rtl;
-            box-shadow: 0 10px 30px rgba(255, 0, 0, 0.5);
-            border: 5px solid #d9534f;
-        ">
-            <h3 style="
-                color: #d9534f; /* أحمر تحذيري */
-                font-size: 1.8rem;
-                margin-top: 0;
-                margin-bottom: 20px;
-            ">
-                ⚠️ إيقاف مؤقت لأعمال الصيانة ⚠️
-            </h3>
-            <p style="color: #333; font-size: 1.2rem; line-height: 1.8; font-weight: 600;">
-                نعتذر لجميع طلابنا، جاري الآن صيانة وتحديثات شاملة على المنصة لتحسين تجربتكم.
-                <br>
-                **تم تأجيل جميع الامتحانات حتى إشعار آخر.**
-            </p>
-            <p style="color: #6c757d; font-size: 1rem; margin-top: 25px;">
-                شكراً لتفهمكم وصبركم. سنعود قريباً بخدمات أفضل!
-            </p>
+            <!-- روابط التنقل (Navigation) -->
+            <nav class="nav" id="main-nav" aria-expanded="false">
+                <a href="../index.html" class="nav-link">الرئيسية</a>
+                <a href="./register.html" class="nav-link">التسجيل</a>
+                <a href="./exam-status.html" class="nav-link active">الامتحان</a>
+                <a href="./status.html" class="nav-link">حالة الطلب</a>
+                <a href="./villages.html" class="nav-link">القرى</a>
+            </nav>
         </div>
-    </div>
+    </header>
+    
 
+    <main class="main-content-container">
+        <h2 class="hero-title">موعد الامتحان</h2>
+        <p id="date">التاريخ...</p>
+        <p id="clock">الساعة الآن...</p>
+        <p id="countdown">جارٍ الحساب...</p>
 
-  <script>
-    // --- وظائف الإشعار المنبثق للصيانة ---
-    const maintenanceModal = document.getElementById('maintenance-modal');
+        <!-- نموذج تسجيل الدخول للامتحان (يظهر فقط في وقت الامتحان) -->
+        <form id="exam-form">
+            <input type="text" id="leader-code" placeholder="كود القائد" required />
+            <input type="text" id="request-id" placeholder="رقم الطلب" required />
+            <button type="submit" class="btn-primary">دخول الامتحان</button>
+        </form>
+    </main>
 
-    // إظهار الإشعار المنبثق فور تحميل DOM
-    document.addEventListener('DOMContentLoaded', () => {
-        maintenanceModal.style.visibility = 'visible';
-        maintenanceModal.style.opacity = '1';
-        // منع التمرير على الصفحة بالكامل
-        document.body.style.overflow = 'hidden'; 
-    });
+    <footer class="footer">
+        <div class="container">
+            &copy; 2025 منصة قرية متعلمة
+        </div>
+    </footer>
 
+    
+    <script>
 
-    // --- الكود الأصلي للصفحة (لن يعمل بسبب المودال الذي يغطي الشاشة) ---
-    const date = document.getElementById("date");
-    const clock = document.getElementById("clock");
-    const countdown = document.getElementById("countdown");
-    const form = document.getElementById("exam-form");
+        // --- وظيفة صندوق الرسائل المخصص (بديل لـ alert) ---
+        const messageBox = document.getElementById('app-message');
+        let timeout;
 
-    // Define the valid user credentials
-    const validCredentials = [
-      { leaderCode: "Abdou2003", requestId: "R2wndw" },
-    ];
+        function showMessage(message, duration = 3000) {
+            // مسح أي رسالة سابقة
+            clearTimeout(timeout);
+            messageBox.textContent = message;
+            messageBox.classList.add('show');
 
-    const EXAM_START_HOUR = 19; // 7 PM
-    const EXAM_END_HOUR = 20;   // 8 PM (1 hour later)
-    const EXAM_DAYS = [0, 1, 6]; // 0 = Sunday, 1 = Monday, 6 = Saturday
+            // إخفاء الرسالة بعد المدة المحددة
+            timeout = setTimeout(() => {
+                messageBox.classList.remove('show');
+            }, duration);
+        }
 
-    const dayNames = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+        // --- وظائف التوقيت والامتحان الرئيسية ---
+        const date = document.getElementById("date");
+        const clock = document.getElementById("clock");
+        const countdown = document.getElementById("countdown");
+        const form = document.getElementById("exam-form");
 
-    // This function finds the next *upcoming* exam start time
-    function getNextExamOpenTime(currentEgyptTime) {
-      let nextOpen = new Date(currentEgyptTime);
-      let foundNextExam = false;
+        // بيانات الاعتماد الصحيحة للمستخدمين المسموح لهم بدخول الامتحان
+        const validCredentials = [
+            { leaderCode: "Abdou2003", requestId: "R2wndw" },
+            // يمكن إضافة المزيد من البيانات هنا
+        ];
 
-      // Iterate through current day + next 6 days to find the next exam day
-      for (let i = 0; i < 7; i++) {
-        const tempDate = new Date(currentEgyptTime);
-        tempDate.setDate(currentEgyptTime.getDate() + i); // Go to current day + i days
-        tempDate.setHours(EXAM_START_HOUR, 0, 0, 0); // Set to 7 PM for that specific day
+        // إعدادات وقت الامتحان
+        const EXAM_START_HOUR = 19; // 7 PM (الساعة 19:00 بتوقيت مصر)
+        const EXAM_END_HOUR = 20;   // 8 PM (الساعة 20:00 بتوقيت مصر)
+        const EXAM_DAYS = [0, 1, 6]; // أيام الامتحان: 0 = الأحد, 1 = الاثنين, 6 = السبت (بتوقيت مصر)
 
-        if (EXAM_DAYS.includes(tempDate.getDay())) {
-          if (tempDate.getTime() > currentEgyptTime.getTime()) {
-            // Found a future exam day where the start time is still ahead of current time
-            nextOpen = tempDate;
-            foundNextExam = true;
-            break;
-          }
-        }
-      }
+        const dayNames = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
 
-      // Fallback if no future exam found within next 7 days
-      if (!foundNextExam) {
-          let futureDate = new Date(currentEgyptTime);
-          futureDate.setDate(futureDate.getDate() + 1); 
-          while (!EXAM_DAYS.includes(futureDate.getDay())) {
-              futureDate.setDate(futureDate.getDate() + 1);
-          }
-          futureDate.setHours(EXAM_START_HOUR, 0, 0, 0);
-          nextOpen = futureDate;
-      }
-      return nextOpen;
-    }
+        /**
+         * تحدد أقرب موعد قادم لفتح الامتحان.
+         * @param {Date} currentEgyptTime - الوقت الحالي بتوقيت مصر.
+         * @returns {Date} - تاريخ ووقت فتح الامتحان القادم.
+         */
+        function getNextExamOpenTime(currentEgyptTime) {
+            let nextOpen = new Date(currentEgyptTime);
+            let foundNextExam = false;
 
-    function update() {
-      const now = new Date();
-      // Get Egypt time directly using toLocaleString with timeZone
-      const egyptTime = new Date(now.toLocaleString("en-US", { timeZone: "Africa/Cairo" }));
-      const currentDay = egyptTime.getDay(); 
-      const currentHour = egyptTime.getHours();
+            // البحث عن أقرب يوم امتحان قادم خلال 7 أيام
+            for (let i = 0; i < 7; i++) {
+                const tempDate = new Date(currentEgyptTime);
+                tempDate.setDate(currentEgyptTime.getDate() + i); // اليوم الحالي + عدد الأيام
+                tempDate.setHours(EXAM_START_HOUR, 0, 0, 0); // ضبط الوقت على 7 مساءً
 
-      date.textContent = `التاريخ: ${egyptTime.toLocaleDateString("ar-EG")}`;
-      clock.textContent = `الساعة الآن: ${egyptTime.toLocaleTimeString("ar-EG", { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+                if (EXAM_DAYS.includes(tempDate.getDay())) {
+                    // إذا كان اليوم هو يوم امتحان وإذا كان الوقت المحدد لفتح الامتحان في المستقبل
+                    if (tempDate.getTime() > currentEgyptTime.getTime()) {
+                        nextOpen = tempDate;
+                        foundNextExam = true;
+                        break;
+                    }
+                }
+            }
 
-      const examStartToday = new Date(egyptTime);
-      examStartToday.setHours(EXAM_START_HOUR, 0, 0, 0);
+            // إذا لم يتم العثور على موعد في الأيام القليلة القادمة (حالة غير متوقعة تقريباً)، نعود إلى البحث الأبعد
+            if (!foundNextExam) {
+                let futureDate = new Date(currentEgyptTime);
+                futureDate.setDate(futureDate.getDate() + 1);
+                while (!EXAM_DAYS.includes(futureDate.getDay())) {
+                    futureDate.setDate(futureDate.getDate() + 1);
+                }
+                futureDate.setHours(EXAM_START_HOUR, 0, 0, 0);
+                nextOpen = futureDate;
+            }
+            return nextOpen;
+        }
 
-      const examEndToday = new Date(egyptTime);
-      examEndToday.setHours(EXAM_END_HOUR, 0, 0, 0);
+        /**
+         * تقوم بتحديث الوقت والعد التنازلي وحالة نموذج الامتحان كل ثانية.
+         */
+        function update() {
+            const now = new Date();
+            // الحصول على وقت مصر (Africa/Cairo)
+            const egyptTime = new Date(now.toLocaleString("en-US", { timeZone: "Africa/Cairo" }));
+            const currentDay = egyptTime.getDay();
+            
+            // عرض التاريخ والوقت الحالي
+            date.textContent = `التاريخ: ${egyptTime.toLocaleDateString("ar-EG")}`;
+            clock.textContent = `الساعة الآن: ${egyptTime.toLocaleTimeString("ar-EG", { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
 
-      // Check if it's an exam day
-      if (EXAM_DAYS.includes(currentDay)) {
-        if (egyptTime >= examStartToday && egyptTime < examEndToday) {
-          // --- During the 1-hour exam period (7 PM to 8 PM) ---
-          const diff = examEndToday - egyptTime;
-          const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-          const s = Math.floor((diff % (1000 * 60)) / 1000);
+            const examStartToday = new Date(egyptTime);
+            examStartToday.setHours(EXAM_START_HOUR, 0, 0, 0);
 
-          countdown.textContent = `✅ الامتحان مفتوح الآن! متبقي على الإغلاق: ${m} دقيقة، ${s} ثانية`;
-          form.style.display = "flex"; 
-        } else if (egyptTime < examStartToday) {
-          // --- Exam day, but before 7 PM ---
-          const diffToOpen = examStartToday - egyptTime;
-          const h = Math.floor((diffToOpen % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-          const m = Math.floor((diffToOpen % (1000 * 60 * 60)) / (1000 * 60));
-          const s = Math.floor((diffToOpen % (1000 * 60)) / 1000);
+            const examEndToday = new Date(egyptTime);
+            examEndToday.setHours(EXAM_END_HOUR, 0, 0, 0);
 
-          countdown.textContent = `العد التنازلي لفتح الامتحان اليوم: ${h} ساعة، ${m} دقيقة، ${s} ثانية`;
-          form.style.display = "none"; 
-        } else { // egyptTime >= examEndToday (Past 8 PM on exam day)
-          // --- Exam day, but after 8 PM ---
-          const nextExamOpen = getNextExamOpenTime(egyptTime); 
-          const diffToOpen = nextExamOpen - egyptTime;
+            // التحقق من حالة الامتحان
+            if (EXAM_DAYS.includes(currentDay)) {
+                if (egyptTime >= examStartToday && egyptTime < examEndToday) {
+                    // --- خلال فترة الامتحان المفتوحة (7 م إلى 8 م) ---
+                    const diff = examEndToday - egyptTime;
+                    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    const s = Math.floor((diff % (1000 * 60)) / 1000);
 
-          const d = Math.floor(diffToOpen / (1000 * 60 * 60 * 24));
-          const h = Math.floor((diffToOpen % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-          const m = Math.floor((diffToOpen % (1000 * 60 * 60)) / (1000 * 60));
-          const s = Math.floor((diffToOpen % (1000 * 60)) / 1000);
+                    countdown.textContent = `✅ الامتحان مفتوح الآن! متبقي على الإغلاق: ${m.toString().padStart(2, '0')} دقيقة، ${s.toString().padStart(2, '0')} ثانية`;
+                    form.style.display = "flex";
+                } else if (egyptTime < examStartToday) {
+                    // --- يوم امتحان، ولكن قبل 7 مساءً (العد التنازلي للفتح) ---
+                    const diffToOpen = examStartToday - egyptTime;
+                    const h = Math.floor((diffToOpen % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const m = Math.floor((diffToOpen % (1000 * 60 * 60)) / (1000 * 60));
+                    const s = Math.floor((diffToOpen % (1000 * 60)) / 1000);
 
-          let countdownText = `انتهى الامتحان لهذا اليوم. سيفتح الامتحان القادم في: `;
-          if (d > 0) countdownText += `${d} يوم، `;
-          countdownText += `${h} ساعة، ${m} دقيقة، ${s} ثانية`;
-          countdown.textContent = countdownText;
-          form.style.display = "none"; 
-        }
-      } else {
-        // --- Not an exam day ---
-        const nextExamOpen = getNextExamOpenTime(egyptTime);
-        const diffToOpen = nextExamOpen - egyptTime;
+                    countdown.textContent = `العد التنازلي لفتح الامتحان اليوم: ${h.toString().padStart(2, '0')} ساعة، ${m.toString().padStart(2, '0')} دقيقة، ${s.toString().padStart(2, '0')} ثانية`;
+                    form.style.display = "none";
+                } else { 
+                    // --- بعد 8 مساءً في يوم الامتحان (انتهى الامتحان) ---
+                    const nextExamOpen = getNextExamOpenTime(egyptTime);
+                    const diffToOpen = nextExamOpen - egyptTime;
 
-        const d = Math.floor(diffToOpen / (1000 * 60 * 60 * 24));
-        const h = Math.floor((diffToOpen % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const m = Math.floor((diffToOpen % (1000 * 60 * 60)) / (1000 * 60));
-        const s = Math.floor((diffToOpen % (1000 * 60)) / 1000);
+                    const d = Math.floor(diffToOpen / (1000 * 60 * 60 * 24));
+                    const h = Math.floor((diffToOpen % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const m = Math.floor((diffToOpen % (1000 * 60 * 60)) / (1000 * 60));
+                    const s = Math.floor((diffToOpen % (1000 * 60)) / 1000);
 
-        let countdownText = `${dayNames[currentDay]}: لا توجد امتحانات اليوم. سيفتح الامتحان في الموعد القادم: `;
-        if (d > 0) countdownText += `${d} يوم، `;
-        countdownText += `${h} ساعة، ${m} دقيقة، ${s} ثانية`;
-        countdown.textContent = countdownText;
-        form.style.display = "none"; 
-      }
-    }
+                    let countdownText = `انتهى الامتحان لهذا اليوم. سيفتح الامتحان القادم في: `;
+                    if (d > 0) countdownText += `${d} يوم، `;
+                    countdownText += `${h.toString().padStart(2, '0')} ساعة، ${m.toString().padStart(2, '0')} دقيقة، ${s.toString().padStart(2, '0')} ثانية`;
+                    countdown.textContent = countdownText;
+                    form.style.display = "none";
+                }
+            } else {
+                // --- ليس يوم امتحان (العد التنازلي للموعد القادم) ---
+                const nextExamOpen = getNextExamOpenTime(egyptTime);
+                const diffToOpen = nextExamOpen - egyptTime;
 
-    // Initial call and set interval for updates
-    update();
-    setInterval(update, 1000);
+                const d = Math.floor(diffToOpen / (1000 * 60 * 60 * 24));
+                const h = Math.floor((diffToOpen % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((diffToOpen % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((diffToOpen % (1000 * 60)) / 1000);
 
-    form.addEventListener("submit", function (e) {
-      e.preventDefault();
-      const leader = document.getElementById("leader-code").value.trim();
-      const request = document.getElementById("request-id").value.trim();
+                let countdownText = `${dayNames[currentDay]}: لا توجد امتحانات اليوم. سيفتح الامتحان في الموعد القادم: `;
+                if (d > 0) countdownText += `${d} يوم، `;
+                countdownText += `${h.toString().padStart(2, '0')} ساعة، ${m.toString().padStart(2, '0')} دقيقة، ${s.toString().padStart(2, '0')} ثانية`;
+                countdown.textContent = countdownText;
+                form.style.display = "none";
+            }
+        }
 
-      // Check if the entered credentials match any in the validCredentials array
-      const isValid = validCredentials.some(cred =>
-        cred.leaderCode === leader && cred.requestId === request
-      );
+        // استدعاء أولي وبدء العد التنازلي كل ثانية
+        update();
+        setInterval(update, 1000);
 
-      if (isValid) {
-        window.location.href = "./exam.html"; // Redirect to the actual exam page (needs to exist)
-      } else {
-        alert("❌ كود القائد أو رقم الطلب غير صحيح.");
-      }
-    });
+        // --- معالجة إرسال النموذج (Form Submission) ---
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+            const leader = document.getElementById("leader-code").value.trim();
+            const request = document.getElementById("request-id").value.trim();
 
-    // JavaScript for Mobile Menu Toggle (copied from other pages)
-    const mobileMenu = document.getElementById('mobile-menu');
-    const mainNav = document.getElementById('main-nav');
+            // التحقق من صلاحية البيانات المدخلة
+            const isValid = validCredentials.some(cred =>
+                cred.leaderCode === leader && cred.requestId === request
+            );
 
-    // Check if elements exist before adding event listener
-    if (mobileMenu && mainNav) {
-      mobileMenu.addEventListener('click', () => {
-        mobileMenu.classList.toggle('open');
-        mainNav.classList.toggle('open');
-      });
-    }
-  </script>
+            if (isValid) {
+                // في حالة النجاح: إعادة توجيه إلى صفحة الامتحان
+                window.location.href = "./exam.html"; 
+            } else {
+                // في حالة الفشل: عرض رسالة خطأ باستخدام الصندوق المخصص
+                showMessage("❌ كود القائد أو رقم الطلب غير صحيح.");
+            }
+        });
+
+        // --- منطق قائمة الجوال (Mobile Menu Toggle) ---
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mainNav = document.getElementById('main-nav');
+
+        if (mobileMenu && mainNav) {
+            mobileMenu.addEventListener('click', () => {
+                const isCurrentlyOpen = mainNav.classList.contains('open');
+                mobileMenu.classList.toggle('open');
+                mainNav.classList.toggle('open');
+                mainNav.setAttribute('aria-expanded', !isCurrentlyOpen);
+            });
+        }
+    </script>
 </body>
+
 </html>
