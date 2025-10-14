@@ -5,30 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>التسجيل | قرية متعلمة</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
-     /* أنماط عامة ومتغيرات CSS */
-        :root {
-            /* الألوان الأساسية */
-            --primary-blue: #1d4ed8;
-            /* أزرق أساسي */
-            --dark-blue: #1e3a8a;
-            /* أزرق داكن (خلفية الهيدر) */
-            --deeper-blue: #172554;
-            /* أزرق أغمق للتدرج */
-            --light-blue: #e0f2fe;
-            /* أزرق فاتح */
-            --accent-orange: #f59e0b;
-            /* برتقالي مميز (للتأثيرات) */
-
-            /* ألوان النص والخلفية */
-            --text-color: #333;
-            --light-bg: #eef2ff;
-            /* خلفية فاتحة للجسم */
-            --white: #ffffff;
-            --gray-text: #888;
-            --border-color: #93c5fd;
-            --error-red: #ef4444;
-        }
+    /* Global styles and variables, consistent across all pages */
+    :root {
+      --primary-blue: #1d4ed8;
+      --dark-blue: #1e3a8a;
+      --light-blue: #e0f2fe;
+      --accent-orange: #f59e0b;
+      --text-color: #333;
+      --light-bg: #eef2ff;
+      --white: #ffffff;
+      --gray-text: #888;
+      --border-color: #93c5fd;
+      --magical-purple: #8b5cf6;
+      --magical-pink: #ec4899;
+      --glow-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+      --glow-shadow-hover: 0 0 30px rgba(139, 92, 246, 0.5);
+    }
 
     body {
       font-family: 'Cairo', sans-serif;
@@ -43,154 +37,94 @@
     }
 
     .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 1rem;
-        }
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
 
-        /* --- أنماط الرأس (Header) المحسّنة --- */
-        .header {
-            /* تدرج لوني أعمق لجاذبية أكبر */
-            background: linear-gradient(135deg, var(--dark-blue) 0%, var(--deeper-blue) 100%);
-            padding: 1rem 0;
-            color: var(--white);
-            /* ظل أعمق وأكثر بروزاً */
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-            position: sticky;
-            /* تثبيت الهيدر في الأعلى */
-            top: 0;
-            z-index: 100;
-            /* أولوية عالية */
-        }
+    /* Header styles - Consistent across all pages */
+    .header {
+      background: var(--dark-blue);
+      padding: 1rem 0; /* Adjusted padding for better consistency */
+      color: var(--white);
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      position: relative; /* Essential for positioning the absolute nav on mobile */
+      z-index: 10;
+    }
 
-        .header .container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 1rem;
-        }
+    .header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
 
-        .logo {
-            font-size: 2.2rem;
-            margin: 0;
-            color: var(--white);
-            white-space: nowrap;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
+    .logo {
+      font-size: 2.2rem;
+      margin: 0;
+      color: var(--white); /* Ensure logo color is white */
+      white-space: nowrap; /* Prevent logo from wrapping */
+    }
 
-        /* Navigation for larger screens */
-        .nav {
-            display: flex;
-            gap: 2rem;
-            max-height: none;
-            padding: 0;
-            position: static;
-            width: auto;
-            flex-wrap: nowrap;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
+    /* Navigation for larger screens (default) */
+    .nav {
+        display: flex; /* Display links side by side */
+        gap: 1.5rem; /* Space between links */
+        /* Important: On desktop, make sure max-height and padding are reset */
+        max-height: none;
+        padding: 0;
+        position: static; /* Reset position for desktop */
+        width: auto;
+    }
 
-        /* إخفاء شريط التمرير الأصلي للتنظيف */
-        .nav::-webkit-scrollbar {
-            display: none
-        }
+    .nav-link {
+      color: var(--white);
+      text-decoration: none;
+      font-size: 1.1rem;
+      transition: color 0.3s ease;
+      white-space: nowrap; /* Prevent links from wrapping */
+    }
 
-        .nav {
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
+    .nav-link:hover, .nav-link.active {
+      color: var(--accent-orange);
+    }
 
-        /* --- أنماط روابط التنقل (Navigation Links) --- */
-        .nav-link {
-            color: var(--white);
-            text-decoration: none;
-            font-size: 1.15rem;
-            white-space: nowrap;
-            display: inline-block;
-            padding: 0.5rem 0;
-            position: relative;
-            transition: color 0.3s ease, transform 0.2s ease;
-        }
+    /* Hamburger Menu Icon - Hidden by default on desktop */
+    .menu-toggle {
+      display: none; /* Hidden on large screens */
+      flex-direction: column;
+      justify-content: space-around;
+      width: 30px;
+      height: 25px;
+      cursor: pointer;
+      z-index: 100;
+      padding: 5px;
+    }
 
-        .nav-link::after {
-            /* شريط سفلي متحرك (مؤثر) */
-            content: '';
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            width: 0%;
-            height: 3px;
-            background-color: var(--accent-orange);
-            transition: width 0.3s cubic-bezier(0.2, 0.9, 0.27, 1);
-            border-radius: 2px;
-        }
+    .menu-toggle .bar {
+      width: 100%;
+      height: 3px;
+      background-color: var(--white);
+      border-radius: 5px;
+      transition: all 0.3s ease-in-out;
+    }
 
-        .nav-link:hover {
-            color: var(--accent-orange);
-            transform: translateY(-3px);
-            /* رفع خفيف على التحويم */
-        }
-
-        .nav-link:hover::after,
-        .nav-link.active::after {
-            width: 100%;
-            /* تمديد الشريط السفلي */
-            right: 0;
-        }
-
-        .nav-link.active {
-            color: var(--accent-orange);
-            font-weight: 700;
-        }
-
-        /* --- أيقونة قائمة الهامبرغر (Menu Toggle) --- */
-        .menu-toggle {
-            display: none;
-            flex-direction: column;
-            justify-content: space-around;
-            width: 40px;
-            height: 32px;
-            cursor: pointer;
-            z-index: 60;
-            padding: 8px;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            transition: background 0.3s ease, border-color 0.3s ease;
-        }
-
-        .menu-toggle:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .menu-toggle:focus {
-            outline: 3px solid rgba(245, 158, 11, 0.5);
-            outline-offset: 1px;
-        }
-
-        .menu-toggle .bar {
-            width: 100%;
-            height: 4px;
-            background-color: var(--white);
-            border-radius: 5px;
-            transition: all 0.3s cubic-bezier(0.86, 0, 0.07, 1);
-        }
-
-        /* محتوى الصفحة الرئيسي */
-        .main-content-container {
-            flex: 1;
-            text-align: center;
-            padding: 2rem 1rem;
-            max-width: 800px;
-            margin: 2rem auto;
-            background: var(--white);
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-            position: relative;
-            z-index: 1;
-        }
+    /* Main content container */
+    .main-content-container { /* Renamed 'main.container' for consistency */
+      flex: 1;
+      text-align: center;
+      padding: 3rem 1rem;
+      max-width: 800px;
+      margin: 2rem auto;
+      background: var(--white);
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      position: relative;
+      z-index: 1;
+    }
 
     .hero-title {
       font-size: 2.5rem;
@@ -220,23 +154,58 @@
 
     .form {
       margin-top: 2rem;
-      padding: 1.5rem;
-      border: 1px solid #eee;
-      border-radius: 10px;
-      background-color: #f9f9f9;
-      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
+      padding: 2rem;
+      border: none;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
+      box-shadow: var(--glow-shadow), 0 15px 35px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05);
       text-align: right;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+      animation: formGlow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes formGlow {
+      0% { box-shadow: var(--glow-shadow), 0 15px 35px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05); }
+      100% { box-shadow: var(--glow-shadow-hover), 0 20px 40px rgba(0, 0, 0, 0.15), 0 10px 20px rgba(0, 0, 0, 0.1); }
+    }
+
+    .form::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--magical-purple), var(--magical-pink), var(--primary-blue), var(--accent-orange));
+      animation: rainbowGlow 3s ease-in-out infinite;
+    }
+
+    @keyframes rainbowGlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
     .form-group {
-      margin-bottom: 1.5rem;
+      margin-bottom: 2rem;
+      position: relative;
     }
 
     .form-group label {
-      display: block;
+      display: flex;
+      align-items: center;
       margin-bottom: 0.5rem;
-      font-weight: bold;
+      font-weight: 600;
       color: var(--dark-blue);
+      font-size: 1.1rem;
+    }
+
+    .form-group label i {
+      margin-left: 0.5rem;
+      color: var(--accent-orange);
+      font-size: 1.2rem;
     }
 
     .form-group input[type="text"],
@@ -423,186 +392,436 @@
   </style>
 </head>
 <body>
-    <header class="header">
-      <div class="container">
-        <h1 class="logo">قرية متعلمة</h1>
-        <div class="menu-toggle" id="mobile-menu">
-            <span class="bar"></span>
-            <span class="bar"></span>
-            <span class="bar"></span>
-        </div>
-        <nav class="nav" id="main-nav">
-          <a href="../index.html" class="nav-link">الرئيسية</a>
-          <a href="./register.html" class="nav-link active">التسجيل</a>
-          <a href="./exam-status.html" class="nav-link">الامتحان</a>
-          <a href="./status.html" class="nav-link">حالة الطلب</a>
-          <a href="./villages.html" class="nav-link">القرى</a>
-        </nav>
+  <header class="header">
+    <div class="container">
+      <h1 class="logo">قرية متعلمة</h1>
+      <div class="menu-toggle" id="mobile-menu">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
       </div>
-    </header>
-
-    <main class="main-content-container"> 
-        <section>
-            <h2 class="hero-title">نموذج التسجيل</h2>
-            <p class="hero-text">يرجى تعبئة البيانات بدقة للالتحاق بالبرنامج.</p>
-
-            <form id="register-form" class="form"> 
-                <div class="form-group">
-                    <label for="name">الاسم الكامل</label>
-                    <input type="text" id="name" name="name" required placeholder="اكتب اسمك بالكامل" />
-                </div>
-
-                <div class="form-group">
-                    <label for="nationalId">الرقم القومي</label>
-                    <input type="text" id="nationalId" name="nationalId" required placeholder="مثال: 29801010123456" />
-                </div>
-
-                <div class="form-group">
-                    <label for="dob">تاريخ الميلاد</label>
-                    <input type="date" id="dob" name="dob" required />
-                </div>
-
-                <div class="form-group">
-                    <label for="gender">الجنس</label>
-                    <select id="gender" name="gender" required>
-                        <option value="">اختر الجنس...</option>
-                        <option value="ذكر">ذكر</option>
-                        <option value="أنثى">أنثى</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="ageCategory">فئة العمر</label>
-                    <select id="ageCategory" name="ageCategory" required>
-                        <option value="">اختر الفئة...</option>
-                        <option value="طفل">طفل (8-17 سنة)</option>
-                        <option value="شاب">شاب (18-35 سنة)</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="leaderCode">كود القائد</label>
-                    <input type="text" id="leaderCode" name="leaderCode" required placeholder="ادخل كود القائد" />
-                </div>
-
-                <button type="submit" class="btn-primary">إرسال التسجيل</button>
-            </form>
-
-            <div id="register-result" class="error-message" style="display: none; margin-top: 1rem;"></div>
-        </section>
-    </main>
-
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2025 منصة قرية متعلمة. جميع الحقوق محفوظة.</p>
-        </div>
-    </footer>
-
-    <div id="registration-modal" style="
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.7); /* خلفية معتمة */
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-        text-align: center;
-    ">
-        <div style="
-            background-color: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            max-width: 450px;
-            width: 90%;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            font-family: 'Cairo', sans-serif;
-            direction: rtl;
-        ">
-            <h3 style="
-                color: #d9534f;
-                font-size: 1.5rem;
-                margin-top: 0;
-                border-bottom: 3px solid #f0ad4e;
-                padding-bottom: 10px;
-            ">
-                🔔 تنويه هام: إغلاق التقديم
-            </h3>
-            <p style="color: #333; font-size: 1.1rem; line-height: 1.8;">
-                **عفواً، لقد تم إغلاق باب التقديمات لهذا الشهر.**
-                <br>
-                تم استيفاء العدد المطلوب من الطلاب لجميع المحافظات والقرى.
-            </p>
-            <p style="color: #5cb85c; font-weight: bold;">
-                نتطلع لاستقبال طلباتكم **الشهر القادم**.
-            </p>
-            <button id="modal-close-btn" style="
-                background-color: #1d4ed8;
-                color: #ffffff;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 8px;
-                cursor: pointer;
-                font-size: 1rem;
-                margin-top: 20px;
-                transition: background-color 0.3s;
-            ">
-                حسناً، فهمت (للذهاب للرئيسية)
-            </button>
-        </div>
+      <nav class="nav" id="main-nav">
+        <a href="../index.html" class="nav-link">الرئيسية</a>
+        <a href="./register.html" class="nav-link active">التسجيل</a>
+        <a href="./exam-status.html" class="nav-link">الامتحان</a>
+        <a href="./status.html" class="nav-link">حالة الطلب</a>
+        <a href="./villages.html" class="nav-link">القرى</a>
+      </nav>
     </div>
+  </header>
 
-    <script>
-        // دالة لإظهار الرسائل أسفل النموذج
-        function displayMessage(msg, type) {
-            const registerResultDiv = document.getElementById("register-result");
-            registerResultDiv.classList.remove('success-message', 'error-message');
-            registerResultDiv.classList.add(`${type}-message`);
-            registerResultDiv.innerHTML = msg;
-            registerResultDiv.style.display = "block";
+  <main class="main-content-container"> <section>
+      <h2 class="hero-title">نموذج التسجيل</h2>
+      <p class="hero-text">يرجى تعبئة البيانات بدقة للالتحاق بالبرنامج.</p>
+
+      <form id="register-form" class="form"> <div class="form-group">
+          <label for="name">الاسم الكامل</label>
+          <input type="text" id="name" name="name" required placeholder="اكتب اسمك بالكامل" />
+        </div>
+
+        <div class="form-group">
+          <label for="nationalId">الرقم القومي</label>
+          <input type="text" id="nationalId" name="nationalId" required placeholder="مثال: 29801010123456" />
+        </div>
+
+        <div class="form-group">
+          <label for="dob">تاريخ الميلاد</label>
+          <input type="date" id="dob" name="dob" required />
+        </div>
+
+        <div class="form-group">
+          <label for="gender">الجنس</label>
+          <select id="gender" name="gender" required>
+            <option value="">اختر الجنس...</option>
+            <option value="ذكر">ذكر</option>
+            <option value="أنثى">أنثى</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="ageCategory">فئة العمر</label>
+          <select id="ageCategory" name="ageCategory" required>
+            <option value="">اختر الفئة...</option>
+            <option value="طفل">طفل (8-17 سنة)</option>
+            <option value="شاب">شاب (18-35 سنة)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="governorate">المحافظة</label>
+          <select id="governorate" name="governorate" required>
+            <option value="">اختر المحافظة...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="city">المركز</label>
+          <select id="city" name="city" required disabled>
+            <option value="">اختر المركز...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="village">القرية</label>
+          <select id="village" name="village" required disabled>
+            <option value="">اختر القرية...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="leaderCode">كود القائد</label>
+          <input type="text" id="leaderCode" name="leaderCode" required placeholder="ادخل كود القائد" />
+        </div>
+
+        <button type="submit" class="btn-primary">إرسال التسجيل</button>
+      </form>
+
+      <div id="register-result" class="success-message" style="display: none; margin-top: 1rem;"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2025 منصة قرية متعلمة. جميع الحقوق محفوظة.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Egyptian location data with leaders
+    const locationData = [
+        // --- القاهرة ---
+        { governorate: "القاهرة", city: "المعادي", name: "حي المعادي", leader: "أحمد حسام الدين طه", rating: 5, applicantsCount: 120, youthCount: 70, childrenCount: 50 },
+        { governorate: "القاهرة", city: "شبرا", name: "شبرا الخيمة", leader: "فاطمة الزهراء علي محمد", rating: 4, applicantsCount: 80, youthCount: 40, childrenCount: 40 },
+        { governorate: "القاهرة", city: "التجمع الخامس", name: "حي اللوتس", leader: "يوسف خالد منصور", rating: 5, applicantsCount: 90, youthCount: 50, childrenCount: 40 },
+        { governorate: "القاهرة", city: "حلوان", name: "قرية كفر العلو", leader: "مريم علي إبراهيم", rating: 3, applicantsCount: 65, youthCount: 30, childrenCount: 35 },
+        { governorate: "القاهرة", city: "مدينة نصر", name: "حي الزهراء", leader: "خالد نبيل عبد الرحمن", rating: 4, applicantsCount: 105, youthCount: 60, childrenCount: 45 },
+
+        // --- الجيزة ---
+        { governorate: "الجيزة", city: "الهرم", name: "المنطقة الأثرية", leader: "سارة محمود علي السيد", rating: 4, applicantsCount: 95, youthCount: 55, childrenCount: 40 },
+        { governorate: "الجيزة", city: "الدقي", name: "حي الدقي", leader: "محمود يوسف إبراهيم", rating: 5, applicantsCount: 70, youthCount: 35, childrenCount: 35 },
+        { governorate: "الجيزة", city: "أوسيم", name: "قرية برطس", leader: "حسين محمد أحمد", rating: 3, applicantsCount: 55, youthCount: 25, childrenCount: 30 },
+        { governorate: "الجيزة", city: "البدرشين", name: "قرية سقارة", leader: "إيناس سعيد توفيق", rating: 4, applicantsCount: 40, youthCount: 18, childrenCount: 22 },
+        
+        // --- الإسكندرية ---
+        { governorate: "الإسكندرية", city: "المنتزة", name: "حي سيدي بشر", leader: "ياسمين محمد كمال", rating: 3, applicantsCount: 60, youthCount: 25, childrenCount: 35 },
+        { governorate: "الإسكندرية", city: "العجمي", name: "حي العجمي", leader: "علي مصطفى عبد اللطيف", rating: 4, applicantsCount: 88, youthCount: 50, childrenCount: 38 },
+        { governorate: "الإسكندرية", city: "برج العرب", name: "قرية بهيج", leader: "نورا فؤاد عثمان", rating: 3, applicantsCount: 30, youthCount: 10, childrenCount: 20 },
+        
+        // --- الشرقية ---
+        { governorate: "الشرقية", city: "الزقازيق", name: "حي القومية", leader: "أشرف كمال محمد", rating: 5, applicantsCount: 115, youthCount: 60, childrenCount: 55 },
+        { governorate: "الشرقية", city: "بلبيس", name: "مدينة بلبيس", leader: "هدى سعيد جابر", rating: 4, applicantsCount: 90, youthCount: 50, childrenCount: 40 },
+        { governorate: "الشرقية", city: "أبو حماد", name: "قرية الأسدية", leader: "طارق عبد الله مرسي", rating: 3, applicantsCount: 45, youthCount: 20, childrenCount: 25 },
+
+        // --- الدقهلية ---
+        { governorate: "الدقهلية", city: "المنصورة", name: "حي توريل", leader: "إياد زكريا حسين", rating: 5, applicantsCount: 110, youthCount: 60, childrenCount: 50 },
+        { governorate: "الدقهلية", city: "السنبلاوين", name: "قرية ميت غمر", leader: "حازم أحمد علي", rating: 4, applicantsCount: 75, youthCount: 40, childrenCount: 35 },
+        { governorate: "الدقهلية", city: "طلخا", name: "مدينة طلخا", leader: "منى جمال الصاوي", rating: 4, applicantsCount: 85, youthCount: 45, childrenCount: 40 },
+
+        // --- المنوفية ---
+        { governorate: "المنوفية", city: "شبين الكوم", name: "قرية كفر البتانون", leader: "هاني محمود إمام", rating: 4, applicantsCount: 55, youthCount: 25, childrenCount: 30 },
+        { governorate: "المنوفية", city: "تلا", name: "قرية كفر ربيع", leader: "سالي هشام فوزي", rating: 3, applicantsCount: 35, youthCount: 15, childrenCount: 20 },
+
+        // --- الغربية ---
+        { governorate: "الغربية", city: "المحلة الكبرى", name: "قرية محلة روح", leader: "مصطفى كامل مصطفى", rating: 3, applicantsCount: 55, youthCount: 25, childrenCount: 30 },
+        { governorate: "الغربية", city: "طنطا", name: "حي سيجر", leader: "كريم ناصر إبراهيم", rating: 5, applicantsCount: 100, youthCount: 55, childrenCount: 45 },
+
+        // --- القليوبية ---
+        { governorate: "القليوبية", city: "بنها", name: "مدينة بنها", leader: "يوسف أيمن السيد", rating: 4, applicantsCount: 85, youthCount: 45, childrenCount: 40 },
+        { governorate: "القليوبية", city: "قليوب", name: "قرية بلقس", leader: "نورهان مجدي سالم", rating: 3, applicantsCount: 40, youthCount: 20, childrenCount: 20 },
+
+        // --- كفر الشيخ ---
+        { governorate: "كفر الشيخ", city: "دسوق", name: "قرية شباس عمير", leader: "نوران علي عبد العزيز", rating: 3, applicantsCount: 45, youthCount: 20, childrenCount: 25 },
+        { governorate: "كفر الشيخ", city: "الرياض", name: "قرية الروس", leader: "فهد محمد جودة", rating: 4, applicantsCount: 30, youthCount: 15, childrenCount: 15 },
+        
+        // --- البحيرة ---
+        { governorate: "البحيرة", city: "دمنهور", name: "مدينة دمنهور", leader: "منال محمد عبد الحميد", rating: 5, applicantsCount: 70, youthCount: 40, childrenCount: 30 },
+        { governorate: "البحيرة", city: "أبو حمص", name: "قرية الأبقعين", leader: "سعد زغلول محمود", rating: 3, applicantsCount: 50, youthCount: 25, childrenCount: 25 },
+        
+        // ملاحظة: تم حذف الموقع القديم التابع لـ الفشن بناءً على طلبك
+        
+        // --- الفيوم ---
+        { governorate: "الفيوم", city: "طامية", name: "قرية كفر عميرة", leader: "علياء مصطفى جلال", rating: 3, applicantsCount: 40, youthCount: 15, childrenCount: 25 },
+        { governorate: "الفيوم", city: "الفيوم", name: "حي الجامعة", leader: "هشام إبراهيم عبد الحميد", rating: 4, applicantsCount: 60, youthCount: 30, childrenCount: 30 },
+
+        // --- المنيا ---
+        { governorate: "المنيا", city: "ملوي", name: "مدينة ملوي", leader: "زينب كمال حسني", rating: 4, applicantsCount: 40, youthCount: 15, childrenCount: 25 },
+        { governorate: "المنيا", city: "المنيا الجديدة", name: "حي البهنسا", leader: "حسين جابر محمد", rating: 3, applicantsCount: 35, youthCount: 10, childrenCount: 25 },
+        
+        // --- أسيوط ---
+        { governorate: "أسيوط", city: "أبنوب", name: "مدينة أبنوب", leader: "نورهان فتحي عثمان", rating: 5, applicantsCount: 55, youthCount: 30, childrenCount: 25 },
+        { governorate: "أسيوط", city: "أسيوط الجديدة", name: "حي الزهور", leader: "ماجد عصام خليل", rating: 4, applicantsCount: 45, youthCount: 20, childrenCount: 25 },
+        
+        // --- سوهاج ---
+        { governorate: "سوهاج", city: "جرجا", name: "قرية الزهايرة", leader: "علاء الدين فتحي", rating: 4, applicantsCount: 60, youthCount: 30, childrenCount: 30 },
+        { governorate: "سوهاج", city: "سوهاج", name: "حي الكوثر", leader: "أمل سامي رزق", rating: 5, applicantsCount: 75, youthCount: 40, childrenCount: 35 },
+        
+        // --- قنا ---
+        { governorate: "قنا", city: "نقادة", name: "قرية الحمران", leader: "طارق سليم حسين", rating: 4, applicantsCount: 60, youthCount: 30, childrenCount: 30 },
+        { governorate: "قنا", city: "قوص", name: "مدينة قوص", leader: "فداء حسن عبد العليم", rating: 3, applicantsCount: 40, youthCount: 20, childrenCount: 20 },
+        
+        // --- الأقصر ---
+        { governorate: "الأقصر", city: "الأقصر الجديدة", name: "حي الكرنك", leader: "عمران أحمد البيه", rating: 4, applicantsCount: 75, youthCount: 45, childrenCount: 30 },
+        { governorate: "الأقصر", city: "إسنا", name: "قرية توماس", leader: "نزار أيمن محمد", rating: 5, applicantsCount: 35, youthCount: 15, childrenCount: 20 },
+        
+        // --- أسوان ---
+        { governorate: "أسوان", city: "إدفو", name: "مدينة إدفو", leader: "هاجر عادل فؤاد", rating: 4, applicantsCount: 65, youthCount: 40, childrenCount: 25 },
+        { governorate: "أسوان", city: "كوم أمبو", name: "قرية المنشية", leader: "صلاح الدين مراد", rating: 4, applicantsCount: 55, youthCount: 30, childrenCount: 25 },
+
+        // --- البحر الأحمر ---
+        { governorate: "البحر الأحمر", city: "الغردقة", name: "حي الدهار", leader: "هشام علي السيد", rating: 5, applicantsCount: 40, youthCount: 25, childrenCount: 15 },
+        { governorate: "البحر الأحمر", city: "مرسى علم", name: "منطقة القلعان", leader: "دعاء كمال حامد", rating: 4, applicantsCount: 15, youthCount: 10, childrenCount: 5 },
+        
+        // --- السويس ---
+        { governorate: "السويس", city: "عتاقة", name: "حي عتاقة", leader: "نادية رشوان محمود", rating: 3, applicantsCount: 30, youthCount: 15, childrenCount: 15 },
+        
+        // --- الإسماعيلية ---
+        { governorate: "الإسماعيلية", city: "فايد", name: "حي الشجاعة", leader: "ريم عادل مصطفى", rating: 4, applicantsCount: 40, youthCount: 20, childrenCount: 20 },
+        
+        // --- بورسعيد ---
+        { governorate: "بورسعيد", city: "بور فؤاد", name: "حي العرب", leader: "سيف الدين محمد علي", rating: 5, applicantsCount: 35, youthCount: 18, childrenCount: 17 },
+        
+        // --- شمال سيناء ---
+        { governorate: "شمال سيناء", city: "العريش", name: "مدينة العريش", leader: "حازم إبراهيم سلامة", rating: 4, applicantsCount: 35, youthCount: 20, childrenCount: 15 },
+
+        // --- جنوب سيناء ---
+        { governorate: "جنوب سيناء", city: "دهب", name: "مدينة دهب", leader: "وائل سمير أمين", rating: 5, applicantsCount: 20, youthCount: 10, childrenCount: 10 },
+        { governorate: "جنوب سيناء", city: "شرم الشيخ", name: "حي الرويسات", leader: "عبير فوزي توفيق", rating: 4, applicantsCount: 25, youthCount: 15, childrenCount: 10 },
+        
+        // --- مطروح ---
+        { governorate: "مطروح", city: "مرسى مطروح", name: "حي العوام", leader: "جمال إبراهيم زكريا", rating: 3, applicantsCount: 25, youthCount: 15, childrenCount: 10 },
+        
+        // --- الوادي الجديد ---
+        { governorate: "الوادي الجديد", city: "الخارجة", name: "حي الوفاء", leader: "سامي يوسف حسين", rating: 4, applicantsCount: 20, youthCount: 10, childrenCount: 10 },
+        
+        // --- دمياط ---
+        { governorate: "دمياط", city: "فارسكور", name: "مدينة فارسكور", leader: "أحمد عبد الوهاب سليمان", rating: 4, applicantsCount: 50, youthCount: 25, childrenCount: 25 },
+        
+        // --- الأقصر --- (موقع إضافي)
+        { governorate: "الأقصر", city: "القرنة", name: "قرية الطارف", leader: "يحيى عبد الصبور محمد", rating: 3, applicantsCount: 30, youthCount: 15, childrenCount: 15 }
+        
+    ];
+
+    // Function to generate a 6-character random request ID
+    function generateRequestId() {
+      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      let result = '';
+      const charactersLength = characters.length;
+      for (let i = 0; i < 6; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+      }
+      return result;
+    }
+
+    // Function to populate governorates
+    function populateGovernorates() {
+      const governorateSelect = document.getElementById('governorate');
+      const uniqueGovernorates = [...new Set(locationData.map(item => item.governorate))];
+      uniqueGovernorates.forEach(gov => {
+        const option = document.createElement('option');
+        option.value = gov;
+        option.textContent = gov;
+        governorateSelect.appendChild(option);
+      });
+    }
+
+    // Function to populate cities based on selected governorate
+    function populateCities(governorate) {
+      const citySelect = document.getElementById('city');
+      const villageSelect = document.getElementById('village');
+      citySelect.innerHTML = '<option value="">اختر المركز...</option>';
+      villageSelect.innerHTML = '<option value="">اختر القرية...</option>';
+      citySelect.disabled = true;
+      villageSelect.disabled = true;
+      if (governorate) {
+        const uniqueCities = [...new Set(locationData.filter(item => item.governorate === governorate).map(item => item.city))];
+        uniqueCities.forEach(city => {
+          const option = document.createElement('option');
+          option.value = city;
+          option.textContent = city;
+          citySelect.appendChild(option);
+        });
+        citySelect.disabled = false;
+      }
+    }
+
+    // Function to populate villages based on selected city
+    function populateVillages(city) {
+      const villageSelect = document.getElementById('village');
+      villageSelect.innerHTML = '<option value="">اختر القرية...</option>';
+      villageSelect.disabled = true;
+      if (city) {
+        const villages = locationData.filter(item => item.city === city);
+        villages.forEach(village => {
+          const option = document.createElement('option');
+          option.value = village.name;
+          option.textContent = village.name;
+          villageSelect.appendChild(option);
+        });
+        villageSelect.disabled = false;
+      }
+    }
+
+    // Event listeners for cascading selects
+    document.getElementById('governorate').addEventListener('change', function() {
+      populateCities(this.value);
+    });
+
+    document.getElementById('city').addEventListener('change', function() {
+      populateVillages(this.value);
+    });
+
+    // Initialize governorates on page load
+    document.addEventListener('DOMContentLoaded', populateGovernorates);
+
+    document.getElementById("register-form").addEventListener("submit", function (e) {
+      e.preventDefault(); // Prevent default form submission
+
+      const name = document.getElementById("name").value.trim();
+      const nationalId = document.getElementById("nationalId").value.trim();
+      const dob = document.getElementById("dob").value; // YYYY-MM-DD format
+      const gender = document.getElementById("gender").value;
+      const ageCategory = document.getElementById("ageCategory").value;
+      const governorate = document.getElementById("governorate").value;
+      const city = document.getElementById("city").value;
+      const village = document.getElementById("village").value;
+      const leaderCode = document.getElementById("leaderCode").value.trim(); // Get leader code
+      const registerResultDiv = document.getElementById("register-result");
+
+      // Clear previous messages and classes
+      registerResultDiv.style.display = "none";
+      registerResultDiv.classList.remove('success-message', 'error-message');
+
+      // --- Validation ---
+      if (!name || !nationalId || !dob || !gender || !ageCategory || !governorate || !city || !village || !leaderCode) {
+        displayMessage("❌ يرجى ملء جميع الحقول المطلوبة.", 'error');
+        return;
+      }
+
+      // Validate National ID length (e.g., 14 digits for Egypt)
+      if (!/^\d{14}$/.test(nationalId)) {
+        displayMessage("❌ الرقم القومي يجب أن يتكون من 14 رقمًا فقط.", 'error');
+        return;
+      }
+
+
+      // Validate Leader Code (case-sensitive)
+      const correctLeaderCode = "Ab"; // This should ideally come from a secure backend
+      if (leaderCode !== correctLeaderCode) {
+        displayMessage("❌ كود القائد غير صحيح. يرجى التأكد من الكود.", 'error');
+        return;
+      }
+
+      const birthDate = new Date(dob);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--; // Adjust age if birthday hasn't occurred yet this year
+      }
+
+      let isValidAge = true;
+      let ageError = "";
+
+      if (ageCategory === "طفل") {
+        if (age < 8 || age > 17) {
+          isValidAge = false;
+          ageError = `عمر الطفل يجب أن يكون بين 8 و 17 سنة. العمر المدخل: ${age} سنة.`;
         }
-
-        // إيقاف التقديم بالكامل - عند الضغط على زر "إرسال التسجيل"
-        document.getElementById("register-form").addEventListener("submit", function (e) {
-            e.preventDefault(); 
-
-            const closingMessage = `
-                ❌ **عفواً، لقد تم إغلاق باب التقديمات لهذا الشهر.** <br>تم استيفاء العدد المطلوب من الطلاب لجميع المحافظات والقري.
-                <br>
-                <br>نتطلع لاستقبال طلباتكم **الشهر القادم**.
-            `;
-
-            displayMessage(closingMessage, 'error');
-        });
-
-        // 1. منطق إظهار الإشعار المنبثق عند تحميل الصفحة
-        const registrationModal = document.getElementById('registration-modal');
-        const modalCloseBtn = document.getElementById('modal-close-btn');
-
-        // إظهار المودال مباشرة عند تحميل الصفحة
-        document.addEventListener('DOMContentLoaded', () => {
-            registrationModal.style.display = 'flex';
-        });
-
-        // 2. منطق إغلاق الإشعار والذهاب للصفحة الرئيسية
-        modalCloseBtn.addEventListener('click', () => {
-            // يتم توجيه المستخدم مباشرة إلى الصفحة الرئيسية
-            window.location.href = "../index.html"; 
-        });
-
-
-        // JavaScript for Mobile Menu Toggle (kept for site navigation functionality)
-        const mobileMenu = document.getElementById('mobile-menu');
-        const mainNav = document.getElementById('main-nav');
-
-        if (mobileMenu && mainNav) {
-            mobileMenu.addEventListener('click', () => {
-                mobileMenu.classList.toggle('open');
-                mainNav.classList.toggle('open');
-            });
+      } else if (ageCategory === "شاب") {
+        if (age < 18 || age > 35) {
+          isValidAge = false;
+          ageError = `عمر الشاب يجب أن يكون بين 18 و 35 سنة. العمر المدخل: ${age} سنة.`;
         }
-    </script>
+      }
+
+      if (!isValidAge) {
+        displayMessage(`❌ خطأ في العمر: ${ageError}`, 'error');
+        return;
+      }
+
+      // Generate a unique Request ID
+      const requestId = generateRequestId();
+
+      // --- Telegram Bot details ---
+      // IMPORTANT: Replace with your actual bot token and chat ID
+      const botToken = "7542961188:AAFQDDg9hlwVyYOaZuVF3ni-J5KrUXz1fAI";
+      const chatId = "1213902845"; // Make sure this chatId is correct and the bot has permission
+
+      // Construct the message for Telegram
+      const message = `
+📝 *طلب تسجيل جديد*
+-----------------------------
+*رقم الطلب*: \`${requestId}\`
+👤 *الاسم الكامل*: ${name}
+🆔 *الرقم القومي*: ${nationalId}
+🎂 *تاريخ الميلاد*: ${dob} (${age} سنة)
+🚻 *الجنس*: ${gender}
+👶 *فئة العمر*: ${ageCategory}
+🏛️ *المحافظة*: ${governorate}
+🏙️ *المركز*: ${city}
+🏘️ *القرية*: ${village}
+👑 *كود القائد*: ${leaderCode}
+-----------------------------
+`;
+
+      // Display a loading message
+      displayMessage("⏳ جارٍ إرسال طلبك...", 'success');
+
+      // Send data to Telegram Bot API
+      fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: message,
+          parse_mode: "Markdown"
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.ok) {
+          displayMessage(
+            `✅ تم إرسال طلب التسجيل بنجاح! رقم طلبك هو: 
+            <br><code>${requestId}</code>
+            <br>يرجى الاحتفاظ به لأنه سيستخدم دائمًا لمتابعة طلبك.`,
+            'success'
+          );
+          console.log("Registration data sent to Telegram successfully!");
+          this.reset(); // Clear the form after successful submission
+        } else {
+          let errorMessage = `❌ حدث خطأ أثناء إرسال الطلب: ${data.description || "خطأ غير معروف"}. يرجى المحاولة مرة أخرى.`;
+          if (data.description && data.description.includes("chat not found")) {
+            errorMessage += "\n💡 **ملاحظة:** قد يكون هناك مشكلة في معرّف المحادثة (Chat ID) أو لم تبدأ المحادثة مع البوت بعد.";
+          }
+          displayMessage(errorMessage, 'error');
+          console.error("Failed to send message to Telegram:", data.description);
+        }
+      })
+      .catch(error => {
+        displayMessage("❌ حدث خطأ في الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت.", 'error');
+        console.error("Error sending message to Telegram:", error);
+      });
+    });
+
+    function displayMessage(msg, type) {
+      const registerResultDiv = document.getElementById("register-result");
+      registerResultDiv.classList.remove('success-message', 'error-message');
+      registerResultDiv.classList.add(`${type}-message`);
+      registerResultDiv.innerHTML = msg;
+      registerResultDiv.style.display = "block";
+    }
+
+    // JavaScript for Mobile Menu Toggle (consistent across all pages)
+    const mobileMenu = document.getElementById('mobile-menu');
+    const mainNav = document.getElementById('main-nav');
+
+    // Check if elements exist before adding event listener
+    if (mobileMenu && mainNav) {
+      mobileMenu.addEventListener('click', () => {
+        mobileMenu.classList.toggle('open');
+        mainNav.classList.toggle('open');
+      });
+    }
+  </script>
 </body>
 </html>
