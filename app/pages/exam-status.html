@@ -317,31 +317,67 @@
             border-top: 1px solid #e5e5e5;
         }
 
-        /* Message Box Styles (بديل لـ alert) */
-        #app-message {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--error-red);
-            color: var(--white);
-            padding: 15px 25px;
-            border-radius: 10px;
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.4s ease-out, transform 0.4s ease-out;
-            transform: translateY(-50px);
-            z-index: 200;
-            font-weight: 600;
-            min-width: 250px;
-            text-align: center;
-        }
+    /* Suspension Notification Banner */
+    .suspension-notification {
+        background-color: #dc2626; /* Red background for suspension */
+        color: var(--white);
+        padding: 1rem 0;
+        text-align: center;
+        position: relative;
+        z-index: 40;
+    }
+    .suspension-notification .container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    .suspension-notification p {
+        margin: 0;
+        font-size: 1.1rem;
+        flex: 1;
+        max-width: 80%;
+    }
+    .suspension-notification .close-btn {
+        background: none;
+        border: none;
+        color: var(--white);
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 50%;
+        transition: background-color 0.3s ease;
+    }
+    .suspension-notification .close-btn:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
 
-        #app-message.show {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
+    /* Message Box Styles (بديل لـ alert) */
+    #app-message {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--error-red);
+        color: var(--white);
+        padding: 15px 25px;
+        border-radius: 10px;
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+        transform: translateY(-50px);
+        z-index: 200;
+        font-weight: 600;
+        min-width: 250px;
+        text-align: center;
+    }
+
+    #app-message.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
 
 
         /* ==================================== */
@@ -456,6 +492,13 @@
 
 <body>
 
+    <div class="suspension-notification">
+        <div class="container">
+            <p>تم إيقاف برنامج قرية متعلمة بأمر من الهيئة القومية لتنظيم الامتحانات الرقمية ووزارة التضامن الاجتماعي.</p>
+            <button class="close-btn">&times;</button>
+        </div>
+    </div>
+
     <div id="app-message" role="alert" aria-live="assertive"></div>
 
     <header class="header">
@@ -484,12 +527,6 @@
         <p id="date">التاريخ...</p>
         <p id="clock">الساعة الآن...</p>
         <p id="countdown">جارٍ الحساب...</p>
-
-        <form id="exam-form">
-            <input type="text" id="leader-code" placeholder="كود القائد" required />
-            <input type="text" id="request-id" placeholder="رقم الطلب" required />
-            <button type="submit" class="btn-primary">دخول الامتحان</button>
-        </form>
     </main>
 
     <footer class="footer">
@@ -641,25 +678,9 @@
         // --- معالجة إرسال النموذج (Form Submission) ---
         form.addEventListener("submit", function (e) {
             e.preventDefault();
-            const leader = document.getElementById("leader-code").value.trim();
-            const request = document.getElementById("request-id").value.trim();
 
-            // التحقق من صلاحية البيانات المدخلة والعثور على سجل الطالب
-            const userCredentials = validCredentials.find(cred =>
-                cred.leaderCode === leader && cred.requestId === request
-            );
-
-            if (userCredentials) {
-                // في حالة النجاح: تحديد صفحة إعادة التوجيه بناءً على العمر
-                const isAdult = userCredentials.age >= 18;
-                let redirectPage = isAdult ? "./examfull.html" : "./exam.html";
-                
-                // إعادة توجيه إلى صفحة الامتحان المناسبة
-                window.location.href = redirectPage;
-            } else {
-                // في حالة الفشل: عرض رسالة خطأ باستخدام الصندوق المخصص
-                showMessage("❌ كود القائد أو رقم الطلب غير صحيح.");
-            }
+            // Display suspension message
+            showMessage("❌ تم إيقاف برنامج قرية متعلمة.");
         });
 
         // --- منطق قائمة الجوال (Mobile Menu Toggle) ---

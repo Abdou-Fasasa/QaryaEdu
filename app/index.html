@@ -479,6 +479,29 @@
       max-width: 80%;
     }
 
+    /* Suspension Notification Banner */
+    .suspension-notification {
+      background-color: #dc2626; /* Red background for suspension */
+      color: var(--white);
+      padding: 1rem 0;
+      text-align: center;
+      position: relative;
+      z-index: 40;
+    }
+    .suspension-notification .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .suspension-notification p {
+      margin: 0;
+      font-size: 1.1rem;
+      flex: 1;
+      max-width: 80%;
+    }
+
     /* Job Notification Banner */
     .job-notification {
       background-color: var(--accent-orange);
@@ -707,6 +730,14 @@
   </style>
 </head>
 <body>
+    <!-- Suspension Notification Banner -->
+    <div class="suspension-notification" id="suspension-notification">
+      <div class="container">
+        <p>تم إيقاف برنامج قرية متعلمة للامتحانات من اليوم بأمر من الهيئة القومية لتنظيم الامتحانات</p>
+        <button class="close-btn" id="close-suspension" aria-label="إغلاق الإشعار">&times;</button>
+      </div>
+    </div>
+
     <header class="header" id="site-header">
       <div class="container">
         <h1 class="logo">قرية متعلمة</h1>
@@ -902,6 +933,14 @@
           closeModal();
         }
       });
+
+      // Suspension Notification Close
+      const closeSuspensionBtn = document.getElementById('close-suspension');
+      if (closeSuspensionBtn) {
+        closeSuspensionBtn.addEventListener('click', () => {
+          document.getElementById('suspension-notification').style.display = 'none';
+        });
+      }
     </script>
 </body>
 </html>

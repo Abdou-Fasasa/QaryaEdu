@@ -611,85 +611,15 @@
 
         document.getElementById("status-form").addEventListener("submit", function (e) {
             e.preventDefault();
-            const requestId = document.getElementById("request-id").value.trim();
-            const nationalId = document.getElementById("national-id").value.trim();
             const resultBox = document.getElementById("status-result");
 
             // Clear previous results
             resultBox.innerHTML = '';
 
-            const foundApplication = applications.find(
-                (app) => app.requestId === requestId && app.nationalId === nationalId
-            );
-
-            if (foundApplication) {
-                // Check if the village is affiliated with the platform
-                const isVillageAffiliated = locationData.some(item => item.name === foundApplication.village);
-
-                if (!isVillageAffiliated) {
-                    resultBox.innerHTML = `
-                        <p class="message-box error-message">❌ هذه القرية غير تابعة للمنصة حالياً، لا يوجد بها ليدر.</p>
-                    `;
-                    return;
-                }
-
-                let costPerDay = 0;
-                let participantType = "";
-
-                // Determine participant type and cost per day based on age
-                if (foundApplication.age < 18) {
-                    participantType = "طفل";
-                    costPerDay = 100; // 100 EGP for children
-                } else {
-                    participantType = "شاب";
-                    costPerDay = 200; // 200 EGP for youth
-                }
-
-                const totalExamCost = 3 * costPerDay; // 3 days exam
-
-                // Build modern key-value card list
-                const statusClass = foundApplication.status === 'accepted' ? 'status-accepted' :
-                                    (foundApplication.status === 'rejected' ? 'status-rejected' : 'status-pending');
-                const statusText = foundApplication.status === 'accepted' ? 'مقبول ✅' :
-                                   (foundApplication.status === 'rejected' ? 'مرفوض ❌' : 'قيد المراجعة ⏳');
-
-                let kvHtml = `<div class="kv-list">`;
-
-                function addRow(key, value) {
-                    kvHtml += `
-                        <div class="kv-row">
-                            <div class="kv-key">${key}</div>
-                            <div class="kv-value">${value}</div>
-                        </div>
-                    `;
-                }
-
-                addRow('رقم الطلب', `<strong>${foundApplication.requestId}</strong>`);
-                addRow('الرقم القومي', `<strong>${foundApplication.nationalId}</strong>`);
-                addRow('الاسم الكامل', `<strong style="direction: rtl; display:block;">${foundApplication.name}</strong>`);
-                addRow('السن', `${foundApplication.age} سنة (${participantType})`);
-                addRow('القرية', `${foundApplication.village}`);
-                addRow('الحالة', `<span class="status-badge ${statusClass}">${statusText}</span>`);
-
-                if (foundApplication.status === "accepted") {
-                    // *** استخدام التواريخ الثابتة المخزنة مباشرة من بيانات التطبيق ***
-                    const examDates = foundApplication.examDates;
-                    addRow('أيام الامتحان', `3 أيام`);
-                    addRow('تكلفة اليوم', `${costPerDay} جنيه مصري (${participantType})`);
-                    addRow('إجمالي تكلفة الامتحان', `<strong>${totalExamCost} جنيه مصري</strong>`);
-                    addRow('تواريخ الامتحانات', `<ul>${examDates.map(d => `<li style="direction: rtl;">${d}</li>`).join('')}</ul>`);
-                } else if (foundApplication.status === "rejected" && foundApplication.reason) {
-                    addRow('سبب الرفض', `${foundApplication.reason}`);
-                } else if (foundApplication.status === "pending" && foundApplication.message) {
-                    addRow('ملاحظات', `${foundApplication.message}`);
-                }
-
-                kvHtml += `</div>`; // close kv-list
-            } else {
-                resultBox.innerHTML = `
-                    <p class="message-box error-message">❌ لم يتم العثور على طلب بهذا الرقم القومي ورقم الطلب المدخلين. يرجى التحقق من البيانات والمحاولة مرة أخرى.</p>
-                `;
-            }
+            // Display suspension message
+            resultBox.innerHTML = `
+                <p class="message-box error-message">❌ تم إيقاف برنامج قرية متعلمة.</p>
+            `;
         });
 
         // JavaScript for Mobile Menu Toggle

@@ -389,9 +389,51 @@
         padding: 0.7rem 1.5rem;
       }
     }
+
+    /* Suspension Notification Banner */
+    .suspension-notification {
+      background-color: #dc2626; /* Red background for suspension */
+      color: var(--white);
+      padding: 1rem 0;
+      text-align: center;
+      position: relative;
+      z-index: 40;
+    }
+    .suspension-notification .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .suspension-notification p {
+      margin: 0;
+      font-size: 1.1rem;
+      flex: 1;
+      max-width: 80%;
+    }
+    .suspension-notification .close-btn {
+      background: none;
+      border: none;
+      color: var(--white);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: 50%;
+      transition: background-color 0.3s ease;
+    }
+    .suspension-notification .close-btn:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
   </style>
 </head>
 <body>
+  <div class="suspension-notification">
+    <div class="container">
+<p>تم إيقاف برنامج قرية متعلمة للامتحانات من اليوم بأمر من الهيئة القومية لتنظيم الامتحانات</p>      
+<button class="close-btn">&times;</button>
+    </div>
+  </div>
   <header class="header">
     <div class="container">
       <h1 class="logo">قرية متعلمة</h1>
@@ -676,131 +718,14 @@
     document.getElementById("register-form").addEventListener("submit", function (e) {
       e.preventDefault(); // Prevent default form submission
 
-      const name = document.getElementById("name").value.trim();
-      const nationalId = document.getElementById("nationalId").value.trim();
-      const dob = document.getElementById("dob").value; // YYYY-MM-DD format
-      const gender = document.getElementById("gender").value;
-      const ageCategory = document.getElementById("ageCategory").value;
-      const governorate = document.getElementById("governorate").value;
-      const city = document.getElementById("city").value;
-      const village = document.getElementById("village").value;
-      const leaderCode = document.getElementById("leaderCode").value.trim(); // Get leader code
       const registerResultDiv = document.getElementById("register-result");
 
       // Clear previous messages and classes
       registerResultDiv.style.display = "none";
       registerResultDiv.classList.remove('success-message', 'error-message');
 
-      // --- Validation ---
-      if (!name || !nationalId || !dob || !gender || !ageCategory || !governorate || !city || !village || !leaderCode) {
-        displayMessage("❌ يرجى ملء جميع الحقول المطلوبة.", 'error');
-        return;
-      }
-
-      // Validate National ID length (e.g., 14 digits for Egypt)
-      if (!/^\d{14}$/.test(nationalId)) {
-        displayMessage("❌ الرقم القومي يجب أن يتكون من 14 رقمًا فقط.", 'error');
-        return;
-      }
-
-
-      // Validate Leader Code (case-sensitive)
-      const correctLeaderCode = "Ab"; // This should ideally come from a secure backend
-      if (leaderCode !== correctLeaderCode) {
-        displayMessage("❌ كود القائد غير صحيح. يرجى التأكد من الكود.", 'error');
-        return;
-      }
-
-      const birthDate = new Date(dob);
-      const today = new Date();
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const m = today.getMonth() - birthDate.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-        age--; // Adjust age if birthday hasn't occurred yet this year
-      }
-
-      let isValidAge = true;
-      let ageError = "";
-
-      if (ageCategory === "طفل") {
-        if (age < 8 || age > 17) {
-          isValidAge = false;
-          ageError = `عمر الطفل يجب أن يكون بين 8 و 17 سنة. العمر المدخل: ${age} سنة.`;
-        }
-      } else if (ageCategory === "شاب") {
-        if (age < 18 || age > 35) {
-          isValidAge = false;
-          ageError = `عمر الشاب يجب أن يكون بين 18 و 35 سنة. العمر المدخل: ${age} سنة.`;
-        }
-      }
-
-      if (!isValidAge) {
-        displayMessage(`❌ خطأ في العمر: ${ageError}`, 'error');
-        return;
-      }
-
-      // Generate a unique Request ID
-      const requestId = generateRequestId();
-
-      // --- Telegram Bot details ---
-      // IMPORTANT: Replace with your actual bot token and chat ID
-      const botToken = "7542961188:AAFQDDg9hlwVyYOaZuVF3ni-J5KrUXz1fAI";
-      const chatId = "1213902845"; // Make sure this chatId is correct and the bot has permission
-
-      // Construct the message for Telegram
-      const message = `
-📝 *طلب تسجيل جديد*
------------------------------
-*رقم الطلب*: \`${requestId}\`
-👤 *الاسم الكامل*: ${name}
-🆔 *الرقم القومي*: ${nationalId}
-🎂 *تاريخ الميلاد*: ${dob} (${age} سنة)
-🚻 *الجنس*: ${gender}
-👶 *فئة العمر*: ${ageCategory}
-🏛️ *المحافظة*: ${governorate}
-🏙️ *المركز*: ${city}
-🏘️ *القرية*: ${village}
-👑 *كود القائد*: ${leaderCode}
------------------------------
-`;
-
-      // Display a loading message
-      displayMessage("⏳ جارٍ إرسال طلبك...", 'success');
-
-      // Send data to Telegram Bot API
-      fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: message,
-          parse_mode: "Markdown"
-        })
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.ok) {
-          displayMessage(
-            `✅ تم إرسال طلب التسجيل بنجاح! رقم طلبك هو: 
-            <br><code>${requestId}</code>
-            <br>يرجى الاحتفاظ به لأنه سيستخدم دائمًا لمتابعة طلبك.`,
-            'success'
-          );
-          console.log("Registration data sent to Telegram successfully!");
-          this.reset(); // Clear the form after successful submission
-        } else {
-          let errorMessage = `❌ حدث خطأ أثناء إرسال الطلب: ${data.description || "خطأ غير معروف"}. يرجى المحاولة مرة أخرى.`;
-          if (data.description && data.description.includes("chat not found")) {
-            errorMessage += "\n💡 **ملاحظة:** قد يكون هناك مشكلة في معرّف المحادثة (Chat ID) أو لم تبدأ المحادثة مع البوت بعد.";
-          }
-          displayMessage(errorMessage, 'error');
-          console.error("Failed to send message to Telegram:", data.description);
-        }
-      })
-      .catch(error => {
-        displayMessage("❌ حدث خطأ في الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت.", 'error');
-        console.error("Error sending message to Telegram:", error);
-      });
+      // Display suspension message
+      displayMessage("❌ التسجيل موقوف حالياً بسبب إيقاف البرنامج.", 'error');
     });
 
     function displayMessage(msg, type) {
@@ -809,6 +734,16 @@
       registerResultDiv.classList.add(`${type}-message`);
       registerResultDiv.innerHTML = msg;
       registerResultDiv.style.display = "block";
+    }
+
+    // JavaScript for Suspension Notification Close Button
+    const closeBtn = document.querySelector('.close-btn');
+    const suspensionNotification = document.querySelector('.suspension-notification');
+
+    if (closeBtn && suspensionNotification) {
+      closeBtn.addEventListener('click', () => {
+        suspensionNotification.style.display = 'none';
+      });
     }
 
     // JavaScript for Mobile Menu Toggle (consistent across all pages)
