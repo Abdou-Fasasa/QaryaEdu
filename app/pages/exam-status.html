@@ -492,12 +492,7 @@
 
 <body>
 
-    <div class="suspension-notification">
-        <div class="container">
-            <p>تم إيقاف برنامج قرية متعلمة بأمر من الهيئة القومية لتنظيم الامتحانات الرقمية ووزارة التضامن الاجتماعي.</p>
-            <button class="close-btn">&times;</button>
-        </div>
-    </div>
+
 
     <div id="app-message" role="alert" aria-live="assertive"></div>
 
@@ -527,6 +522,13 @@
         <p id="date">التاريخ...</p>
         <p id="clock">الساعة الآن...</p>
         <p id="countdown">جارٍ الحساب...</p>
+
+        <form id="exam-form">
+            <input type="text" id="leader-code" placeholder="رمز القائد" required>
+            <input type="text" id="request-id" placeholder="رقم الطلب" required>
+            <input type="number" id="age" placeholder="العمر" min="8" max="35" required>
+            <button type="submit" class="btn-primary">دخول الامتحان</button>
+        </form>
     </main>
 
     <footer class="footer">
@@ -568,9 +570,9 @@
         ];
 
         // إعدادات وقت الامتحان
-        const EXAM_START_HOUR = 19; // 7 PM (الساعة 19:00 بتوقيت مصر)
-        const EXAM_END_HOUR = 20;   // 8 PM (الساعة 20:00 بتوقيت مصر)
-        const EXAM_DAYS = [0, 1, 6]; // أيام الامتحان: 0 = الأحد, 1 = الاثنين, 6 = السبت (بتوقيت مصر)
+        const EXAM_START_HOUR = 18; // 6 PM (الساعة 18:00 بتوقيت مصر)
+        const EXAM_END_HOUR = 19;   // 7 PM (الساعة 19:00 بتوقيت مصر)
+        const EXAM_DAYS = [0, 6]; // أيام الامتحان: 0 = الأحد, 6 = السبت (بتوقيت مصر)
 
         const dayNames = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
 
@@ -679,8 +681,27 @@
         form.addEventListener("submit", function (e) {
             e.preventDefault();
 
-            // Display suspension message
-            showMessage("❌ تم إيقاف برنامج قرية متعلمة.");
+            const leaderCode = document.getElementById("leader-code").value.trim();
+            const requestId = document.getElementById("request-id").value.trim();
+            const age = parseInt(document.getElementById("age").value);
+
+            // التحقق من صحة البيانات
+            const isValid = validCredentials.some(cred =>
+                cred.leaderCode === leaderCode &&
+                cred.requestId === requestId &&
+                cred.age === age
+            );
+
+            if (isValid) {
+                // التوجيه حسب العمر
+                if (age >= 18) {
+                    window.location.href = "examfull.html";
+                } else {
+                    window.location.href = "exam.html";
+                }
+            } else {
+                showMessage("❌ البيانات المدخلة غير صحيحة. يرجى التحقق وإعادة المحاولة.");
+            }
         });
 
         // --- منطق قائمة الجوال (Mobile Menu Toggle) ---

@@ -479,23 +479,23 @@
       max-width: 80%;
     }
 
-    /* Suspension Notification Banner */
-    .suspension-notification {
-      background-color: #dc2626; /* Red background for suspension */
+    /* Exam Availability Notification Banner */
+    .exam-notification {
+      background-color: #10b981; /* Green background for exam availability */
       color: var(--white);
       padding: 1rem 0;
       text-align: center;
       position: relative;
       z-index: 40;
     }
-    .suspension-notification .container {
+    .exam-notification .container {
       display: flex;
       justify-content: center;
       align-items: center;
       gap: 1rem;
       flex-wrap: wrap;
     }
-    .suspension-notification p {
+    .exam-notification p {
       margin: 0;
       font-size: 1.1rem;
       flex: 1;
@@ -730,11 +730,11 @@
   </style>
 </head>
 <body>
-    <!-- Suspension Notification Banner -->
-    <div class="suspension-notification" id="suspension-notification">
+    <!-- Exam Availability Notification Banner -->
+    <div class="exam-notification" id="exam-notification">
       <div class="container">
-        <p>تم إيقاف برنامج قرية متعلمة للامتحانات من اليوم بأمر من الهيئة القومية لتنظيم الامتحانات</p>
-        <button class="close-btn" id="close-suspension" aria-label="إغلاق الإشعار">&times;</button>
+        <p>الامتحانات أصبحت متاحة حتى يوم الاثنين</p>
+        <button class="close-btn" id="close-exam" aria-label="إغلاق الإشعار">&times;</button>
       </div>
     </div>
 
@@ -934,11 +934,11 @@
         }
       });
 
-      // Suspension Notification Close
-      const closeSuspensionBtn = document.getElementById('close-suspension');
-      if (closeSuspensionBtn) {
-        closeSuspensionBtn.addEventListener('click', () => {
-          document.getElementById('suspension-notification').style.display = 'none';
+      // Exam Notification Close
+      const closeExamBtn = document.getElementById('close-exam');
+      if (closeExamBtn) {
+        closeExamBtn.addEventListener('click', () => {
+          document.getElementById('exam-notification').style.display = 'none';
         });
       }
     </script>
