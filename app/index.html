@@ -8,13 +8,7 @@
   <link rel="stylesheet" href=".//styles.css">
 </head>
 <body>
-    <!-- Exam Availability Notification Banner -->
-    <div class="exam-notification" id="exam-notification">
-      <div class="container">
-        <p>الامتحانات أصبحت متاحة حتى يوم الاثنين</p>
-        <button class="close-btn" id="close-exam" aria-label="إغلاق الإشعار">&times;</button>
-      </div>
-    </div>
+
 
     <header class="header" id="site-header">
       <div class="container">
@@ -35,6 +29,15 @@
         </nav>
       </div>
     </header>
+
+    <!-- Important Notification Banner -->
+    <div class="important-notification">
+      <div class="container">
+        <p>سيتم تأجيل إرسال الدفعات المالية إلى قادة القرى والمراكز والمحافظات حتى يوم 5 من نوفمبر على الأكثر، وذلك بسبب التنظيم القائم من قبل الهيئة القومية للاختبارات الرقمية. سيتم إرسال جميع الدفعات المالية يوم 5. شكراً لتفهمكم وانتظاركم.</p>
+        <button id="close-important-notification" class="close-btn">×</button>
+      </div>
+    </div>
+
     <section class="hero">
       <div class="container">
         <h2>أهلاً بك في منصة قرية متعلمة</h2>
@@ -85,6 +88,15 @@
         </div>
       </div>
     </section>
+
+    <!-- Important Notification Modal -->
+    <div id="important-modal" class="modal" role="dialog" aria-labelledby="modal-title" aria-hidden="true">
+      <div class="modal-content">
+        <h2 id="modal-title">تنبيه هام</h2>
+        <p>سيتم تأجيل إرسال الدفعات المالية إلى قادة القرى والمراكز والمحافظات حتى يوم 5 من نوفمبر على الأكثر، وذلك بسبب التنظيم القائم من قبل الهيئة القومية للاختبارات الرقمية. سيتم إرسال جميع الدفعات المالية يوم 5. شكراً لتفهمكم وانتظاركم.</p>
+        <button id="close-important-modal" class="btn">إغلاق</button>
+      </div>
+    </div>
 
     <footer class="footer">
       <div class="container">
@@ -172,53 +184,43 @@
         });
       }
 
-      // Job Notification and Modal
-      const jobModal = document.getElementById('job-modal');
-      const modalContent = jobModal.querySelector('.modal-content');
-      const closeModalBtn = document.getElementById('close-modal');
-      const closeNotificationBtn = document.getElementById('close-notification');
-
-      // Function to open the modal
-      function openModal() {
-          jobModal.style.opacity = '1';
-          jobModal.style.visibility = 'visible';
-          modalContent.style.transform = 'scale(1)';
-      }
-
-      // Function to close the modal
-      function closeModal() {
-          jobModal.style.opacity = '0';
-          jobModal.style.visibility = 'hidden';
-          modalContent.style.transform = 'scale(0.9)';
-      }
-
-      // Show modal on DOMContentLoaded for fast display
+      // Show important modal on DOMContentLoaded for fast display
       document.addEventListener('DOMContentLoaded', () => {
-        openModal();
+        openImportantModal();
       });
 
-      // Close modal
-      closeModalBtn.addEventListener('click', closeModal);
+      // Important Notification Modal
+      const importantModal = document.getElementById('important-modal');
+      const importantModalContent = importantModal.querySelector('.modal-content');
+      const closeImportantModalBtn = document.getElementById('close-important-modal');
 
-      // Close notification banner
-      closeNotificationBtn.addEventListener('click', () => {
-        document.getElementById('job-notification').style.display = 'none';
+      // Function to open the important modal
+      function openImportantModal() {
+          importantModal.classList.add('open');
+          importantModal.setAttribute('aria-hidden', 'false');
+      }
+
+      // Function to close the important modal
+      function closeImportantModal() {
+          importantModal.classList.remove('open');
+          importantModal.setAttribute('aria-hidden', 'true');
+      }
+
+      // Close important modal
+      closeImportantModalBtn.addEventListener('click', closeImportantModal);
+
+      // Close important notification banner
+      document.getElementById('close-important-notification').addEventListener('click', () => {
+        document.querySelector('.important-notification').style.display = 'none';
       });
 
-      // Close modal when clicking outside
-      jobModal.addEventListener('click', (e) => {
-        if (e.target === jobModal) {
-          closeModal();
+      // Close important modal when clicking outside
+      importantModal.addEventListener('click', (e) => {
+        if (e.target === importantModal) {
+          closeImportantModal();
         }
       });
 
-      // Exam Notification Close
-      const closeExamBtn = document.getElementById('close-exam');
-      if (closeExamBtn) {
-        closeExamBtn.addEventListener('click', () => {
-          document.getElementById('exam-notification').style.display = 'none';
-        });
-      }
     </script>
 </body>
 </html>

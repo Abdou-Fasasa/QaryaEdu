@@ -610,7 +610,8 @@ body {
 /* Notifications */
 .suspension-notification,
 .exam-notification,
-.job-notification {
+.job-notification,
+.important-notification {
   padding: 1rem 0;
   text-align: center;
   position: relative;
@@ -632,7 +633,46 @@ body {
   color: var(--white);
 }
 
-.notification .container {
+.important-notification {
+  background: linear-gradient(135deg, var(--error-red) 0%, #ff6b6b 50%, #feca57 100%);
+  color: var(--white);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(239, 68, 68, 0.3), 0 4px 16px rgba(0, 0, 0, 0.1);
+  animation: notificationGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes notificationGlow {
+  0% {
+    box-shadow: 0 8px 32px rgba(239, 68, 68, 0.3), 0 4px 16px rgba(0, 0, 0, 0.1);
+  }
+  100% {
+    box-shadow: 0 12px 40px rgba(239, 68, 68, 0.5), 0 6px 20px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.important-notification::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+.notification .container,
+.important-notification .container {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -640,7 +680,8 @@ body {
   flex-wrap: wrap;
 }
 
-.notification p {
+.notification p,
+.important-notification p {
   margin: 0;
   font-size: 1.1rem;
   flex: 1;
