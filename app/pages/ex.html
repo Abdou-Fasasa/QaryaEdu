@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>بوابة الامتحان | قرية متعلمة</title>
+    <link rel="stylesheet" href="../styles.css" />
+</head>
+<body class="inner-page">
+    <div id="app-message" role="alert" aria-live="assertive"></div>
+
+    <div class="site-shell">
+        <header class="header">
+            <div class="container">
+                <a class="brand" href="../index.html" aria-label="العودة إلى الصفحة الرئيسية">
+                    <span class="brand-mark">ق</span>
+                    <span class="brand-text">
+                        <span class="logo">قرية متعلمة</span>
+                        <small>بوابة الامتحان</small>
+                    </span>
+                </a>
+
+                <button class="menu-toggle" id="mobile-menu" aria-label="قائمة الموقع" aria-expanded="false" aria-controls="main-nav">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </button>
+
+                <nav class="nav" id="main-nav" aria-label="روابط الموقع">
+                    <a href="../index.html" class="nav-link">الرئيسية</a>
+                    <a href="./register.html" class="nav-link">التسجيل</a>
+                    <a href="./exam-status.html" class="nav-link active">الامتحان</a>
+                    <a href="./status.html" class="nav-link">حالة الطلب</a>
+                    <a href="./villages.html" class="nav-link">القرى</a>
+                </nav>
+            </div>
+        </header>
+
+        <main class="main-content-container">
+            <section class="page-hero">
+                <div class="container page-hero-grid">
+                    <div class="page-copy">
+                        <span class="page-badge"><i class="fas fa-clock"></i> مواعيد الامتحان</span>
+                        <h1 class="page-title">الامتحان متاح في الأيام والساعات المحددة</h1>
+                        <p class="page-text">تستخدم هذه الصفحة نفس مواعيد الامتحان المعتمدة وتعرض العد التنازلي حتى أقرب فترة متاحة للدخول.</p>
+                    </div>
+                    <div class="page-visual">
+                        <img src="https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1000&q=80" alt="طالب يستعد لدخول الامتحان" />
+                        <div class="visual-note">
+                            <strong>وقت الامتحان</strong>
+                            <span>السبت والأحد والاثنين من 07:00 مساءً إلى 08:00 مساءً.</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section-shell section-tight">
+                <div class="container exam-status-layout">
+                    <div class="countdown-panel">
+                        <div class="card-heading">
+                            <span class="mini-badge">الموعد الحالي</span>
+                            <h3>تابع وقت الامتحان</h3>
+                        </div>
+
+                        <div class="countdown-display">
+                            <p id="date">التاريخ...</p>
+                            <p id="clock">الساعة الآن...</p>
+                            <p id="countdown">جارٍ الحساب...</p>
+                        </div>
+
+                        <form id="exam-form" class="form" style="display: none;">
+                            <div class="form-group">
+                                <label for="leader-code">كود القائد</label>
+                                <input type="text" id="leader-code" placeholder="أدخل كود القائد" required />
+                            </div>
+                            <div class="form-group">
+                                <label for="request-id">رقم الطلب</label>
+                                <input type="text" id="request-id" placeholder="أدخل رقم الطلب" required />
+                            </div>
+                            <div class="form-group">
+                                <label for="age">العمر</label>
+                                <input type="number" id="age" placeholder="أدخل العمر" min="8" max="35" required />
+                            </div>
+                            <button type="submit" class="btn-primary full-width">دخول الامتحان</button>
+                        </form>
+                    </div>
+
+                    <aside class="side-card">
+                        <div class="card-heading">
+                            <span class="mini-badge">تعليمات</span>
+                            <h3>ملاحظات مهمة</h3>
+                        </div>
+                        <ul class="schedule-list">
+                            <li><i class="fas fa-key"></i><span>الأكواد المعتمدة للدخول هي <strong>Abdou200</strong> و <strong>Mohamed333</strong> و <strong>Reda456</strong>.</span></li>
+                            <li><i class="fas fa-calendar-days"></i><span>خارج أيام أو وقت الامتحان سيتم إخفاء الحقول تلقائيًا.</span></li>
+                            <li><i class="fas fa-list-check"></i><span>أدخل رقم الطلب والعمر الصحيحين لتحديد صفحة الامتحان المناسبة.</span></li>
+                        </ul>
+                    </aside>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <div class="container footer-grid">
+                <div>
+                    <p class="footer-brand">قرية متعلمة</p>
+                    <p class="footer-copy">صفحة عرض وقت الامتحان والدخول عند فتح الموعد الرسمي.</p>
+                </div>
+                <div class="footer-links">
+                    <a href="../index.html">الرئيسية</a>
+                    <a href="./register.html">التسجيل</a>
+                    <a href="./status.html">حالة الطلب</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="../js/main.js"></script>
+    <script src="../js/exam.js"></script>
+</body>
+</html>
+

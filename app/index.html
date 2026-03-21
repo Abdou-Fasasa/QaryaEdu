@@ -1,0 +1,447 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="منصة قرية متعلمة للتسجيل، متابعة الطلبات، استعراض القرى، ودخول الامتحانات التعليمية." />
+  <title>قرية متعلمة</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body class="home-page">
+  <div class="site-shell">
+    <header class="header" id="site-header">
+      <div class="container">
+        <a class="brand" href="./index.html" aria-label="العودة إلى الصفحة الرئيسية">
+          <span class="brand-mark">ق</span>
+          <span class="brand-text">
+            <span class="logo">قرية متعلمة</span>
+            <small>منصة التسجيل والامتحانات التعليمية</small>
+          </span>
+        </a>
+
+        <button class="menu-toggle" id="sidebar-toggle" aria-label="فتح القائمة الجانبية">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+        </button>
+
+        <nav class="nav" id="main-nav" aria-label="روابط الموقع">
+          <a href="./index.html" class="nav-link active">الرئيسية</a>
+          <a href="./pages/register.html" class="nav-link">التسجيل</a>
+          <a href="./pages/exam-status.html" class="nav-link">الامتحان</a>
+          <a href="./pages/status.html" class="nav-link">حالة الطلب</a>
+          <a href="./pages/verification.html" class="nav-link">التحقق من الأداء</a>
+          <a href="./pages/villages.html" class="nav-link">القرى</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Chic Sidebar -->
+    <aside class="sidebar" id="site-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <span class="brand-mark">ق</span>
+          <span class="logo">قرية متعلمة</span>
+        </div>
+        <button class="sidebar-close" id="sidebar-close" aria-label="إغلاق القائمة">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="./index.html" class="sidebar-link active">
+          <i class="fas fa-home"></i> <span>الرئيسية</span>
+        </a>
+        <a href="./pages/register.html" class="sidebar-link">
+          <i class="fas fa-user-plus"></i> <span>التسجيل الجديد</span>
+        </a>
+        <a href="./pages/exam-status.html" class="sidebar-link">
+          <i class="fas fa-pen-to-square"></i> <span>بوابة الامتحان</span>
+        </a>
+        <a href="./pages/status.html" class="sidebar-link">
+          <i class="fas fa-magnifying-glass"></i> <span>حالة الطلب</span>
+        </a>
+        <a href="./pages/verification.html" class="sidebar-link">
+          <i class="fas fa-file-circle-check"></i> <span>التحقق من الأداء</span>
+        </a>
+        <a href="./pages/villages.html" class="sidebar-link">
+          <i class="fas fa-map-location-dot"></i> <span>دليل القرى</span>
+        </a>
+        <a href="./pages/beni-suef.html" class="sidebar-link">
+          <i class="fas fa-building-columns"></i> <span>إدارة بني سويف</span>
+        </a>
+        <a href="./pages/services.html" class="sidebar-link">
+          <i class="fas fa-layer-group"></i> <span>مركز الخدمات</span>
+        </a>
+        <a href="./pages/guide.html" class="sidebar-link">
+          <i class="fas fa-book-open"></i> <span>دليل الاستخدام</span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <p>&copy; 2026 جميع الحقوق محفوظة لقرية متعلمة</p>
+      </div>
+    </aside>
+
+    <div class="important-notification">
+      <div class="container">
+        <div class="notice-copy">
+          <span class="notice-badge">إشعار المنصة</span>
+          <p>التسجيل متاح الآن، وإعادة التقديم بنفس الرقم القومي متاحة فقط بعد 72 ساعة، والامتحانات تفتح السبت والأحد والاثنين من 07:00 مساءً إلى 08:00 مساءً بتوقيت مصر.</p>
+        </div>
+        <button id="close-important-notification" class="close-btn" aria-label="إغلاق التنبيه">×</button>
+      </div>
+    </div>
+
+    <main>
+      <section class="hero section-shell">
+        <div class="container hero-grid">
+          <div class="hero-copy fade-up">
+            <span class="eyebrow"><i class="fas fa-compass"></i> لوحة خدمات المنصة</span>
+            <h1 class="hero-title">منصة حديثة ومنظمة تجمع التسجيل والمتابعة والامتحانات والخرائط التعليمية في تجربة واحدة</h1>
+            <p class="hero-text">توفر المنصة رحلة واضحة تبدأ بالتسجيل ثم متابعة الطلب ثم دخول الامتحان في الوقت المحدد، مع إبراز أن القائم على حملة وبرنامج قرية متعلمة تحت إدارة محافظة بني سويف، المحافظة الأم للصعيد، إلى جانب صفحات منظمة تسهّل الوصول والفهم والتنقل.</p>
+            <div class="hero-actions">
+              <a href="./pages/register.html" class="btn-primary">ابدأ التسجيل</a>
+              <a href="./pages/services.html" class="btn-secondary">مركز الخدمات</a>
+            </div>
+            <div class="hero-chip-row">
+              <span class="inline-pill"><i class="fas fa-bolt"></i> وصول سريع للخدمات</span>
+              <span class="inline-pill"><i class="fas fa-mobile-screen-button"></i> متجاوب مع كل الشاشات</span>
+              <span class="inline-pill"><i class="fas fa-clock-rotate-left"></i> إعادة التقديم بعد 72 ساعة</span>
+            </div>
+            <div class="hero-points">
+              <span><i class="fas fa-file-signature"></i> تسجيل الطلبات</span>
+              <span><i class="fas fa-clipboard-check"></i> متابعة الحالة</span>
+              <span><i class="fas fa-calendar-check"></i> مواعيد الامتحان</span>
+            </div>
+          </div>
+
+          <div class="hero-media fade-up delay-1">
+            <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1400&q=80" alt="طلاب يشاركون في نشاط تعليمي حديث" />
+            <div class="floating-card card-a">
+              <strong>تسجيل سريع</strong>
+              <span>اكتب البيانات الأساسية ثم احصل على رقم طلب للاستعلام والمتابعة.</span>
+            </div>
+            <div class="floating-card card-b">
+              <strong>إدارة الحملة</strong>
+              <span>القائم على حملة وبرنامج قرية متعلمة تحت إدارة محافظة بني سويف، المحافظة الأم للصعيد.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-shell section-tight">
+        <div class="container platform-strip">
+          <article class="platform-strip-card">
+            <span class="summary-icon"><i class="fas fa-lock-open"></i></span>
+            <span class="strip-value">التسجيل مفتوح</span>
+            <h3>إرسال الطلبات</h3>
+            <p>يمكنك إنشاء طلب جديد الآن واختيار كود القائد المناسب من الأكواد المعتمدة داخل المنصة.</p>
+          </article>
+          <article class="platform-strip-card">
+            <span class="summary-icon"><i class="fas fa-clock-rotate-left"></i></span>
+            <span class="strip-value">72 ساعة</span>
+            <h3>إعادة التقديم</h3>
+            <p>إذا تم التسجيل بنفس الرقم القومي فلا يمكن تقديم طلب جديد إلا بعد مرور 72 ساعة مع حذف الطلب السابق تلقائيًا.</p>
+          </article>
+          <article class="platform-strip-card">
+            <span class="summary-icon"><i class="fas fa-map-marked-alt"></i></span>
+            <span class="strip-value">إدارة بني سويف</span>
+            <h3>إدارة البرنامج</h3>
+            <p>القائم على حملة وبرنامج قرية متعلمة تحت إدارة محافظة بني سويف، المحافظة الأم للصعيد.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-shell">
+        <div class="container">
+          <div class="section-heading">
+            <span class="section-kicker">مؤشرات المنصة</span>
+            <h2 class="section-title">نظرة سريعة على المشاركة والخدمات</h2>
+            <p class="section-text">تم توزيع المحتوى والبيانات في بطاقات واضحة تساعد المستخدم على فهم الخدمات المتاحة بسرعة.</p>
+          </div>
+
+          <div class="metrics-grid">
+            <article class="metric-card">
+              <span class="metric-number" data-count-to="56">56</span>
+              <h3>قرية مشاركة</h3>
+              <p>دليل القرى يعرض القرى والقادة والمحافظات في صفحة بحث واحدة تحت إدارة محافظة بني سويف.</p>
+            </article>
+            <article class="metric-card">
+              <span class="metric-number" data-count-to="34236">34,236</span>
+              <h3>طلب خلال الشهر</h3>
+              <p>متابعة مستمرة لحجم الطلبات داخل المنصة مع أرقام واضحة وسهلة القراءة.</p>
+            </article>
+            <article class="metric-card">
+              <span class="metric-number" data-count-to="45124">45,124</span>
+              <h3>طالب أتم الامتحان</h3>
+              <p>تظهر النتيجة مباشرة بعد إرسال الامتحان داخل الصفحة مع عرض واضح للنتيجة النهائية.</p>
+            </article>
+            <article class="metric-card">
+              <span class="metric-number" data-count-to="100" data-count-suffix="%">100%</span>
+              <h3>دعم للشاشات</h3>
+              <p>تصميم مرن ومنظم يعمل تلقائيًا على الهاتف والتابلت والشاشات الكبيرة.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-shell">
+        <div class="container">
+          <div class="section-heading">
+            <span class="section-kicker">الخدمات الأساسية</span>
+            <h2 class="section-title">كل خدمة لها مساحة واضحة داخل المنصة</h2>
+            <p class="section-text">تم ترتيب التنقل والمحتوى حتى يصل المستخدم للخدمة المطلوبة بأقل عدد من الخطوات.</p>
+          </div>
+
+          <div class="features-grid">
+            <article class="feature-card">
+              <img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=900&q=80" alt="طلاب في جلسة تعليمية" />
+              <span class="card-badge">التسجيل</span>
+              <h3>إرسال طلب جديد</h3>
+              <p>نموذج واضح ومنظم يحفظ الطلب ويعرض رقم الطلب مباشرة بعد الإرسال لتسهيل المتابعة.</p>
+            </article>
+            <article class="feature-card">
+              <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80" alt="شاشة تعرض بيانات الطلب" />
+              <span class="card-badge">المتابعة</span>
+              <h3>معرفة حالة الطلب</h3>
+              <p>استخدم رقم الطلب والرقم القومي لعرض تفاصيل الطلب وحالته داخل المنصة.</p>
+            </article>
+            <article class="feature-card">
+              <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=900&q=80" alt="لوحة معلومات وخدمات المنصة" />
+              <span class="card-badge">الامتحانات</span>
+              <h3>دخول الامتحان</h3>
+              <p>البوابة تعرض الوقت الحالي والعد التنازلي، وتفتح حقول الدخول فقط داخل وقت الامتحان.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-shell section-tight">
+        <div class="container quick-grid">
+          <article class="quick-card">
+            <span class="quick-icon"><i class="fas fa-route"></i></span>
+            <h3>رحلة استخدام واضحة</h3>
+            <p>المنصة تقسم الرحلة إلى تسجيل، استعلام، مراجعة القرى، ثم دخول الامتحان في الوقت المحدد.</p>
+          </article>
+          <article class="quick-card">
+            <span class="quick-icon"><i class="fas fa-fingerprint"></i></span>
+            <h3>هوية الطلب محفوظة</h3>
+            <p>كل تسجيل جديد ينتج رقم طلب خاص يمكن نسخه واستخدامه مباشرة في صفحة حالة الطلب.</p>
+          </article>
+          <article class="quick-card">
+            <span class="quick-icon"><i class="fas fa-signal"></i></span>
+            <h3>لوحات ملخص سريعة</h3>
+            <p>أضفنا بطاقات تلخص حالة الخدمة والمواعيد والبيانات المطلوبة قبل كل خطوة.</p>
+          </article>
+          <article class="quick-card">
+            <span class="quick-icon"><i class="fas fa-shield-heart"></i></span>
+            <h3>الحفاظ على القواعد</h3>
+            <p>تم تطوير الشكل والتنظيم مع الإبقاء على منطق التسجيل وقواعد الامتحان والمواعيد كما هي.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-shell">
+        <div class="container board-grid">
+          <article class="board-card wide">
+            <span class="mini-badge">المسار المنظم</span>
+            <h3>كيف تستخدم المنصة من البداية للنهاية</h3>
+            <ul class="board-list">
+              <li><i class="fas fa-circle-check"></i><span>ابدأ من صفحة التسجيل وأدخل البيانات الرسمية ثم أرسل الطلب.</span></li>
+              <li><i class="fas fa-circle-check"></i><span>احتفظ برقم الطلب وانسخه مباشرة لاستخدامه في صفحة حالة الطلب.</span></li>
+              <li><i class="fas fa-circle-check"></i><span>راجع القرى والمحافظات والقادة من صفحة القرى أو صفحة بني سويف إذا احتجت التأكد من بيانات المنطقة.</span></li>
+              <li><i class="fas fa-circle-check"></i><span>ادخل بوابة الامتحان داخل الموعد فقط ثم أرسل النموذج لتظهر النتيجة فورًا.</span></li>
+            </ul>
+          </article>
+          <article class="highlight-panel">
+            <span class="mini-badge">إضافات جديدة</span>
+            <h3>الخدمات والسياسات وصفحة الإدارة</h3>
+            <p>تساعد الصفحات الجديدة على استعراض المزايا وفهم خطوات الاستخدام والوصول السريع للخدمات ومعرفة سياسة الطلبات وصفحة الإدارة التابعة لمحافظة بني سويف.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-shell">
+        <div class="container">
+          <div class="section-heading">
+            <span class="section-kicker">الوصول السريع</span>
+            <h2 class="section-title">انتقل مباشرة إلى الخدمة التي تحتاجها</h2>
+            <p class="section-text">أضفنا بطاقات انتقال سريعة لتقليل الخطوات والوصول المباشر للصفحات الأكثر استخدامًا.</p>
+          </div>
+
+          <div class="quick-links-grid">
+            <article class="quick-link-card">
+              <span class="quick-link-icon"><i class="fas fa-user-plus"></i></span>
+              <h3>تسجيل طالب جديد</h3>
+              <p>انتقل إلى نموذج التسجيل وأرسل بيانات الطالب بالكامل مع اختيار كود القائد المناسب.</p>
+              <a href="./pages/register.html" class="btn-ghost">فتح التسجيل</a>
+            </article>
+            <article class="quick-link-card">
+              <span class="quick-link-icon"><i class="fas fa-file-circle-check"></i></span>
+              <h3>متابعة حالة الطلب</h3>
+              <p>استعلم عن حالة الطلب باستخدام رقم الطلب والرقم القومي في صفحة واحدة.</p>
+              <a href="./pages/status.html" class="btn-ghost">فتح حالة الطلب</a>
+            </article>
+            <article class="quick-link-card">
+              <span class="quick-link-icon"><i class="fas fa-school"></i></span>
+              <h3>استعراض القرى</h3>
+              <p>ابحث في القرى والقادة والمحافظات من خلال التصفية أو البحث المباشر.</p>
+              <a href="./pages/villages.html" class="btn-ghost">فتح القرى</a>
+            </article>
+            <article class="quick-link-card">
+              <span class="quick-link-icon"><i class="fas fa-map-marked-alt"></i></span>
+              <h3>إدارة الحملة</h3>
+              <p>صفحة مخصصة تعرض مراكز وقرى القائم على حملة وبرنامج قرية متعلمة تحت إدارة محافظة بني سويف.</p>
+              <a href="./pages/beni-suef.html" class="btn-ghost">فتح الصفحة</a>
+            </article>
+            <article class="quick-link-card">
+              <span class="quick-link-icon"><i class="fas fa-file-shield"></i></span>
+              <h3>سياسة الطلبات</h3>
+              <p>تعرف على قاعدة إعادة التقديم بعد 72 ساعة وحذف الطلب السابق تلقائيًا.</p>
+              <a href="./pages/request-policy.html" class="btn-ghost">فتح الصفحة</a>
+            </article>
+            <article class="quick-link-card">
+              <span class="quick-link-icon"><i class="fas fa-layer-group"></i></span>
+              <h3>مركز الخدمات</h3>
+              <p>صفحة تجمع الخدمات الأساسية والمسارات السريعة في مكان واحد منظم.</p>
+              <a href="./pages/services.html" class="btn-ghost">فتح الخدمات</a>
+            </article>
+            <article class="quick-link-card">
+              <span class="quick-link-icon"><i class="fas fa-book-open-reader"></i></span>
+              <h3>دليل الاستخدام</h3>
+              <p>صفحة لشرح الخطوات والمواعيد والأكواد المعتمدة وسياسة الطلبات بشكل واضح وجميل.</p>
+              <a href="./pages/guide.html" class="btn-ghost">فتح الدليل</a>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-shell">
+        <div class="container">
+          <div class="section-heading">
+            <span class="section-kicker">أسئلة شائعة</span>
+            <h2 class="section-title">إجابات سريعة قبل البدء</h2>
+          </div>
+
+          <div class="faq-grid">
+            <article class="faq-item open">
+              <button type="button" class="faq-question" data-faq-question aria-expanded="true">
+                <span>هل التسجيل متاح الآن؟</span>
+                <i class="fas fa-chevron-down"></i>
+              </button>
+              <div class="faq-answer">
+                <p>نعم، التسجيل متاح حاليًا داخل صفحة التسجيل ويمكن إرسال الطلب مباشرة من خلال النموذج.</p>
+              </div>
+            </article>
+            <article class="faq-item">
+              <button type="button" class="faq-question" data-faq-question aria-expanded="false">
+                <span>هل يمكن التقديم بنفس الرقم القومي مرة أخرى؟</span>
+                <i class="fas fa-chevron-down"></i>
+              </button>
+              <div class="faq-answer">
+                <p>نعم، لكن فقط بعد مرور 72 ساعة من وقت إنشاء الطلب السابق، ثم يتم حذف الطلب القديم تلقائيًا عند تسجيل الجديد.</p>
+              </div>
+            </article>
+            <article class="faq-item">
+              <button type="button" class="faq-question" data-faq-question aria-expanded="false">
+                <span>ما الأكواد المعتمدة حاليًا؟</span>
+                <i class="fas fa-chevron-down"></i>
+              </button>
+              <div class="faq-answer">
+                <p>الأكواد المعتمدة داخل المنصة هي <strong>Abdou200</strong> و <strong>Mohamed333</strong> و <strong>Reda456</strong>.</p>
+              </div>
+            </article>
+            <article class="faq-item">
+              <button type="button" class="faq-question" data-faq-question aria-expanded="false">
+                <span>متى تظهر حقول الدخول إلى الامتحان؟</span>
+                <i class="fas fa-chevron-down"></i>
+              </button>
+              <div class="faq-answer">
+                <p>تظهر حقول الدخول فقط أيام السبت والأحد والاثنين من الساعة 07:00 مساءً حتى 08:00 مساءً بتوقيت مصر.</p>
+              </div>
+            </article>
+            <article class="faq-item">
+              <button type="button" class="faq-question" data-faq-question aria-expanded="false">
+                <span>من القائم على الحملة والبرنامج؟</span>
+                <i class="fas fa-chevron-down"></i>
+              </button>
+              <div class="faq-answer">
+                <p>القائم على حملة وبرنامج قرية متعلمة تحت إدارة محافظة بني سويف، المحافظة الأم للصعيد، مع صفحة مخصصة للمراكز والقرى.</p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-shell section-tight">
+        <div class="container">
+          <div class="cta-panel">
+            <div class="cta-grid">
+              <div>
+                <h2 class="cta-title">ابدأ الآن من الصفحة المناسبة لك</h2>
+                <p class="cta-text">التسجيل، حالة الطلب، القرى، الخدمات الجديدة، دليل الاستخدام، سياسة الطلبات، وصفحة الإدارة التابعة لمحافظة بني سويف أصبحت أقرب وأسهل مع تخطيط أوضح ومظهر أحدث.</p>
+              </div>
+              <div class="card-actions">
+                <a href="./pages/register.html" class="btn-secondary">التسجيل</a>
+                <a href="./pages/request-policy.html" class="btn-ghost">السياسة</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+          <section class="section-shell section-tight">
+        <div class="container feature-panel-grid">
+          <article class="feature-panel-card">
+            <span class="mini-badge">صفحة جديدة</span>
+            <h3>لوحة الإعلانات</h3>
+            <p>صفحة منظمة تجمع أهم تنبيهات المنصة، المواعيد الرسمية، والأكواد المعتمدة وخطوات البدء السريع.</p>
+            <a href="./pages/announcements.html" class="btn-ghost">فتح الصفحة</a>
+          </article>
+          <article class="feature-panel-card">
+            <span class="mini-badge">صفحة جديدة</span>
+            <h3>جدول الامتحانات</h3>
+            <p>عرض أسبوعي واضح للسبت والأحد والاثنين مع نافذة الأداء الرسمية بدون أسماء أو أعداد.</p>
+            <a href="./pages/exam-calendar.html" class="btn-ghost">فتح الصفحة</a>
+          </article>
+        </div>
+      </section>
+
+</main>
+
+    <div id="important-modal" class="modal" role="dialog" aria-labelledby="modal-title" aria-hidden="true" style="display: none;">
+      <div class="modal-content">
+        <h2 id="modal-title">تنبيه هام</h2>
+        <p>راجع صفحات التسجيل وحالة الطلب والامتحان والخدمات الجديدة وسياسة الطلبات وصفحة الإدارة التابعة لمحافظة بني سويف لمعرفة كل البيانات والخطوات المتاحة داخل المنصة.</p>
+        <button id="close-important-modal" class="btn">إغلاق</button>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <div>
+          <p class="footer-brand">قرية متعلمة</p>
+          <p class="footer-copy">منصة تعليمية للتسجيل ومتابعة الطلبات واستعراض القرى ودخول الامتحانات في الوقت المعتمد.</p>
+        </div>
+        <div class="footer-links">
+          <a href="./pages/register.html">التسجيل</a>
+          <a href="./pages/exam-status.html">الامتحان</a>
+          <a href="./pages/status.html">حالة الطلب</a>
+          <a href="./pages/villages.html">القرى</a>
+          <a href="./pages/beni-suef.html">بني سويف</a>
+          <a href="./pages/request-policy.html">السياسة</a>
+          <a href="./pages/services.html">الخدمات</a>
+          <a href="./pages/announcements.html">الإعلانات</a>
+          <a href="./pages/exam-calendar.html">الجدول</a>
+          <a href="./pages/guide.html">الدليل</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="./js/main.js"></script>
+</body>
+</html>
+
+
+
+

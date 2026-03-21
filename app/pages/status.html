@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>حالة الطلب | قرية متعلمة</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body class="inner-page">
+  <div class="site-shell">
+    <header class="header">
+      <div class="container">
+        <a class="brand" href="../index.html" aria-label="العودة إلى الصفحة الرئيسية">
+          <span class="brand-mark">ق</span>
+          <span class="brand-text">
+            <span class="logo">قرية متعلمة</span>
+            <small>حالة الطلب</small>
+          </span>
+        </a>
+
+        <button class="menu-toggle" id="sidebar-toggle" aria-label="فتح القائمة الجانبية">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+        </button>
+
+        <nav class="nav" id="main-nav" aria-label="روابط الموقع">
+          <a href="../index.html" class="nav-link">الرئيسية</a>
+          <a href="./register.html" class="nav-link">التسجيل</a>
+          <a href="./exam-status.html" class="nav-link">الامتحان</a>
+          <a href="./status.html" class="nav-link active">حالة الطلب</a>
+          <a href="./verification.html" class="nav-link">التحقق من الأداء</a>
+          <a href="./villages.html" class="nav-link">القرى</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Chic Sidebar -->
+    <aside class="sidebar" id="site-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <span class="brand-mark">ق</span>
+          <span class="logo">قرية متعلمة</span>
+        </div>
+        <button class="sidebar-close" id="sidebar-close" aria-label="إغلاق القائمة">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="../index.html" class="sidebar-link">
+          <i class="fas fa-home"></i> <span>الرئيسية</span>
+        </a>
+        <a href="./register.html" class="sidebar-link">
+          <i class="fas fa-user-plus"></i> <span>التسجيل الجديد</span>
+        </a>
+        <a href="./exam-status.html" class="sidebar-link">
+          <i class="fas fa-pen-to-square"></i> <span>بوابة الامتحان</span>
+        </a>
+        <a href="./status.html" class="sidebar-link active">
+          <i class="fas fa-magnifying-glass"></i> <span>حالة الطلب</span>
+        </a>
+        <a href="./verification.html" class="sidebar-link">
+          <i class="fas fa-file-circle-check"></i> <span>التحقق من الأداء</span>
+        </a>
+        <a href="./villages.html" class="sidebar-link">
+          <i class="fas fa-map-location-dot"></i> <span>دليل القرى</span>
+        </a>
+        <a href="./beni-suef.html" class="sidebar-link">
+          <i class="fas fa-building-columns"></i> <span>إدارة بني سويف</span>
+        </a>
+        <a href="./services.html" class="sidebar-link">
+          <i class="fas fa-layer-group"></i> <span>مركز الخدمات</span>
+        </a>
+        <a href="./guide.html" class="sidebar-link">
+          <i class="fas fa-book-open"></i> <span>دليل الاستخدام</span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <p>&copy; 2026 جميع الحقوق محفوظة لقرية متعلمة</p>
+      </div>
+    </aside>
+
+    <main class="main-content-container">
+      <section class="page-hero">
+        <div class="container page-hero-grid">
+          <div class="page-copy">
+            <span class="page-badge"><i class="fas fa-magnifying-glass"></i> متابعة الطلب</span>
+            <h1 class="page-title">استعلام عن حالة الطلب</h1>
+            <p class="page-text">أدخل رقم الطلب والرقم القومي لمعرفة حالة الطلب الحالية، مع عرض مختصر سريع يوضح أهم بياناته فور العثور عليه.</p>
+            <div class="page-actions">
+              <a href="./register.html" class="btn-secondary">تسجيل جديد</a>
+              <a href="./exam-status.html" class="btn-ghost">بوابة الامتحان</a>
+            </div>
+          </div>
+          <div class="page-visual">
+            <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1200&q=80" alt="متابعة بيانات الطلب" />
+            <div class="visual-note">
+              <strong>نتيجة الطلب</strong>
+              <span>تعرض الصفحة حالة الطلب والبيانات الأساسية بمجرد إدخال المعلومات الصحيحة.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-shell section-tight">
+        <div class="container summary-shell">
+          <article class="summary-card is-primary">
+            <span class="summary-icon"><i class="fas fa-signal"></i></span>
+            <span class="summary-value" id="status-summary-state">---</span>
+            <p>الحالة الحالية للطلب</p>
+          </article>
+          <article class="summary-card">
+            <span class="summary-icon"><i class="fas fa-id-badge"></i></span>
+            <span class="summary-value" id="status-summary-request">---</span>
+            <p>رقم الطلب المعروض</p>
+          </article>
+          <article class="summary-card">
+            <span class="summary-icon"><i class="fas fa-location-dot"></i></span>
+            <span class="summary-value" id="status-summary-village">---</span>
+            <p>القرية أو المنطقة</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-shell section-tight">
+        <div class="container form-layout">
+          <div class="content-card">
+            <div class="card-heading">
+              <span class="mini-badge">استعلام الطلب</span>
+              <h3>أدخل بيانات الاستعلام</h3>
+              <p>استخدم رقم الطلب الذي حصلت عليه بعد التسجيل مع الرقم القومي الخاص بك.</p>
+            </div>
+
+            <form id="status-form" class="form">
+              <div class="form-group">
+                <label for="request-id">رقم الطلب</label>
+                <input type="text" id="request-id" placeholder="أدخل رقم الطلب" required />
+              </div>
+              <div class="form-group">
+                <label for="national-id">الرقم القومي</label>
+                <input type="text" id="national-id" placeholder="أدخل الرقم القومي" required />
+              </div>
+              <button type="submit" class="btn-primary full-width">تحقق الآن</button>
+            </form>
+
+            <div id="status-result"></div>
+          </div>
+
+          <aside class="exam-side">
+            <div class="side-card">
+              <div class="card-heading">
+                <span class="mini-badge">ماذا ستحتاج؟</span>
+                <h3>بيانات مطلوبة</h3>
+              </div>
+              <ul class="tips-list">
+                <li><i class="fas fa-id-card"></i><span>رقم الطلب الذي ظهر لك بعد التسجيل.</span></li>
+                <li><i class="fas fa-fingerprint"></i><span>الرقم القومي المكتوب في نموذج التسجيل.</span></li>
+                <li><i class="fas fa-circle-info"></i><span>قد تظهر الحالة كقيد المراجعة أو مقبول أو مرفوض حسب البيانات المتاحة.</span></li>
+              </ul>
+            </div>
+
+            <div class="side-card">
+              <div class="card-heading">
+                <span class="mini-badge">نصيحة سريعة</span>
+                <h3>كيف تستخدم الصفحة بسهولة؟</h3>
+              </div>
+              <div class="timeline-list">
+                <div class="timeline-item">
+                  <i class="fas fa-copy"></i>
+                  <div>
+                    <strong>انسخ رقم الطلب</strong>
+                    <p>يفضل نسخ رقم الطلب مباشرة بعد التسجيل لتجنب أي خطأ أثناء الاستعلام.</p>
+                  </div>
+                </div>
+                <div class="timeline-item">
+                  <i class="fas fa-circle-check"></i>
+                  <div>
+                    <strong>اكتب الرقم القومي نفسه</strong>
+                    <p>يجب أن يطابق الرقم القومي نفس القيمة المكتوبة أثناء التسجيل.</p>
+                  </div>
+                </div>
+                <div class="timeline-item">
+                  <i class="fas fa-arrow-rotate-right"></i>
+                  <div>
+                    <strong>أعد المحاولة عند الحاجة</strong>
+                    <p>إذا لم تظهر النتيجة تأكد من البيانات ثم أرسل النموذج مرة أخرى.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="section-shell">
+        <div class="container help-grid">
+          <article class="help-card">
+            <i class="fas fa-circle-check"></i>
+            <div>
+              <h3>ملخص مرئي</h3>
+              <p>عند العثور على الطلب يتم تحديث بطاقات الملخص أعلى الصفحة مباشرة لعرض الحالة ورقم الطلب والقرية.</p>
+            </div>
+          </article>
+          <article class="help-card">
+            <i class="fas fa-layer-group"></i>
+            <div>
+              <h3>تفاصيل أوضح</h3>
+              <p>أصبح عرض النتائج أكثر تنظيمًا مع بطاقات وحواف وألوان مختلفة لكل حالة.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <div>
+          <p class="footer-brand">قرية متعلمة</p>
+          <p class="footer-copy">صفحة الاستعلام عن حالة الطلب ومعرفة موقفه الحالي داخل المنصة.</p>
+        </div>
+        <div class="footer-links">
+          <a href="../index.html">الرئيسية</a>
+          <a href="./register.html">التسجيل</a>
+          <a href="./exam-status.html">الامتحان</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="../js/main.js"></script>
+  <script src="../js/fixed-applications-db.js"></script>
+  <script src="../js/status.js"></script>
+</body>
+</html>
+
+
+
+
