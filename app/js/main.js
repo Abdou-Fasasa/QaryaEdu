@@ -1,4 +1,6 @@
 ﻿document.addEventListener('DOMContentLoaded', () => {
+    const authApi = window.QaryaAuth || null;
+    const authSession = authApi ? authApi.getSession() : null;
     const siteHeader = document.querySelector('.header');
     const sidebarToggle = document.getElementById('sidebar-toggle');
     const sidebarClose = document.getElementById('sidebar-close');
@@ -16,12 +18,14 @@
     const countElements = Array.from(document.querySelectorAll('[data-count-to]'));
     const overlay = createOverlay();
 
+    injectAuthSummary();
     injectSidebarExtras();
     updateActiveLinks();
     updateHeaderState();
     initCounters();
     initFaqs();
     initCopyButtons();
+    bindAuthActions();
 
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', () => setSidebarState(true));
@@ -97,6 +101,82 @@
 
     function getPrefix() {
         return window.location.pathname.includes('/pages/') ? './' : './pages/';
+    }
+
+    function getLoginPath() {
+        return window.location.pathname.includes('/pages/') ? '../login.html' : './login.html';
+    }
+
+    function getUserInitial() {
+        if (!authSession || !authSession.name) {
+            return 'ق';
+        }
+
+        const parts = String(authSession.name).trim().split(/\s+/).filter(Boolean);
+        return (parts[0] || 'ق').charAt(0);
+    }
+
+    function injectAuthSummary() {
+        if (!authSession) {
+            return;
+        }
+
+        const headerContainer = siteHeader ? siteHeader.querySelector('.container') : null;
+        if (headerContainer && !headerContainer.querySelector('[data-header-session="true"]')) {
+            const headerCard = document.createElement('div');
+            headerCard.className = 'header-session';
+            headerCard.dataset.headerSession = 'true';
+            headerCard.innerHTML = `
+                <span class="header-session-avatar">${getUserInitial()}</span>
+                <div class="header-session-copy">
+                    <strong>${authSession.name}</strong>
+                    <span>${authSession.role || 'مستخدم المنصة'}</span>
+                </div>
+            `;
+
+            const anchor = mainNav || sidebarToggle || headerContainer.lastElementChild;
+            headerContainer.insertBefore(headerCard, anchor);
+        }
+
+        if (siteSidebar && !siteSidebar.querySelector('[data-sidebar-profile="true"]')) {
+            const sidebarCard = document.createElement('section');
+            sidebarCard.className = 'sidebar-profile-card';
+            sidebarCard.dataset.sidebarProfile = 'true';
+            sidebarCard.innerHTML = `
+                <div class="sidebar-profile-top">
+                    <span class="sidebar-profile-avatar">${getUserInitial()}</span>
+                    <div class="sidebar-profile-copy">
+                        <strong>${authSession.name}</strong>
+                        <span>${authSession.role || 'مستخدم المنصة'}</span>
+                    </div>
+                </div>
+                <p class="sidebar-profile-email">${authSession.email || ''}</p>
+                <button type="button" class="logout-btn" data-logout="true">
+                    <i class="fas fa-right-from-bracket"></i>
+                    <span>تسجيل الخروج</span>
+                </button>
+            `;
+
+            const sidebarHeader = siteSidebar.querySelector('.sidebar-header');
+            if (sidebarHeader) {
+                sidebarHeader.insertAdjacentElement('afterend', sidebarCard);
+            } else {
+                siteSidebar.prepend(sidebarCard);
+            }
+        }
+    }
+
+    function bindAuthActions() {
+        if (!authApi) {
+            return;
+        }
+
+        Array.from(document.querySelectorAll('[data-logout]')).forEach((button) => {
+            button.addEventListener('click', () => {
+                authApi.logout();
+                window.location.replace(getLoginPath());
+            });
+        });
     }
 
     function injectSidebarExtras() {
@@ -251,4 +331,3 @@
         });
     }
 });
-
