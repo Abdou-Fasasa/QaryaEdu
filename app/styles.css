@@ -3367,3 +3367,206 @@ ol {
     font-size: 1.8rem;
   }
 }
+
+.welcome-gate-open {
+  overflow: hidden;
+}
+
+.welcome-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(12px);
+}
+
+.welcome-gate[hidden] {
+  display: none;
+}
+
+.welcome-gate-card {
+  width: min(760px, 100%);
+  max-height: min(92vh, 920px);
+  overflow-y: auto;
+  padding: 1.6rem;
+  border-radius: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background:
+    radial-gradient(circle at top right, rgba(20, 184, 166, 0.12), transparent 32%),
+    radial-gradient(circle at bottom left, rgba(249, 115, 22, 0.14), transparent 26%),
+    rgba(255, 255, 255, 0.96);
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.24);
+}
+
+.welcome-gate-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.welcome-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.95rem;
+  border-radius: 999px;
+  background: rgba(15, 118, 110, 0.1);
+  color: var(--primary-strong);
+  font-weight: 800;
+}
+
+.welcome-user {
+  margin: 0;
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.welcome-title {
+  margin: 0 0 0.55rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.7rem, 1.2rem + 1.2vw, 2.5rem);
+  line-height: 1.35;
+}
+
+.welcome-body,
+.welcome-note-card p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.welcome-timer-block,
+.welcome-note-card,
+.welcome-message-form {
+  margin-top: 1.15rem;
+  padding: 1.1rem;
+  border-radius: 24px;
+  border: 1px solid rgba(17, 36, 58, 0.08);
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.welcome-label {
+  display: block;
+  margin-bottom: 0.28rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.welcome-timer-status {
+  display: block;
+  color: var(--text-main);
+  font-size: 1rem;
+}
+
+.welcome-timer-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.welcome-time-box {
+  padding: 0.95rem;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(15, 118, 110, 0.08), rgba(249, 115, 22, 0.08));
+  text-align: center;
+}
+
+.welcome-time-box span {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--primary-strong);
+  line-height: 1.2;
+}
+
+.welcome-time-box small {
+  color: var(--text-secondary);
+}
+
+.welcome-note-card strong,
+.welcome-message-form label {
+  display: block;
+  margin-bottom: 0.45rem;
+  font-weight: 800;
+}
+
+.welcome-message-form textarea {
+  width: 100%;
+  min-height: 150px;
+  padding: 1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(17, 36, 58, 0.12);
+  resize: vertical;
+  outline: none;
+}
+
+.welcome-message-form textarea:focus {
+  border-color: rgba(15, 118, 110, 0.4);
+  box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.08);
+}
+
+.welcome-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 0.85rem;
+}
+
+.welcome-actions .btn-primary,
+.welcome-actions .btn-secondary {
+  min-width: 170px;
+  border: 0;
+}
+
+.welcome-feedback {
+  margin: 0.9rem 0 0;
+  padding: 0.85rem 1rem;
+  border-radius: 18px;
+  font-weight: 700;
+}
+
+.welcome-feedback.pending {
+  background: rgba(217, 119, 6, 0.08);
+  color: #92400e;
+}
+
+.welcome-feedback.success {
+  background: rgba(5, 150, 105, 0.08);
+  color: #065f46;
+}
+
+.welcome-feedback.error {
+  background: rgba(220, 38, 38, 0.08);
+  color: #991b1b;
+}
+
+@media (max-width: 640px) {
+  .welcome-gate-card {
+    padding: 1rem;
+    border-radius: 24px;
+  }
+
+  .welcome-gate-top {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .welcome-timer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .welcome-actions {
+    flex-direction: column;
+  }
+
+  .welcome-actions .btn-primary,
+  .welcome-actions .btn-secondary {
+    width: 100%;
+  }
+}
