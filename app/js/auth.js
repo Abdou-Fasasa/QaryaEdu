@@ -2,13 +2,13 @@
     const AUTH_SESSION_KEY = 'qaryaeduAuthSession';
     const USERS = [
         {
-            email: 'Mona.edu.eg@gmail.com',
+            email: 'mona.edu.eg@gmail.com',
             password: 'Mona200',
             name: 'مني نجم الدين',
             role: 'مستخدم المنصة'
         },
         {
-            email: 'Abdou200.edu.eg@gmail.com',
+            email: 'Abdou.edu.eg@gmail.com',
             password: 'Abdou200',
             name: 'عبدالرحمن',
             role: 'ادمن المنصة'
