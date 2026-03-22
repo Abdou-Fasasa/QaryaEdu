@@ -1,4 +1,4 @@
-﻿﻿<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
@@ -30,14 +30,14 @@
             <i class="fas fa-users"></i>
             <div>
               <strong>ترحيب عام بعد الدخول</strong>
-              <span>بعد نجاح تسجيل الدخول تظهر نافذة ترحيب عامة لجميع أولياء الأمور والطلاب والطالبات قبل دخول المنصة.</span>
+              <span>الرسالة التي تظهر بعد تسجيل الدخول أصبحت تُبنى من الملف البرمجي مباشرة وليس من هيكل الصفحة.</span>
             </div>
           </article>
           <article class="auth-feature-item">
             <i class="fas fa-paper-plane"></i>
             <div>
               <strong>رسالة خاصة للإدارة</strong>
-              <span>يمكنك كتابة رسالة مباشرة للإدارة من نفس شاشة الترحيب ثم متابعة استخدام المنصة بشكل طبيعي.</span>
+              <span>يمكنك كتابة رسالة مباشرة للإدارة من شاشة الترحيب ثم متابعة استخدام المنصة بشكل طبيعي.</span>
             </div>
           </article>
         </div>
@@ -58,7 +58,7 @@
             </span>
           </a>
           <h2 class="auth-card-title" id="login-title">تسجيل الدخول</h2>
-          <p class="auth-card-text">أدخل البريد الإلكتروني وكلمة المرور لفتح المنصة. بعد تسجيل الدخول ستظهر لك رسالة ترحيب عامة ثم يمكنك متابعة استخدام الموقع.</p>
+          <p class="auth-card-text">أدخل البريد الإلكتروني وكلمة المرور لفتح المنصة. بعد تسجيل الدخول ستظهر لك رسالة الترحيب ثم يمكنك متابعة استخدام الموقع.</p>
         </div>
 
         <form id="login-form" class="auth-form" novalidate>
@@ -95,53 +95,6 @@
       </section>
     </div>
   </main>
-
-  <section class="welcome-gate" id="welcome-gate" hidden aria-labelledby="welcome-title" aria-modal="true" role="dialog">
-    <div class="welcome-gate-card">
-      <div class="welcome-gate-top">
-        <span class="welcome-badge"><i class="fas fa-heart-circle-check"></i> رسالة ترحيب عامة</span>
-        <p class="welcome-user" id="welcome-user">مرحبًا بك</p>
-      </div>
-      <h2 class="welcome-title" id="welcome-title">مرحبًا بجميع أولياء الأمور والطلاب والطالبات</h2>
-      <p class="welcome-body">أنا الأدمن عبدالرحمن المسؤول عن إدارة بني سويف وسمسطا ودشاشة، وأرحب بكم بكل تقدير داخل منصة قرية متعلمة. هذه النافذة العامة تظهر بعد تسجيل الدخول لمشاركة رسالة اليوم وإتاحة مساحة مباشرة لإرسال الملاحظات إلى الإدارة.</p>
-
-      <div class="welcome-timer-block">
-        <div>
-          <span class="welcome-label">العد التنازلي حتى 7:00 مساءً اليوم</span>
-          <strong class="welcome-timer-status" id="welcome-timer-status">يتم حساب الوقت الآن...</strong>
-        </div>
-        <div class="welcome-timer-grid" id="welcome-timer-grid">
-          <div class="welcome-time-box">
-            <span id="welcome-hours">00</span>
-            <small>ساعة</small>
-          </div>
-          <div class="welcome-time-box">
-            <span id="welcome-minutes">00</span>
-            <small>دقيقة</small>
-          </div>
-          <div class="welcome-time-box">
-            <span id="welcome-seconds">00</span>
-            <small>ثانية</small>
-          </div>
-        </div>
-      </div>
-
-      <div class="welcome-note-card">
-        <strong>رسالة اليوم</strong>
-        <p>هذه الرسالة العامة تظهر لكل مستخدم بعد تسجيل الدخول، ثم يمكنه المتابعة إلى المنصة أو ترك رسالة خاصة للإدارة من خلال النموذج التالي.</p>
-      </div>
-
-      <form id="welcome-message-form" class="welcome-message-form" novalidate>
-        <label for="welcome-message-text">رسالة إلى الإدارة</label>
-        <textarea id="welcome-message-text" placeholder="اكتب رسالتك هنا بشكل واضح ومحترم..."></textarea>
-        <div class="welcome-actions">
-          <button type="submit" class="btn-secondary" id="welcome-send-button">إرسال الرسالة</button>
-          <button type="button" class="btn-primary" id="welcome-continue-button">دخول المنصة</button>
-        </div>
-        <p class="welcome-feedback" id="welcome-feedback" hidden></p>
-      </form>
-    </div>
-  </section>
 
   <script src="./js/login-page.js"></script>
 </body>

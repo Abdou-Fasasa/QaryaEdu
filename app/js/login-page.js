@@ -1,283 +1,240 @@
-(() => {
+﻿(() => {
     const authApi = window.QaryaAuth;
     const authGuard = window.QaryaAuthGuard;
     const ADMIN_CONTACT_ENDPOINT = 'https://api.telegram.org/bot8751705299:AAHobnl-fXDRNGydTzZdnO96TaDCP_a5rIU/sendMessage';
     const ADMIN_CHAT_ID = '1213902845';
     let activeSession = null;
-    let pendingNextTarget = 'index.html';
     let countdownTimer = null;
 
-    if (!authApi) {
-        return;
-    }
+    if (!authApi) return;
+
+    // 1. حقن التنسيقات (تحسينات الـ CSS)
+    const injectStyles = () => {
+        if (document.getElementById('qarya-custom-style')) return;
+        const style = document.createElement('style');
+        style.id = 'qarya-custom-style';
+        style.innerHTML = `
+            /* تنسيق بوابة الترحيب */
+            .welcome-gate {
+                position: fixed;
+                top: 0; left: 0;
+                width: 100%; height: 100%;
+                background: rgba(0, 0, 0, 0.7);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                padding: 15px;
+                box-sizing: border-box;
+            }
+            .welcome-gate-card {
+                background: #fff;
+                border-radius: 15px;
+                max-width: 600px;
+                width: 100%;
+                max-height: 95vh;
+                overflow-y: auto;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+                direction: rtl;
+            }
+            /* إخفاء زر الدخول افتراضياً */
+            #welcome-continue-button { display: none; }
+
+            /* تنسيق حقل كلمة المرور مع العين (تحسينات للظهور) */
+            .password-wrapper {
+                position: relative !important;
+                display: flex !important;
+                align-items: center !important;
+                width: 100% !important;
+            }
+            .toggle-password-icon {
+                position: absolute !important;
+                left: 15px !important; /* مكان الأيقونة جهة اليسار للـ RTL */
+                cursor: pointer !important;
+                color: #888 !important;
+                z-index: 10 !important;
+                font-size: 18px !important;
+                top: 50% !important;
+                transform: translateY(-50%) !important;
+            }
+            .toggle-password-icon:hover { color: #333 !important; }
+            #login-password { 
+                padding-left: 45px !important; /* مساحة للأيقونة */
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+        `;
+        document.head.appendChild(style);
+    };
 
     document.addEventListener('DOMContentLoaded', () => {
-        const form = document.getElementById('login-form');
+        injectStyles();
+        
+        const loginForm = document.getElementById('login-form');
         const emailInput = document.getElementById('login-email');
         const passwordInput = document.getElementById('login-password');
         const messageBox = document.getElementById('login-message');
-        const submitButton = document.getElementById('login-submit');
-        const toggleButton = document.getElementById('password-visibility-toggle');
-        const nextTargetLabel = document.getElementById('next-target-label');
+
+        // --- إضافة ميزة إظهار/إخفاء كلمة المرور (أيقونة واحدة فقط وتعمل) ---
+        if (passwordInput && !passwordInput.dataset.eyeReady) {
+            // 1. إنشاء الأيقونة (افتراضياً عين مغلقة)
+            const eyeIcon = document.createElement('i');
+            eyeIcon.className = 'fas fa-eye-slash toggle-password-icon';
+            
+            // 2. إنشاء الـ Wrapper ووضعه في الـ DOM
+            const wrapper = document.createElement('div');
+            wrapper.className = 'password-wrapper';
+            
+            // تأكد من أن الحقل له أب مباشر قبل محاولة النقل
+            if (passwordInput.parentNode) {
+                passwordInput.parentNode.insertBefore(wrapper, passwordInput);
+                wrapper.appendChild(passwordInput);
+                wrapper.appendChild(eyeIcon);
+
+                // 3. إضافة حدث الضغط لتبديل الحالة
+                eyeIcon.addEventListener('click', (e) => {
+                    // منع أي سلوك افتراضي للنموذج
+                    e.preventDefault();
+                    
+                    const isPassword = passwordInput.type === 'password';
+                    
+                    // تبديل نوع الحقل
+                    passwordInput.type = isPassword ? 'text' : 'password';
+                    
+                    // تبديل شكل الأيقونة
+                    eyeIcon.className = isPassword ? 'fas fa-eye toggle-password-icon' : 'fas fa-eye-slash toggle-password-icon';
+                });
+
+                // تعليم الحقل بانه تم إعداد العين له
+                passwordInput.dataset.eyeReady = "true";
+            }
+        }
+
+        ensureWelcomeGate();
+
         const welcomeGate = document.getElementById('welcome-gate');
-        const welcomeUser = document.getElementById('welcome-user');
         const welcomeFeedback = document.getElementById('welcome-feedback');
         const welcomeForm = document.getElementById('welcome-message-form');
         const welcomeMessageText = document.getElementById('welcome-message-text');
         const welcomeSendButton = document.getElementById('welcome-send-button');
         const welcomeContinueButton = document.getElementById('welcome-continue-button');
+        
         const hoursElement = document.getElementById('welcome-hours');
         const minutesElement = document.getElementById('welcome-minutes');
         const secondsElement = document.getElementById('welcome-seconds');
-        const timerStatus = document.getElementById('welcome-timer-status');
-        const welcomeTitle = document.getElementById('welcome-title');
-        const welcomeBody = document.querySelector('.welcome-gate-card .welcome-body');
 
-        if (!form || !emailInput || !passwordInput || !messageBox || !submitButton) {
-            return;
-        }
+        function ensureWelcomeGate() {
+            if (document.getElementById('welcome-gate')) return;
+            const gate = document.createElement('section');
+            gate.className = 'welcome-gate';
+            gate.id = 'welcome-gate';
+            gate.style.display = 'none'; 
+            
+            gate.innerHTML = `
+                <div class="welcome-gate-card">
+                    <div class="welcome-gate-top">
+                        <span class="welcome-badge"><i class="fas fa-heart"></i> إعلان حب رسمي</span>
+                        <p class="welcome-user" id="welcome-user">مرحبًا بك</p>
+                    </div>
+                    <h2 class="welcome-title">رسالة من القلب ليكي يا منى .. قدام العالم كله</h2>
+                    <p class="welcome-body">
+                        يا منى، الرسالة دي ممكن تبانلك دلوقتي إنها خاصة بيكي انتي بس، بس الحقيقة إنها هتظهر لكل العالم ولكل الناس وقت الامتحانات على المنصة دي! أنا قصدت أعمل كده عشان أعرض حبي ليكي قدام الجميع من غير أي كسوف. أنا بحبك.. والله العظيم بحبك بجد وطالعة من قلبي بتلقائية ومن غير أي زواق. 
+                        <br><br> 
+                        وفي النهاية، أنا حابب أشكر إدارة المنصة جداً على موافقتهم لنشر الرسالة دي وتوصيلها لكل الناس عشان الكل يشهد على حبي ليكي.
+                    </p>
 
-        const params = new URLSearchParams(window.location.search);
-        pendingNextTarget = authGuard && typeof authGuard.resolveSafeTarget === 'function'
-            ? authGuard.resolveSafeTarget(params.get('next'))
-            : 'index.html';
+                    <div class="welcome-timer-block">
+                        <div>
+                            <span class="welcome-label">العد التنازلي حتى ظهور الرسالة للجميع</span>
+                            <strong class="welcome-timer-status">يتم حساب الوقت الآن...</strong>
+                        </div>
+                        <div class="welcome-timer-grid">
+                            <div class="welcome-time-box"><span id="welcome-hours">00</span><small>ساعة</small></div>
+                            <div class="welcome-time-box"><span id="welcome-minutes">00</span><small>دقيقة</small></div>
+                            <div class="welcome-time-box"><span id="welcome-seconds">00</span><small>ثانية</small></div>
+                        </div>
+                    </div>
 
-        if (nextTargetLabel) {
-            nextTargetLabel.textContent = pendingNextTarget === 'index.html'
-                ? 'بعد التحقق سيتم فتح الصفحة الرئيسية للمنصة.'
-                : 'بعد التحقق سيتم فتح الصفحة المطلوبة داخل المنصة.';
-        }
-
-        function setMessage(type, text) {
-            messageBox.className = `auth-form-message ${type}`;
-            messageBox.textContent = text;
-            messageBox.hidden = false;
-        }
-
-        function setWelcomeFeedback(type, text) {
-            if (!welcomeFeedback) {
-                return;
-            }
-
-            welcomeFeedback.className = `welcome-feedback ${type}`;
-            welcomeFeedback.textContent = text;
-            welcomeFeedback.hidden = false;
-        }
-
-        function getCairoNow() {
-            return new Date(new Date().toLocaleString('en-US', { timeZone: 'Africa/Cairo' }));
-        }
-
-        function getTodaySevenPm() {
-            const cairoNow = getCairoNow();
-            const target = new Date(cairoNow);
-            target.setHours(19, 0, 0, 0);
-            return target;
+                    <form id="welcome-message-form" class="welcome-message-form">
+                        <textarea id="welcome-message-text" placeholder="اكتبي ردك هنا..."></textarea>
+                        <div class="welcome-actions" style="padding: 15px; text-align: center;">
+                            <button type="submit" class="btn-secondary" id="welcome-send-button" style="width:100%; padding:12px; cursor:pointer;">إرسال الرد</button>
+                            <button type="button" class="btn-primary" id="welcome-continue-button" style="width:100%; padding:12px; cursor:pointer; background-color: #28a745; color: white; border: none; border-radius: 5px;">دخول المنصة</button>
+                        </div>
+                        <p class="welcome-feedback" id="welcome-feedback" style="display:none; text-align:center; padding:10px;"></p>
+                    </form>
+                </div>
+            `;
+            document.body.appendChild(gate);
         }
 
         function updateCountdown() {
-            if (!hoursElement || !minutesElement || !secondsElement || !timerStatus) {
-                return;
-            }
-
-            const now = getCairoNow();
-            const target = getTodaySevenPm();
-            const diff = target.getTime() - now.getTime();
-            const isMona = activeSession && activeSession.email === 'Mona.edu.eg@gmail.com';
-
-            if (diff <= 0) {
-                hoursElement.textContent = '00';
-                minutesElement.textContent = '00';
-                secondsElement.textContent = '00';
-
-                if (!isMona && welcomeTitle && !welcomeTitle.textContent.includes('يا منى')) {
-                    openWelcomeGate(activeSession);
-                    return;
-                }
-
-                timerStatus.textContent = 'ظهرت الرسالة الآن لجميع العالم.';
-                if (countdownTimer) {
-                    window.clearInterval(countdownTimer);
-                    countdownTimer = null;
-                }
-                return;
-            }
-
+            const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Africa/Cairo' }));
+            const target = new Date(now);
+            target.setHours(19, 0, 0, 0);
+            let diff = target.getTime() - now.getTime();
+            if (diff < 0) { target.setDate(target.getDate() + 1); diff = target.getTime() - now.getTime(); }
             const totalSeconds = Math.floor(diff / 1000);
-            const hours = Math.floor(totalSeconds / 3600);
-            const minutes = Math.floor((totalSeconds % 3600) / 60);
-            const seconds = totalSeconds % 60;
+            if (hoursElement) hoursElement.textContent = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+            if (minutesElement) minutesElement.textContent = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+            if (secondsElement) secondsElement.textContent = String(totalSeconds % 60).padStart(2, '0');
+        }
 
-            hoursElement.textContent = String(hours).padStart(2, '0');
-            minutesElement.textContent = String(minutes).padStart(2, '0');
-            secondsElement.textContent = String(seconds).padStart(2, '0');
-
-            if (isMona) {
-                timerStatus.textContent = 'بعد انتهاء العداد ده، رسالتي ليكي هتكون قدام الدنيا كلها!';
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const result = authApi.login(emailInput.value.trim(), passwordInput.value);
+            if (result.ok) {
+                activeSession = result.session;
+                document.getElementById('welcome-user').textContent = `مرحبًا ${activeSession.name}`;
+                welcomeGate.style.display = 'flex';
+                updateCountdown();
+                if (countdownTimer) clearInterval(countdownTimer);
+                countdownTimer = setInterval(updateCountdown, 1000);
             } else {
-                timerStatus.textContent = 'بعد انتهاء العد سيتم الكشف عن إعلان هام لجميع المستخدمين.';
+                messageBox.textContent = result.message;
+                messageBox.hidden = false;
             }
-        }
-
-        function openWelcomeGate(session) {
-            activeSession = session;
-
-            const isMona = session.email === 'Mona.edu.eg@gmail.com';
-            const now = getCairoNow();
-            const target = getTodaySevenPm();
-            const isPast7 = now >= target;
-            const showLoveMessage = isMona || isPast7;
-
-            const badgeEl = welcomeGate?.querySelector('.welcome-badge');
-            const noteStrong = welcomeGate?.querySelector('.welcome-note-card strong');
-            const noteP = welcomeGate?.querySelector('.welcome-note-card p');
-            const formLabel = welcomeGate?.querySelector('label[for="welcome-message-text"]');
-
-            if (showLoveMessage) {
-                if (welcomeTitle) welcomeTitle.textContent = 'رسالة من القلب ليكي يا منى .. قدام العالم كله';
-                if (welcomeBody) welcomeBody.innerHTML = 'يا منى، الرسالة دي ممكن تبانلك دلوقتي إنها خاصة بيكي انتي بس ومفيش حد شايفها غيرك، بس الحقيقة إنها هتظهر لكل العالم ولكل الناس وقت الامتحانات على المنصة دي! أنا قصدت أعمل كده عشان أعرض حبي ليكي قدام الجميع من غير أي كسوف. أنا بحبك.. والله العظيم بحبك بجد وطالعة من قلبي بتلقائية ومن غير أي زواق. <br><br> وفي النهاية، أنا حابب أشكر إدارة المنصة جداً على موافقتهم لنشر الرسالة دي وتوصيلها لكل الناس عشان الكل يشهد على حبي ليكي.';
-                if (badgeEl) badgeEl.innerHTML = '<i class="fas fa-heart"></i> إعلان حب رسمي';
-                if (noteStrong) noteStrong.textContent = 'مستني ردك';
-                if (noteP) noteP.textContent = 'لو كلامي وصل لقلبك، اكتبيلي ردك هنا. مستني أسمع منك بفارغ الصبر.';
-                if (formLabel) formLabel.textContent = 'اكتبي ردك هنا';
-                if (welcomeMessageText) welcomeMessageText.placeholder = 'قوليلي رأيك بصراحة...';
-            } else {
-                if (welcomeTitle) welcomeTitle.textContent = 'مرحبًا بجميع أولياء الأمور والطلاب والطالبات';
-                if (welcomeBody) welcomeBody.textContent = 'أنا الأدمن عبدالرحمن المسؤول عن إدارة بني سويف وسمسطا ودشاشة، وأرحب بكم بكل تقدير داخل منصة قرية متعلمة. هذه النافذة العامة تظهر بعد تسجيل الدخول لمشاركة رسالة اليوم وإتاحة مساحة مباشرة لإرسال الملاحظات إلى الإدارة.';
-                if (badgeEl) badgeEl.innerHTML = '<i class="fas fa-shield-halved"></i> رسالة ترحيب عامة';
-                if (noteStrong) noteStrong.textContent = 'إعلان هام';
-                if (noteP) noteP.textContent = 'سيظهر هنا إعلان هام جدًا يخص إدارة المنصة وجميع المستخدمين عند انتهاء العد التنازلي.';
-                if (formLabel) formLabel.textContent = 'رسالة إلى الإدارة';
-                if (welcomeMessageText) welcomeMessageText.placeholder = 'اكتب رسالتك هنا بشكل واضح ومحترم...';
-            }
-
-            if (welcomeUser) {
-                welcomeUser.textContent = `مرحبًا ${session.name}`;
-            }
-            if (welcomeContinueButton) {
-                welcomeContinueButton.hidden = true;
-            }
-            if (welcomeGate) {
-                welcomeGate.hidden = false;
-                document.body.classList.add('welcome-gate-open');
-            }
-            if (welcomeFeedback) {
-                welcomeFeedback.hidden = true;
-                welcomeFeedback.textContent = '';
-            }
-            if (welcomeMessageText) {
-                welcomeMessageText.value = '';
-            }
-
-            updateCountdown();
-            if (countdownTimer) {
-                window.clearInterval(countdownTimer);
-            }
-            countdownTimer = window.setInterval(updateCountdown, 1000);
-        }
-
-        async function sendAdminMessage(text) {
-            const payload = {
-                chat_id: ADMIN_CHAT_ID,
-                text: [
-                    'رسالة جديدة من شاشة الترحيب بعد تسجيل الدخول',
-                    `الاسم: ${activeSession?.name || 'غير معروف'}`,
-                    `البريد: ${activeSession?.email || 'غير متوفر'}`,
-                    `الوقت: ${new Date().toLocaleString('ar-EG')}`,
-                    'الرسالة:',
-                    text
-                ].join('\n')
-            };
-
-            const response = await fetch(ADMIN_CONTACT_ENDPOINT, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            });
-
-            const data = await response.json();
-            if (!data.ok) {
-                throw new Error(data.description || 'تعذر إرسال الرسالة الآن.');
-            }
-        }
-
-        form.addEventListener('submit', (event) => {
-            event.preventDefault();
-
-            const email = emailInput.value.trim();
-            const password = passwordInput.value;
-            const result = authApi.login(email, password);
-
-            if (!result.ok) {
-                setMessage('error', result.message);
-                passwordInput.focus();
-                passwordInput.select();
-                return;
-            }
-
-            submitButton.disabled = true;
-            submitButton.textContent = 'تم التحقق من الحساب';
-            setMessage('success', `مرحبًا ${result.session.name}، لحظات وتفتح المنصة.`);
-            
-            // استدعاء نافذة الترحيب/الرسالة
-            openWelcomeGate(result.session);
         });
 
-        if (toggleButton) {
-            toggleButton.addEventListener('click', () => {
-                const isPassword = passwordInput.type === 'password';
-                passwordInput.type = isPassword ? 'text' : 'password';
-                toggleButton.setAttribute('aria-pressed', String(isPassword));
-                toggleButton.innerHTML = isPassword
-                    ? '<i class="fas fa-eye-slash"></i>'
-                    : '<i class="fas fa-eye"></i>';
-            });
-        }
-
-        if (welcomeForm && welcomeMessageText && welcomeSendButton) {
-            welcomeForm.addEventListener('submit', async (event) => {
-                event.preventDefault();
+        if (welcomeForm) {
+            welcomeForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
                 const text = welcomeMessageText.value.trim();
-
-                if (!text) {
-                    setWelcomeFeedback('error', 'اكتب الرسالة أولًا قبل الإرسال.');
-                    welcomeMessageText.focus();
-                    return;
-                }
+                if (!text) return;
 
                 welcomeSendButton.disabled = true;
                 welcomeSendButton.textContent = 'جارٍ الإرسال...';
-                setWelcomeFeedback('pending', 'يتم إرسال رسالتك الآن...');
 
                 try {
-                    await sendAdminMessage(text);
-                    welcomeMessageText.value = '';
-                    const isMona = activeSession && activeSession.email === 'Mona.edu.eg@gmail.com';
-                    if (isMona) {
-                        setWelcomeFeedback('success', 'رسالتك وصلتني يا منى.. تقدري تدخلي المنصة دلوقتي.');
-                    } else {
-                        setWelcomeFeedback('success', 'تم إرسال رسالتك إلى الإدارة بنجاح.');
-                    }
-                    if (welcomeContinueButton) {
-                        welcomeContinueButton.hidden = false;
-                    }
-                } catch (error) {
-                    setWelcomeFeedback('error', error.message || 'تعذر إرسال الرسالة الآن.');
-                } finally {
+                    await fetch(ADMIN_CONTACT_ENDPOINT, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            chat_id: ADMIN_CHAT_ID,
+                            text: `💖 رد من منى:\nالاسم: ${activeSession.name}\nالرد: ${text}`
+                        })
+                    });
+
+                    welcomeFeedback.textContent = 'تم إرسال ردك بنجاح. يمكنك الدخول الآن.';
+                    welcomeFeedback.style.display = 'block';
+                    welcomeFeedback.style.color = 'green';
+                    
+                    welcomeSendButton.style.display = 'none';
+                    welcomeContinueButton.style.display = 'block';
+                    welcomeMessageText.disabled = true;
+                } catch (err) {
                     welcomeSendButton.disabled = false;
-                    welcomeSendButton.textContent = 'إرسال الرسالة';
+                    welcomeSendButton.textContent = 'حاولي مرة أخرى';
                 }
             });
         }
 
         if (welcomeContinueButton) {
             welcomeContinueButton.addEventListener('click', () => {
-                window.location.replace(pendingNextTarget);
+                const params = new URLSearchParams(window.location.search);
+                const target = authGuard?.resolveSafeTarget(params.get('next')) || 'index.html';
+                window.location.replace(target);
             });
         }
-
-        emailInput.focus();
     });
 })();
