@@ -3,7 +3,7 @@
     const USERS = [
         {
             email: 'mona.edu.eg@gmail.com',
-            password: 'Mona200',
+            password: 'Mona2005',
             name: 'مني نجم الدين',
             role: 'مستخدم المنصة'
         },
