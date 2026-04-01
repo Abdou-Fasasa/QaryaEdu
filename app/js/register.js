@@ -204,7 +204,13 @@ document.addEventListener('DOMContentLoaded', () => {
             registerResultDiv.className = '';
             registerResultDiv.innerHTML = '';
 
-            let applications = getStoredApplications();
+            if (platformStore?.refreshFromRemote) {
+                await platformStore.refreshFromRemote({ force: true });
+            }
+
+            let applications = platformStore?.getStoredApplications
+                ? platformStore.getStoredApplications()
+                : getStoredApplications();
             const formData = new FormData(registerForm);
             const nationalId = String(formData.get('nationalId') || '').trim();
             const leaderCode = String(formData.get('leaderCode') || '').trim();
@@ -261,6 +267,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     actionUrl: './status.html?requestId=' + encodeURIComponent(application.requestId) + '&nationalId=' + encodeURIComponent(application.nationalId),
                     actionLabel: 'فتح حالة الطلب'
                 });
+            }
+
+            if (platformStore?.syncNow) {
+                await platformStore.syncNow();
             }
 
             try {

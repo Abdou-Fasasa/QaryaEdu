@@ -172,6 +172,9 @@
                     actionUrl: './exam-results.html?requestId=' + encodeURIComponent(verifiedStudent.requestId),
                     actionLabel: 'Ø¹Ø±Ø¶ Ø§Ù„Ù†ØªÙŠØ¬Ø©'
                 });
+                if (window.QaryaPlatformStore.syncNow) {
+                    await window.QaryaPlatformStore.syncNow();
+                }
             } else {
                 localStorage.setItem(EXAM_HISTORY_KEY, JSON.stringify(history));
             }

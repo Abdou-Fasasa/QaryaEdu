@@ -34,18 +34,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (searchInput) searchInput.addEventListener('input', render);
 
     if (settingsForm) {
-        settingsForm.addEventListener('submit', (event) => {
+        settingsForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             const mode = document.getElementById('admin-exam-mode')?.value || 'default';
             const message = document.getElementById('admin-exam-mode-message')?.value || '';
+            if (store.refreshFromRemote) {
+                await store.refreshFromRemote({ force: true });
+            }
             store.updatePlatformSettings({ examMode: mode, examModeMessage: message });
+            if (store.syncNow) {
+                await store.syncNow();
+            }
             if (settingsNote) settingsNote.textContent = 'تم حفظ إعدادات المنصة العامة.';
             render();
         });
     }
 
     if (notificationForm) {
-        notificationForm.addEventListener('submit', (event) => {
+        notificationForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             const title = document.getElementById('admin-notification-title')?.value.trim() || '';
             const body = document.getElementById('admin-notification-body')?.value.trim() || '';
@@ -54,64 +60,100 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (notificationNote) notificationNote.textContent = 'اكتب عنوان الإشعار ومحتواه أولًا.';
                 return;
             }
+            if (store.refreshFromRemote) {
+                await store.refreshFromRemote({ force: true });
+            }
             store.addNotification({ title, body, type, actionUrl: './notifications.html', actionLabel: 'عرض الإشعارات' });
+            if (store.syncNow) {
+                await store.syncNow();
+            }
             notificationForm.reset();
             if (notificationNote) notificationNote.textContent = 'تم إرسال الإشعار إلى المنصة.';
             render();
         });
     }
 
-    document.addEventListener('click', (event) => {
+    document.addEventListener('click', async (event) => {
         const actionButton = event.target.closest('[data-admin-action]');
         if (!actionButton) return;
 
         const requestId = actionButton.dataset.requestId;
         const action = actionButton.dataset.adminAction;
         const card = actionButton.closest('.admin-request-card, .dashboard-list-card');
-        const application = requestId ? store.getApplicationByRequestId(requestId) : null;
-        const updates = card && application ? collectCardUpdates(card, application) : null;
+        const snapshot = requestId ? store.getApplicationByRequestId(requestId) : null;
+        const updates = card && snapshot ? collectCardUpdates(card, snapshot) : null;
+        let hasChanges = false;
 
-        if (action === 'save' && application && updates) {
-            store.updateApplicationDetails(requestId, updates);
-        }
+        actionButton.disabled = true;
 
-        if (action === 'accepted' && application) {
-            store.updateApplicationStatus(requestId, 'accepted', updates?.message || application.message);
-        }
-
-        if (action === 'pending' && application) {
-            store.updateApplicationStatus(requestId, 'pending', updates?.message || 'تمت إعادة الطلب إلى حالة المراجعة.');
-        }
-
-        if (action === 'rejected' && application) {
-            store.updateApplicationStatus(requestId, 'rejected', updates?.message || application.message);
-        }
-
-        if (action === 'allow-exam' && application) {
-            store.setExamAccess(requestId, 'allowed', updates?.examAccessReason || 'تم منح سماح مباشر من الإدارة لدخول الامتحان.');
-        }
-
-        if (action === 'block-exam' && application) {
-            store.setExamAccess(requestId, 'blocked', updates?.examAccessReason || 'تم حظر الطالب من دخول الامتحان عبر الإدارة.');
-        }
-
-        if (action === 'default-exam' && application) {
-            store.setExamAccess(requestId, 'default', '');
-        }
-
-        if (action === 'clear-attempts' && application) {
-            if (window.confirm(`هل تريد حذف جميع محاولات الامتحان للطلب ${requestId}؟`)) {
-                store.clearExamAttempts(requestId);
+        try {
+            if (store.refreshFromRemote) {
+                await store.refreshFromRemote({ force: true });
             }
-        }
 
-        if (action === 'delete-student' && application) {
-            if (window.confirm(`سيتم حذف ${application.name || requestId} من المنصة. هل تريد المتابعة؟`)) {
-                store.deleteApplication(requestId);
+            const application = requestId ? store.getApplicationByRequestId(requestId) : null;
+
+            if (action === 'save' && application && updates) {
+                store.updateApplicationDetails(requestId, updates);
+                hasChanges = true;
             }
-        }
 
-        render();
+            if (action === 'accepted' && application) {
+                store.updateApplicationStatus(requestId, 'accepted', updates?.message || application.message);
+                hasChanges = true;
+            }
+
+            if (action === 'pending' && application) {
+                store.updateApplicationStatus(requestId, 'pending', updates?.message || 'تمت إعادة الطلب إلى حالة المراجعة.');
+                hasChanges = true;
+            }
+
+            if (action === 'rejected' && application) {
+                store.updateApplicationStatus(requestId, 'rejected', updates?.message || application.message);
+                hasChanges = true;
+            }
+
+            if (action === 'allow-exam' && application) {
+                store.setExamAccess(requestId, 'allowed', updates?.examAccessReason || 'تم منح سماح مباشر من الإدارة لدخول الامتحان.');
+                hasChanges = true;
+            }
+
+            if (action === 'block-exam' && application) {
+                store.setExamAccess(requestId, 'blocked', updates?.examAccessReason || 'تم حظر الطالب من دخول الامتحان عبر الإدارة.');
+                hasChanges = true;
+            }
+
+            if (action === 'default-exam' && application) {
+                store.setExamAccess(requestId, 'default', '');
+                hasChanges = true;
+            }
+
+            if (action === 'clear-attempts' && application) {
+                if (window.confirm(`هل تريد حذف جميع محاولات الامتحان للطلب ${requestId}؟`)) {
+                    store.clearExamAttempts(requestId);
+                    hasChanges = true;
+                }
+            }
+
+            if (action === 'delete-student' && application) {
+                if (window.confirm(`سيتم حذف ${application.name || requestId} من المنصة. هل تريد المتابعة؟`)) {
+                    store.deleteApplication(requestId);
+                    hasChanges = true;
+                }
+            }
+
+            if (hasChanges && store.syncNow) {
+                await store.syncNow();
+            }
+
+            if (store.refreshFromRemote) {
+                await store.refreshFromRemote({ force: true });
+            }
+
+            render();
+        } finally {
+            actionButton.disabled = false;
+        }
     });
 
     window.addEventListener(store.storeEventName || 'qarya:store-updated', render);

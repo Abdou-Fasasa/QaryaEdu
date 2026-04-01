@@ -1,10 +1,11 @@
 (() => {
     const APPLICATIONS_KEY = 'qaryaeduApplications';
     const EXAM_HISTORY_KEY = 'qaryaeduExamHistory';
+    const EXAM_CLEARS_KEY = 'qaryaeduExamHistoryClears';
     const NOTIFICATIONS_KEY = 'qaryaeduPlatformNotifications';
     const SETTINGS_KEY = 'qaryaeduPlatformSettings';
     const STORE_EVENT = 'qarya:store-updated';
-    const REMOTE_POLL_MS = 15000;
+    const REMOTE_POLL_MS = 5000;
     const DEFAULT_STATUS_MESSAGES = {
         pending: 'طلبك قيد المراجعة حاليًا وسيتم تحديث الحالة بعد انتهاء المراجعة.',
         accepted: 'تمت الموافقة على طلبك بنجاح ويمكنك متابعة المراحل التالية من المنصة.',
@@ -17,6 +18,7 @@
     };
 
     let syncTimeoutId = null;
+    let syncInFlight = null;
     let remotePollStarted = false;
     let lastKnownSignature = '';
 
@@ -77,6 +79,15 @@
         if (!options.silent) notifyChanged();
     }
 
+    function getStoredExamClearsRaw() {
+        return normalizeArray(parseJson(localStorage.getItem(EXAM_CLEARS_KEY), []));
+    }
+
+    function saveExamClears(clears, options = {}) {
+        localStorage.setItem(EXAM_CLEARS_KEY, JSON.stringify(normalizeArray(clears)));
+        if (!options.silent) notifyChanged();
+    }
+
     function getStoredNotificationsRaw() {
         return normalizeArray(parseJson(localStorage.getItem(NOTIFICATIONS_KEY), []));
     }
@@ -113,6 +124,7 @@
         return {
             applications: getStoredApplications(),
             examHistory: getStoredExamHistory(),
+            examClears: getStoredExamClearsRaw(),
             notifications: getStoredNotificationsRaw(),
             settings: getPlatformSettings()
         };
@@ -134,7 +146,7 @@
         if (syncTimeoutId) clearTimeout(syncTimeoutId);
         syncTimeoutId = window.setTimeout(() => {
             syncTimeoutId = null;
-            void pushRemoteState();
+            void syncNow({ pullAfter: false });
         }, 350);
     }
 
@@ -147,6 +159,7 @@
         return {
             applications: normalizeArray(state?.applications),
             examHistory: normalizeArray(state?.examHistory),
+            examClears: normalizeArray(state?.examClears),
             notifications: normalizeArray(state?.notifications),
             settings: normalizeSettings(state?.settings || {})
         };
@@ -156,6 +169,7 @@
         const normalized = normalizeRuntimeState(state);
         saveStoredApplications(normalized.applications, { silent: true });
         saveExamHistory(normalized.examHistory, { silent: true });
+        saveExamClears(normalized.examClears, { silent: true });
         saveNotifications(normalized.notifications, { silent: true });
         savePlatformSettings(normalized.settings, { silent: true });
         lastKnownSignature = buildSignature(normalized);
@@ -199,6 +213,35 @@
         }
     }
 
+    async function syncNow(options = {}) {
+        if (syncTimeoutId) {
+            clearTimeout(syncTimeoutId);
+            syncTimeoutId = null;
+        }
+
+        if (syncInFlight) {
+            return syncInFlight;
+        }
+
+        syncInFlight = (async () => {
+            if (options.pullFirst) {
+                await refreshFromRemote({ force: true });
+            }
+
+            const pushed = await pushRemoteState();
+            if (pushed && options.pullAfter !== false) {
+                await refreshFromRemote({ force: true });
+            }
+            return pushed;
+        })();
+
+        try {
+            return await syncInFlight;
+        } finally {
+            syncInFlight = null;
+        }
+    }
+
     async function refreshFromRemote(options = {}) {
         const remoteState = await readRemoteState();
         if (!remoteState) return false;
@@ -218,7 +261,7 @@
             void refreshFromRemote();
         }, REMOTE_POLL_MS);
         window.addEventListener('storage', (event) => {
-            if ([APPLICATIONS_KEY, EXAM_HISTORY_KEY, NOTIFICATIONS_KEY, SETTINGS_KEY].includes(event.key)) {
+            if ([APPLICATIONS_KEY, EXAM_HISTORY_KEY, EXAM_CLEARS_KEY, NOTIFICATIONS_KEY, SETTINGS_KEY].includes(event.key)) {
                 dispatchStoreUpdated();
             }
         });
@@ -254,6 +297,43 @@
             age: Number.isFinite(ageNumber) && ageNumber > 0 ? ageNumber : null,
             _deleted: Boolean(application?._deleted)
         };
+    }
+
+    function normalizeExamClear(clearRecord) {
+        return {
+            requestId: normalizeRequestId(clearRecord?.requestId),
+            clearedAt: clearRecord?.clearedAt || ''
+        };
+    }
+
+    function getLatestExamClearMap() {
+        const map = new Map();
+        getStoredExamClearsRaw().forEach((clearRecord) => {
+            const normalized = normalizeExamClear(clearRecord);
+            if (!normalized.requestId) return;
+            const currentTime = new Date(normalized.clearedAt || 0).getTime();
+            const previous = map.get(normalized.requestId);
+            const previousTime = previous ? new Date(previous.clearedAt || 0).getTime() : 0;
+            if (!previous || currentTime >= previousTime) {
+                map.set(normalized.requestId, normalized);
+            }
+        });
+        return map;
+    }
+
+    function filterExamHistory(history) {
+        const clearMap = getLatestExamClearMap();
+        return normalizeArray(history).filter((attempt) => {
+            const requestId = normalizeRequestId(attempt?.requestId);
+            if (!requestId) return false;
+            const clearRecord = clearMap.get(requestId);
+            if (!clearRecord) return true;
+            const clearTime = new Date(clearRecord.clearedAt || 0).getTime();
+            const attemptTime = new Date(attempt?.date || 0).getTime();
+            if (!Number.isFinite(clearTime) || clearTime <= 0) return true;
+            if (!Number.isFinite(attemptTime) || attemptTime <= 0) return false;
+            return attemptTime > clearTime;
+        });
     }
 
     function mergeApplications() {
@@ -464,6 +544,11 @@
 
     function clearExamAttempts(requestId, options = {}) {
         const normalized = normalizeRequestId(requestId);
+        const clearedAt = new Date().toISOString();
+        const nextClears = getStoredExamClearsRaw().filter((item) => normalizeRequestId(item.requestId) !== normalized);
+        nextClears.unshift({ requestId: normalized, clearedAt });
+        saveExamClears(nextClears, { silent: true });
+
         const nextHistory = getStoredExamHistory().filter((attempt) => normalizeRequestId(attempt.requestId) !== normalized);
         saveExamHistory(nextHistory, { silent: options.silent });
         if (!options.silent) {
@@ -496,7 +581,7 @@
     }
 
     function getExamHistory() {
-        return getStoredExamHistory().slice().sort((first, second) => new Date(second.date || 0).getTime() - new Date(first.date || 0).getTime());
+        return filterExamHistory(getStoredExamHistory()).slice().sort((first, second) => new Date(second.date || 0).getTime() - new Date(first.date || 0).getTime());
     }
 
     function getExamHistoryByRequestId(requestId) {
@@ -620,6 +705,7 @@
         updatePlatformSettings,
         canAccessAdmin,
         notifyChanged,
-        refreshFromRemote
+        refreshFromRemote,
+        syncNow
     };
 })();

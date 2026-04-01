@@ -1,6 +1,7 @@
 {
   "applications": [],
   "examHistory": [],
+  "examClears": [],
   "notifications": [],
   "settings": {
     "examMode": "default",
