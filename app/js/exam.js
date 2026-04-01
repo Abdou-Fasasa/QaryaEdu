@@ -1,12 +1,12 @@
-﻿document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const LEADER_CODES = window.QaryaTelegram?.LEADER_CODES || ['Abdou200', 'Mohamed333', 'Reda456'];
     const EXAM_START_HOUR = 19;
     const EXAM_END_HOUR = 20;
     const EXAM_DAYS = [6, 0, 1];
     const DAY_NAMES = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
     const DEVICE_LOCK_KEY = 'qaryaeduExamDeviceLock';
-    const EXAM_HISTORY_KEY = 'qaryaeduExamHistory';
     const EXAM_GATE_KEY = 'qaryaeduExamGatePass';
+    const store = window.QaryaPlatformStore || null;
 
     const messageBox = document.getElementById('app-message');
     const dateElement = document.getElementById('date');
@@ -23,6 +23,10 @@
     const deviceGuardNote = document.getElementById('device-guard-note');
 
     let messageTimeout;
+
+    if (store?.refreshFromRemote) {
+        await store.refreshFromRemote({ force: true });
+    }
 
     if (leaderCodeInput?.tagName === 'SELECT') {
         leaderCodeInput.innerHTML = LEADER_CODES.map((code) => `<option value="${code}">${code}</option>`).join('');
@@ -59,7 +63,10 @@
     }
 
     function hasAttempted(requestId) {
-        const history = parseJson(localStorage.getItem(EXAM_HISTORY_KEY), []);
+        if (store?.getExamHistoryByRequestId) {
+            return store.getExamHistoryByRequestId(requestId).length > 0;
+        }
+        const history = parseJson(localStorage.getItem('qaryaeduExamHistory'), []);
         return history.some((attempt) => attempt.requestId === requestId);
     }
 
@@ -94,8 +101,8 @@
         return EXAM_DAYS.includes(date.getDay());
     }
 
-    function isExamOpen(date) {
-        return isExamDay(date) && date >= getExamStart(date) && date < getExamEnd(date);
+    function getPlatformSettings() {
+        return store?.getPlatformSettings ? store.getPlatformSettings() : { examMode: 'default', examModeMessage: '' };
     }
 
     function getNextExamStart(date) {
@@ -141,11 +148,75 @@
         if (element) element.textContent = text;
     }
 
-    function updateTime() {
-        const now = getEgyptNow();
+    function getExamWindowState(now) {
+        const settings = getPlatformSettings();
         const examStartToday = getExamStart(now);
         const examEndToday = getExamEnd(now);
         const nextExamStart = getNextExamStart(now);
+
+        if (settings.examMode === 'open') {
+            return {
+                open: true,
+                todayText: 'مفتوح بقرار الإدارة',
+                nextText: 'فتح إجباري الآن',
+                countdownText: settings.examModeMessage || 'الامتحان مفتوح الآن بقرار من الإدارة العامة.',
+                accessText: settings.examModeMessage || 'الحقول متاحة الآن بقرار الإدارة'
+            };
+        }
+
+        if (settings.examMode === 'closed') {
+            return {
+                open: false,
+                todayText: 'مغلق بقرار الإدارة',
+                nextText: 'بانتظار إعادة الفتح',
+                countdownText: settings.examModeMessage || 'بوابة الامتحان مغلقة حاليًا بقرار من الإدارة العامة.',
+                accessText: settings.examModeMessage || 'الحقول مخفية بقرار الإدارة'
+            };
+        }
+
+        const isOpen = isExamDay(now) && now >= examStartToday && now < examEndToday;
+        if (isOpen) {
+            return {
+                open: true,
+                todayText: `نعم، ${DAY_NAMES[now.getDay()]}`,
+                nextText: 'يغلق 08:00 مساءً',
+                countdownText: `الامتحان مفتوح الآن. متبقٍ على الإغلاق: ${formatCountdown(examEndToday - now)}`,
+                accessText: 'الحقول متاحة الآن'
+            };
+        }
+
+        if (isExamDay(now) && now < examStartToday) {
+            return {
+                open: false,
+                todayText: 'نعم، يبدأ 07:00 مساءً',
+                nextText: formatNextSlot(examStartToday),
+                countdownText: `متبقٍ على فتح امتحان اليوم: ${formatCountdown(examStartToday - now)}`,
+                accessText: 'الحقول مخفية حتى يبدأ الامتحان'
+            };
+        }
+
+        if (isExamDay(now) && now >= examEndToday) {
+            return {
+                open: false,
+                todayText: 'انتهى امتحان اليوم',
+                nextText: formatNextSlot(nextExamStart),
+                countdownText: `انتهى امتحان اليوم. أقرب موعد: ${formatNextSlot(nextExamStart)}. المتبقي: ${formatCountdown(nextExamStart - now)}`,
+                accessText: 'الحقول مغلقة حتى الموعد التالي'
+            };
+        }
+
+        return {
+            open: false,
+            todayText: 'لا يوجد امتحانات اليوم',
+            nextText: formatNextSlot(nextExamStart),
+            countdownText: `لا يوجد امتحانات اليوم. أقرب امتحان: ${formatNextSlot(nextExamStart)}. المتبقي: ${formatCountdown(nextExamStart - now)}`,
+            accessText: 'لا توجد حقول كتابة اليوم'
+        };
+    }
+
+    function updateTime() {
+        const now = getEgyptNow();
+        const windowState = getExamWindowState(now);
 
         if (dateElement) {
             dateElement.textContent = `التاريخ: ${now.toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`;
@@ -155,57 +226,28 @@
         }
         if (!countdownElement || !examForm) return;
 
-        if (isExamOpen(now)) {
-            countdownElement.textContent = `الامتحان مفتوح الآن. متبقٍ على الإغلاق: ${formatCountdown(examEndToday - now)}`;
-            examForm.style.display = 'flex';
-            setStatusText(windowStatusElement, 'مفتوح الآن');
-            setStatusText(todayStatusElement, `نعم، ${DAY_NAMES[now.getDay()]}`);
-            setStatusText(nextSlotElement, 'يغلق 08:00 مساءً');
-            setStatusText(examAccessNote, 'الحقول متاحة الآن');
-            togglePillState(windowStatusCard, true);
-            togglePillState(todayStatusCard, true);
-            return;
-        }
-
-        examForm.style.display = 'none';
-        setStatusText(windowStatusElement, 'مغلق الآن');
-        togglePillState(windowStatusCard, false);
-
-        if (isExamDay(now) && now < examStartToday) {
-            countdownElement.textContent = `متبقٍ على فتح امتحان اليوم: ${formatCountdown(examStartToday - now)}`;
-            setStatusText(todayStatusElement, 'نعم، يبدأ 07:00 مساءً');
-            setStatusText(nextSlotElement, formatNextSlot(examStartToday));
-            setStatusText(examAccessNote, 'الحقول مخفية حتى يبدأ الامتحان');
-            togglePillState(todayStatusCard, true);
-            return;
-        }
-
-        if (isExamDay(now) && now >= examEndToday) {
-            countdownElement.textContent = `انتهى امتحان اليوم. أقرب موعد: ${formatNextSlot(nextExamStart)}. المتبقي: ${formatCountdown(nextExamStart - now)}`;
-            setStatusText(todayStatusElement, 'انتهى امتحان اليوم');
-            setStatusText(nextSlotElement, formatNextSlot(nextExamStart));
-            setStatusText(examAccessNote, 'الحقول مغلقة حتى الموعد التالي');
-            togglePillState(todayStatusCard, true);
-            return;
-        }
-
-        countdownElement.textContent = `لا يوجد امتحانات اليوم. أقرب امتحان: ${formatNextSlot(nextExamStart)}. المتبقي: ${formatCountdown(nextExamStart - now)}`;
-        setStatusText(todayStatusElement, 'لا يوجد امتحانات اليوم');
-        setStatusText(nextSlotElement, formatNextSlot(nextExamStart));
-        setStatusText(examAccessNote, 'لا توجد حقول كتابة اليوم');
-        togglePillState(todayStatusCard, false);
+        countdownElement.textContent = windowState.countdownText;
+        examForm.style.display = windowState.open ? 'flex' : 'none';
+        setStatusText(windowStatusElement, windowState.open ? 'مفتوح الآن' : 'مغلق الآن');
+        setStatusText(todayStatusElement, windowState.todayText);
+        setStatusText(nextSlotElement, windowState.nextText);
+        setStatusText(examAccessNote, windowState.accessText);
+        togglePillState(windowStatusCard, windowState.open);
+        togglePillState(todayStatusCard, windowState.todayText !== 'لا يوجد امتحانات اليوم' || windowState.open);
     }
 
     updateTime();
     setInterval(updateTime, 1000);
 
     if (examForm) {
-        examForm.addEventListener('submit', (event) => {
+        examForm.addEventListener('submit', async (event) => {
             event.preventDefault();
+            if (store?.refreshFromRemote) await store.refreshFromRemote({ force: true });
             const now = getEgyptNow();
+            const windowState = getExamWindowState(now);
 
-            if (!isExamOpen(now)) {
-                showMessage('الامتحان غير متاح الآن. تظهر الحقول فقط أثناء وقت الامتحان.');
+            if (!windowState.open) {
+                showMessage('الامتحان غير متاح الآن. تظهر الحقول فقط أثناء وقت الامتحان أو عند فتحه من الإدارة.');
                 examForm.style.display = 'none';
                 return;
             }
@@ -213,23 +255,26 @@
             const leaderCode = document.getElementById('leader-code').value.trim();
             const requestId = document.getElementById('request-id').value.trim();
             const age = Number(document.getElementById('age').value.trim());
-            const applications = window.fixedApplications || [];
-            const student = applications.find((app) => app.requestId === requestId);
+            const student = store?.getApplicationByRequestId ? store.getApplicationByRequestId(requestId) : (window.fixedApplications || []).find((app) => app.requestId === requestId);
 
             if (!student) {
-                showMessage('رقم الطلب غير موجود في قاعدة البيانات الثابتة.');
+                showMessage('رقم الطلب غير موجود داخل بيانات المنصة الحالية.');
                 return;
             }
             if (student.age !== age) {
                 showMessage('العمر المدخل لا يطابق العمر المسجل لهذا الطلب.');
                 return;
             }
-            if (student.status !== 'accepted') {
-                showMessage('هذا الطلب غير مقبول حاليا، ولا يمكنه دخول الامتحان.');
+            if (student.examAccess === 'blocked') {
+                showMessage(student.examAccessReason || 'هذا الطالب ممنوع حاليًا من دخول الامتحان بقرار من الإدارة.');
+                return;
+            }
+            if (store?.canStudentTakeExam && !store.canStudentTakeExam(student)) {
+                showMessage('هذا الطلب غير مسموح له بدخول الامتحان حاليًا.');
                 return;
             }
             if (hasAttempted(student.requestId)) {
-                showMessage('هذا الطلب استخدم فرصة الامتحان بالفعل.');
+                showMessage('هذا الطلب استخدم فرصة الامتحان بالفعل. يمكن للإدارة فقط إعادة تفعيل المحاولة.');
                 return;
             }
 
@@ -246,7 +291,7 @@
                 }
             }
 
-            const examLevel = student.age >= 18 ? 'senior' : 'junior';
+            const examLevel = Number(student.age) >= 18 ? 'senior' : 'junior';
             sessionStorage.setItem('qarya_verified_student', JSON.stringify({
                 requestId: student.requestId,
                 age: student.age,

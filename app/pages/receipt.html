@@ -1,0 +1,78 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>إيصال الطلب | قرية متعلمة</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="../js/auth.js"></script>
+  <script src="../js/auth-guard.js"></script>
+</head>
+<body class="inner-page">
+  <div class="site-shell">
+    <header class="header">
+      <div class="container">
+        <a class="brand" href="../index.html"><span class="brand-mark">ق</span><span class="brand-text"><span class="logo">قرية متعلمة</span><small>إيصال الطلب</small></span></a>
+        <button class="menu-toggle" id="sidebar-toggle" aria-label="فتح القائمة الجانبية"><span class="bar"></span><span class="bar"></span><span class="bar"></span></button>
+        <nav class="nav" id="main-nav" aria-label="روابط الموقع">
+          <a href="../index.html" class="nav-link">الرئيسية</a>
+          <a href="./dashboard.html" class="nav-link">لوحة التحكم</a>
+          <a href="./register.html" class="nav-link">التسجيل</a>
+          <a href="./receipt.html" class="nav-link active">الإيصال</a>
+          <a href="./status.html" class="nav-link">حالة الطلب</a>
+          <a href="./exam-results.html" class="nav-link">النتائج</a>
+        </nav>
+      </div>
+    </header>
+    <aside class="sidebar" id="site-sidebar">
+      <div class="sidebar-header"><div class="sidebar-brand"><span class="brand-mark">ق</span><span class="logo">قرية متعلمة</span></div><button class="sidebar-close" id="sidebar-close" aria-label="إغلاق القائمة"><i class="fas fa-times"></i></button></div>
+      <nav class="sidebar-nav">
+        <a href="../index.html" class="sidebar-link"><i class="fas fa-home"></i><span>الرئيسية</span></a>
+        <a href="./dashboard.html" class="sidebar-link"><i class="fas fa-table-columns"></i><span>لوحة التحكم</span></a>
+        <a href="./register.html" class="sidebar-link"><i class="fas fa-user-plus"></i><span>التسجيل</span></a>
+        <a href="./receipt.html" class="sidebar-link active"><i class="fas fa-receipt"></i><span>الإيصال</span></a>
+        <a href="./status.html" class="sidebar-link"><i class="fas fa-magnifying-glass"></i><span>حالة الطلب</span></a>
+        <a href="./exam-results.html" class="sidebar-link"><i class="fas fa-square-poll-vertical"></i><span>النتائج</span></a>
+      </nav>
+      <div class="sidebar-footer"><p>&copy; 2026 جميع الحقوق محفوظة لقرية متعلمة</p></div>
+    </aside>
+    <main class="main-content-container">
+      <section class="page-hero">
+        <div class="container page-hero-grid">
+          <div class="page-copy">
+            <span class="page-badge"><i class="fas fa-receipt"></i> إيصال احترافي</span>
+            <h1 class="page-title">إيصال تسجيل الطلب</h1>
+            <p class="page-text">اعرض نسخة منظمة وقابلة للطباعة من بيانات التسجيل باستخدام رقم الطلب.</p>
+          </div>
+          <div class="page-visual">
+            <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1200&q=80" alt="إيصال إلكتروني احترافي" />
+            <div class="visual-note"><strong>إيصال رسمي</strong><span>نسخة واضحة من تفاصيل الطلب مع زر طباعة مباشر.</span></div>
+          </div>
+        </div>
+      </section>
+      <section class="section-shell section-tight">
+        <div class="container form-layout">
+          <div class="content-card">
+            <div class="card-heading"><span class="mini-badge">بحث الإيصال</span><h3>أدخل رقم الطلب</h3></div>
+            <form id="receipt-search-form" class="form">
+              <div class="form-group"><label for="receipt-request-id">رقم الطلب</label><input type="text" id="receipt-request-id" placeholder="أدخل رقم الطلب" required /></div>
+              <button type="submit" class="btn-primary full-width">عرض الإيصال</button>
+            </form>
+          </div>
+          <aside class="exam-side">
+            <div class="side-card"><div class="card-heading"><span class="mini-badge">استخدام سريع</span><h3>متى تحتاج الإيصال؟</h3></div><ul class="info-list"><li><i class="fas fa-circle-check"></i><span>بعد التسجيل مباشرة لحفظ نسخة من بيانات الطلب.</span></li><li><i class="fas fa-circle-check"></i><span>قبل مراجعة حالة الطلب أو عرضها للمتابعة.</span></li><li><i class="fas fa-circle-check"></i><span>عند الحاجة إلى طباعة بيانات التسجيل بشكل مرتب.</span></li></ul></div>
+          </aside>
+        </div>
+      </section>
+      <section class="section-shell"><div class="container" id="receipt-panel"></div></section>
+    </main>
+    <footer class="footer"><div class="container footer-grid"><div><p class="footer-brand">قرية متعلمة</p><p class="footer-copy">إيصال احترافي لبيانات التسجيل قابل للطباعة والمراجعة.</p></div><div class="footer-links"><a href="./status.html">حالة الطلب</a><a href="./dashboard.html">لوحة التحكم</a><a href="./register.html">التسجيل</a></div></div></footer>
+  </div>
+  <script src="../js/main.js"></script>
+  <script src="../js/fixed-applications-db.js"></script>
+  <script src="../js/exam-results-db.js"></script>
+  <script src="../js/platform-store.js"></script>
+  <script src="../js/receipt.js"></script>
+</body>
+</html>

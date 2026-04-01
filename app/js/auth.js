@@ -1,23 +1,32 @@
-﻿(() => {
+(() => {
     const AUTH_SESSION_KEY = 'qaryaeduAuthSession';
+    const ADMIN_EMAIL = 'abdou@qarya.edu';
     const USERS = [
         {
-            email: 'mona.edu.eg@gmail.com',
-            password: 'Mona2005',
-            name: 'مني نجم الدين',
-            role: 'مستخدم المنصة'
-        },
-        {
-            email: 'Abdou.edu.eg@gmail.com',
-            password: 'Abdou200',
+            email: 'Abdou@qarya.edu',
+            password: 'Abdou',
             name: 'عبدالرحمن',
             role: 'ادمن المنصة'
         },
-
+        {
+            email: 'mo@qarya.edu',
+            password: 'mo',
+            name: 'Mostafa',
+            role: 'طالب'
+        },
     ];
 
     function normalizeEmail(email) {
         return String(email || '').trim().toLowerCase();
+    }
+
+    function isAdminSession(sessionOrEmail) {
+        const email = typeof sessionOrEmail === 'string' ? sessionOrEmail : sessionOrEmail?.email;
+        return normalizeEmail(email) === ADMIN_EMAIL;
+    }
+
+    function getDefaultTarget(session) {
+        return isAdminSession(session) ? 'pages/dashboard.html' : 'index.html';
     }
 
     function parseJson(value, fallback) {
@@ -79,7 +88,11 @@
     }
 
     window.QaryaAuth = {
+        adminEmail: ADMIN_EMAIL,
         users: USERS.map((user) => ({ email: user.email, name: user.name, role: user.role })),
+        normalizeEmail,
+        isAdminSession,
+        getDefaultTarget,
         getSession,
         isAuthenticated,
         login,

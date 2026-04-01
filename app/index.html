@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
@@ -7,53 +7,11 @@
   <title>قرية متعلمة</title>
   <link rel="stylesheet" href="./styles.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <style>
-    /* تنسيق الإشعار الثابت (رسالة الحب) */
-    .permanent-love-notice {
-      background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
-      color: #fff;
-      padding: 15px 25px;
-      text-align: center;
-      font-size: 1.1rem;
-      font-weight: 600;
-      position: sticky;
-      top: 0;
-      z-index: 9999;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-      border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-      line-height: 1.6;
-    }
-    .permanent-love-notice i {
-      margin-left: 10px;
-      color: #fff;
-      animation: heartbeat 1.2s infinite;
-    }
-    @keyframes heartbeat {
-      0% { transform: scale(1); }
-      14% { transform: scale(1.1); }
-      28% { transform: scale(1); }
-      42% { transform: scale(1.1); }
-      70% { transform: scale(1); }
-    }
-    /* تحسين بسيط للتجاوب */
-    @media (max-width: 768px) {
-      .permanent-love-notice {
-        font-size: 0.95rem;
-        padding: 12px 15px;
-      }
-    }
-  </style>
   <script src="./js/auth.js"></script>
   <script src="./js/auth-guard.js"></script>
 </head>
 <body class="home-page">
-
-  <div class="permanent-love-notice">
-    <i class="fas fa-heart"></i>
-    يا منى، الرسالة دي ليكي انتي مخصوص.. أنا بحبك، والله العظيم بحبك زات وبعشقك! أنا قصدت إن الإشعار ده يظهر لكل الناس وقت الامتحانات عشان الكل يشوف حبي ليكي قدام الدنيا كلها. وفي النهاية، حابب أشكر إدارة المنصة إنهم وافقوا ينشروا الرسالة دي ويخلوها توصل لكل الناس.
-  </div>
-
-  <div class="site-shell">
+<div class="site-shell">
     <header class="header" id="site-header">
       <div class="container">
         <a class="brand" href="./index.html" aria-label="العودة إلى الصفحة الرئيسية">
@@ -124,18 +82,26 @@
         <p>&copy; 2026 جميع الحقوق محفوظة لقرية متعلمة</p>
       </div>
     </aside>
-
-    <div class="important-notification">
-      <div class="container">
-        <div class="notice-copy">
-          <span class="notice-badge">إشعار المنصة</span>
-          <p>التسجيل متاح الآن، وإعادة التقديم بنفس الرقم القومي متاحة فقط بعد 72 ساعة، والامتحانات تفتح السبت والأحد والاثنين من 07:00 مساءً إلى 08:00 مساءً بتوقيت مصر.</p>
-        </div>
-        <button id="close-important-notification" class="close-btn" aria-label="إغلاق التنبيه">×</button>
+    <section class="platform-snapshot">
+      <div class="container platform-snapshot-grid">
+        <article class="snapshot-card snapshot-primary">
+          <span class="snapshot-label">حالة المنصة</span>
+          <strong>تشغيل منظم وسريع</strong>
+          <p>كل الخدمات الأساسية أصبحت أقرب من الواجهة الرئيسية بدون تنبيهات مزعجة أو عناصر مشتتة.</p>
+        </article>
+        <article class="snapshot-card">
+          <span class="snapshot-label">سياسة الطلبات</span>
+          <strong>إعادة التسجيل بعد 72 ساعة</strong>
+          <p>يتم الحفاظ على القواعد الحالية مع عرض أوضح للمسار المعتمد داخل المنصة.</p>
+        </article>
+        <article class="snapshot-card">
+          <span class="snapshot-label">مواعيد الأداء</span>
+          <strong>السبت والأحد والاثنين 07:00 - 08:00 مساءً</strong>
+          <p>نافذة الامتحان الرسمية معروضة بشكل مدمج وأنيق بدل شريط الإشعارات القديم.</p>
+        </article>
       </div>
-    </div>
-
-    <main>
+    </section>
+<main>
       <section class="hero section-shell">
         <div class="container hero-grid">
           <div class="hero-copy fade-up">
@@ -355,10 +321,65 @@
               <p>صفحة لشرح الخطوات والمواعيد والأكواد المعتمدة وسياسة الطلبات بشكل واضح وجميل.</p>
               <a href="./pages/guide.html" class="btn-ghost">فتح الدليل</a>
             </article>
+            <article class="quick-link-card quick-link-card-accent">
+              <span class="quick-link-icon"><i class="fas fa-table-columns"></i></span>
+              <h3>لوحة التحكم</h3>
+              <p>ادخل إلى لوحة تشغيل موحدة بعد تسجيل الدخول لمتابعة الطلبات والنتائج والتنبيهات في مكان واحد.</p>
+              <a href="./pages/dashboard.html" class="btn-ghost">فتح اللوحة</a>
+            </article>
+            <article class="quick-link-card">
+              <span class="quick-link-icon"><i class="fas fa-bell"></i></span>
+              <h3>مركز الإشعارات</h3>
+              <p>راجع التنبيهات الرسمية ومواعيد الأداء والتحديثات العامة من صفحة واحدة منظمة.</p>
+              <a href="./pages/notifications.html" class="btn-ghost">فتح الإشعارات</a>
+            </article>
+            <article class="quick-link-card">
+              <span class="quick-link-icon"><i class="fas fa-headset"></i></span>
+              <h3>الدعم والمساعدة</h3>
+              <p>صفحة دعم مرتبة للأسئلة الشائعة وخطوات الاستخدام السريعة والملاحظات المهمة.</p>
+              <a href="./pages/support.html" class="btn-ghost">فتح الدعم</a>
+            </article>
           </div>
         </div>
       </section>
 
+      <section class="section-shell section-tight">
+        <div class="container immersive-command">
+          <div class="section-heading">
+            <span class="section-kicker">تحديثات الواجهة</span>
+            <h2 class="section-title">واجهة أنظف ومسار استخدام أسرع</h2>
+            <p class="section-text">أعدنا تشكيل أعلى الصفحة ليكون عمليًا: بطاقات حالة ثابتة، منطقة عرض مركزة، وروابط واضحة للخدمات الأكثر استخدامًا.</p>
+          </div>
+
+          <div class="command-showcase">
+            <article class="command-card command-card-primary">
+              <span class="mini-badge">تحسين جديد</span>
+              <h3>مركز تشغيل بصري</h3>
+              <p>ملخص سريع لحالة المنصة، وسياسة الطلبات، ونافذة الامتحان في مساحة واحدة مرتبة.</p>
+              <div class="card-actions">
+                <a href="./pages/services.html" class="btn-secondary">فتح الخدمات</a>
+                <a href="./pages/guide.html" class="btn-ghost">دليل الاستخدام</a>
+              </div>
+            </article>
+            <article class="command-card">
+              <span class="mini-badge">وصول مباشر</span>
+              <h3>تنقل أقصر للخدمات</h3>
+              <p>روابط التسجيل والاستعلام والامتحان والتحقق أصبحت معروضة داخل الصفحة بشكل أكثر وضوحًا.</p>
+              <ul class="board-list compact-list">
+                <li><i class="fas fa-circle-check"></i><span>فتح التسجيل مباشرة</span></li>
+                <li><i class="fas fa-circle-check"></i><span>الانتقال إلى حالة الطلب</span></li>
+                <li><i class="fas fa-circle-check"></i><span>الوصول إلى التحقق من الأداء</span></li>
+              </ul>
+            </article>
+            <article class="command-card">
+              <span class="mini-badge">مظهر أحدث</span>
+              <h3>تقليل العناصر المشتتة</h3>
+              <p>تم الاستغناء عن الإشعارات العلوية الكبيرة واستبدالها بعناصر متوازنة تحافظ على المعلومة والشكل في وقت واحد.</p>
+              <a href="./pages/announcements.html" class="btn-ghost">لوحة الإعلانات</a>
+            </article>
+          </div>
+        </div>
+      </section>
       <section class="section-shell">
         <div class="container">
           <div class="section-heading">
@@ -485,3 +506,5 @@
   <script src="./js/main.js"></script>
 </body>
 </html>
+
+

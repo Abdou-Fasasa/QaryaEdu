@@ -1,0 +1,75 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>نتائج الامتحان | قرية متعلمة</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="../js/auth.js"></script>
+  <script src="../js/auth-guard.js"></script>
+</head>
+<body class="inner-page">
+  <div class="site-shell">
+    <header class="header">
+      <div class="container">
+        <a class="brand" href="../index.html"><span class="brand-mark">ق</span><span class="brand-text"><span class="logo">قرية متعلمة</span><small>نتائج الامتحان</small></span></a>
+        <button class="menu-toggle" id="sidebar-toggle" aria-label="فتح القائمة الجانبية"><span class="bar"></span><span class="bar"></span><span class="bar"></span></button>
+        <nav class="nav" id="main-nav" aria-label="روابط الموقع">
+          <a href="../index.html" class="nav-link">الرئيسية</a>
+          <a href="./dashboard.html" class="nav-link">لوحة التحكم</a>
+          <a href="./exam-results.html" class="nav-link active">نتائج الامتحان</a>
+          <a href="./verification.html" class="nav-link">التحقق من الأداء</a>
+          <a href="./status.html" class="nav-link">حالة الطلب</a>
+          <a href="./notifications.html" class="nav-link">الإشعارات</a>
+        </nav>
+      </div>
+    </header>
+    <aside class="sidebar" id="site-sidebar">
+      <div class="sidebar-header"><div class="sidebar-brand"><span class="brand-mark">ق</span><span class="logo">قرية متعلمة</span></div><button class="sidebar-close" id="sidebar-close" aria-label="إغلاق القائمة"><i class="fas fa-times"></i></button></div>
+      <nav class="sidebar-nav">
+        <a href="../index.html" class="sidebar-link"><i class="fas fa-home"></i><span>الرئيسية</span></a>
+        <a href="./dashboard.html" class="sidebar-link"><i class="fas fa-table-columns"></i><span>لوحة التحكم</span></a>
+        <a href="./exam-results.html" class="sidebar-link active"><i class="fas fa-square-poll-vertical"></i><span>نتائج الامتحان</span></a>
+        <a href="./verification.html" class="sidebar-link"><i class="fas fa-file-circle-check"></i><span>التحقق من الأداء</span></a>
+        <a href="./status.html" class="sidebar-link"><i class="fas fa-magnifying-glass"></i><span>حالة الطلب</span></a>
+        <a href="./notifications.html" class="sidebar-link"><i class="fas fa-bell"></i><span>الإشعارات</span></a>
+      </nav>
+      <div class="sidebar-footer"><p>&copy; 2026 جميع الحقوق محفوظة لقرية متعلمة</p></div>
+    </aside>
+    <main class="main-content-container">
+      <section class="page-hero">
+        <div class="container page-hero-grid">
+          <div class="page-copy">
+            <span class="page-badge"><i class="fas fa-square-poll-vertical"></i> سجل النتائج</span>
+            <h1 class="page-title">صفحة نتائج امتحان احترافية</h1>
+            <p class="page-text">ابحث برقم الطلب لعرض آخر نتيجة وسجل محاولات الامتحان بشكل واضح ومنظم.</p>
+          </div>
+          <div class="page-visual"><img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1200&q=80" alt="تحليل نتائج الامتحان" /><div class="visual-note"><strong>ملخص النتيجة</strong><span>عرض أحدث درجة وسجل المحاولات السابقة في صفحة واحدة.</span></div></div>
+        </div>
+      </section>
+      <section class="section-shell section-tight">
+        <div class="container form-layout">
+          <div class="content-card">
+            <div class="card-heading"><span class="mini-badge">بحث النتيجة</span><h3>أدخل رقم الطلب</h3></div>
+            <form id="results-search-form" class="form">
+              <div class="form-group"><label for="results-request-id">رقم الطلب</label><input type="text" id="results-request-id" placeholder="أدخل رقم الطلب" required /></div>
+              <button type="submit" class="btn-primary full-width">عرض النتائج</button>
+            </form>
+          </div>
+          <aside class="exam-side">
+            <div class="side-card"><div class="card-heading"><span class="mini-badge">ماذا تعرض الصفحة؟</span><h3>تفاصيل مرئية أوضح</h3></div><ul class="info-list"><li><i class="fas fa-circle-check"></i><span>أحدث نتيجة بالنسبة والدرجة.</span></li><li><i class="fas fa-circle-check"></i><span>سجل المحاولات السابقة بترتيب زمني.</span></li><li><i class="fas fa-circle-check"></i><span>روابط مباشرة إلى حالة الطلب والتحقق من الأداء.</span></li></ul></div>
+          </aside>
+        </div>
+      </section>
+      <section class="section-shell"><div class="container" id="exam-results-panel"></div></section>
+    </main>
+    <footer class="footer"><div class="container footer-grid"><div><p class="footer-brand">قرية متعلمة</p><p class="footer-copy">صفحة نتائج حديثة لعرض الأداء ودرجات الامتحان بوضوح.</p></div><div class="footer-links"><a href="./verification.html">التحقق</a><a href="./status.html">حالة الطلب</a><a href="./dashboard.html">لوحة التحكم</a></div></div></footer>
+  </div>
+  <script src="../js/main.js"></script>
+  <script src="../js/fixed-applications-db.js"></script>
+  <script src="../js/exam-results-db.js"></script>
+  <script src="../js/platform-store.js"></script>
+  <script src="../js/exam-results.js"></script>
+</body>
+</html>

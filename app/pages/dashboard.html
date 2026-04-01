@@ -1,0 +1,141 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>لوحة التحكم | قرية متعلمة</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="../js/auth.js"></script>
+  <script src="../js/auth-guard.js"></script>
+</head>
+<body class="inner-page">
+  <div class="site-shell">
+    <header class="header">
+      <div class="container">
+        <a class="brand" href="../index.html" aria-label="العودة إلى الصفحة الرئيسية">
+          <span class="brand-mark">ق</span>
+          <span class="brand-text">
+            <span class="logo">قرية متعلمة</span>
+            <small>لوحة التحكم</small>
+          </span>
+        </a>
+        <button class="menu-toggle" id="sidebar-toggle" aria-label="فتح القائمة الجانبية">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+        </button>
+        <nav class="nav" id="main-nav" aria-label="روابط الموقع">
+          <a href="../index.html" class="nav-link">الرئيسية</a>
+          <a href="./dashboard.html" class="nav-link active">لوحة التحكم</a>
+          <a href="./register.html" class="nav-link">التسجيل</a>
+          <a href="./status.html" class="nav-link">حالة الطلب</a>
+          <a href="./exam-status.html" class="nav-link">الامتحان</a>
+          <a href="./notifications.html" class="nav-link">الإشعارات</a>
+        </nav>
+      </div>
+    </header>
+
+    <aside class="sidebar" id="site-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <span class="brand-mark">ق</span>
+          <span class="logo">قرية متعلمة</span>
+        </div>
+        <button class="sidebar-close" id="sidebar-close" aria-label="إغلاق القائمة"><i class="fas fa-times"></i></button>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="../index.html" class="sidebar-link"><i class="fas fa-home"></i> <span>الرئيسية</span></a>
+        <a href="./dashboard.html" class="sidebar-link active"><i class="fas fa-table-columns"></i> <span>لوحة التحكم</span></a>
+        <a href="./register.html" class="sidebar-link"><i class="fas fa-user-plus"></i> <span>التسجيل</span></a>
+        <a href="./status.html" class="sidebar-link"><i class="fas fa-magnifying-glass"></i> <span>حالة الطلب</span></a>
+        <a href="./receipt.html" class="sidebar-link"><i class="fas fa-receipt"></i> <span>الإيصال</span></a>
+        <a href="./exam-results.html" class="sidebar-link"><i class="fas fa-square-poll-vertical"></i> <span>نتائج الامتحان</span></a>
+        <a href="./notifications.html" class="sidebar-link"><i class="fas fa-bell"></i> <span>الإشعارات</span></a>
+        <a href="./support.html" class="sidebar-link"><i class="fas fa-headset"></i> <span>الدعم</span></a>
+      </nav>
+      <div class="sidebar-footer"><p>&copy; 2026 جميع الحقوق محفوظة لقرية متعلمة</p></div>
+    </aside>
+
+    <main class="main-content-container">
+      <section class="page-hero">
+        <div class="container page-hero-grid">
+          <div class="page-copy">
+            <span class="page-badge"><i class="fas fa-table-columns"></i> لوحة التحكم الذكية</span>
+            <h1 class="page-title">مرحبًا <span id="dashboard-user-name">مستخدم المنصة</span></h1>
+            <p class="page-text">هذه اللوحة تجمع التسجيلات، الطلبات، النتائج، الإشعارات، وأهم المسارات السريعة في مساحة تشغيل واحدة منظمة.</p>
+            <div class="inline-meta">
+              <span><i class="fas fa-user-shield"></i> <span id="dashboard-user-role">مستخدم المنصة</span></span>
+              <span><i class="fas fa-layer-group"></i> مركز تشغيل كامل للمنصة</span>
+            </div>
+          </div>
+          <div class="page-visual">
+            <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1400&q=80" alt="لوحة تحكم تعليمية حديثة" />
+            <div class="visual-note">
+              <strong>تشغيل مركزي</strong>
+              <span>من هنا يمكنك الوصول إلى كل صفحات المنصة الجديدة والبيانات الأهم بشكل أسرع.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-shell section-tight">
+        <div class="container summary-shell">
+          <article class="summary-card is-primary"><span class="summary-icon"><i class="fas fa-file-lines"></i></span><span class="summary-value" id="dashboard-total-applications">0</span><p>إجمالي الطلبات</p></article>
+          <article class="summary-card"><span class="summary-icon"><i class="fas fa-hourglass-half"></i></span><span class="summary-value" id="dashboard-pending-applications">0</span><p>طلبات قيد المراجعة</p></article>
+          <article class="summary-card"><span class="summary-icon"><i class="fas fa-circle-check"></i></span><span class="summary-value" id="dashboard-accepted-applications">0</span><p>طلبات مقبولة</p></article>
+          <article class="summary-card"><span class="summary-icon"><i class="fas fa-square-poll-vertical"></i></span><span class="summary-value" id="dashboard-total-exams">0</span><p>محاولات الامتحان</p></article>
+        </div>
+      </section>
+
+      <section class="section-shell section-tight">
+        <div class="container">
+          <div class="section-heading">
+            <span class="section-kicker">مسارات سريعة</span>
+            <h2 class="section-title">لوحة المستخدم بعد تسجيل الدخول</h2>
+          </div>
+          <div class="dashboard-actions-grid" id="dashboard-quick-actions"></div>
+        </div>
+      </section>
+
+      <section class="section-shell">
+        <div class="container dashboard-grid">
+          <section class="content-card">
+            <div class="card-heading"><span class="mini-badge">آخر الطلبات</span><h3>طلبات حديثة</h3></div>
+            <div id="dashboard-latest-applications" class="dashboard-list-grid"></div>
+          </section>
+          <aside class="side-stack">
+            <section class="side-card">
+              <div class="card-heading"><span class="mini-badge">آخر النتائج</span><h3>محاولات الامتحان الأخيرة</h3></div>
+              <div id="dashboard-latest-exams" class="dashboard-list-grid compact"></div>
+            </section>
+            <section class="side-card">
+              <div class="card-heading"><span class="mini-badge">مركز الإشعارات</span><h3>أحدث التحديثات</h3></div>
+              <div id="dashboard-notifications" class="mini-notice-grid"></div>
+            </section>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <div><p class="footer-brand">قرية متعلمة</p><p class="footer-copy">لوحة تشغيل موحدة بعد تسجيل الدخول للوصول إلى الخدمات والطلبات والنتائج.</p></div>
+        <div class="footer-links">
+          <a href="./register.html">التسجيل</a>
+          <a href="./receipt.html">الإيصال</a>
+          <a href="./exam-results.html">النتائج</a>
+          <a href="./notifications.html">الإشعارات</a>
+          <a href="./support.html">الدعم</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="../js/main.js"></script>
+  <script src="../js/fixed-applications-db.js"></script>
+  <script src="../js/exam-results-db.js"></script>
+  <script src="../js/platform-store.js"></script>
+  <script src="../js/dashboard.js"></script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-﻿document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
     if (typeof locationData === 'undefined') {
         console.error('Location data not loaded!');
         return;
@@ -7,6 +7,7 @@
     const STORAGE_KEY = 'qaryaeduApplications';
     const REAPPLY_WINDOW_MS = 72 * 60 * 60 * 1000;
     const LEADER_CODES = window.QaryaTelegram?.LEADER_CODES || ['Abdou200', 'Mohamed333', 'Reda456'];
+    const platformStore = window.QaryaPlatformStore || null;
     const governorateSelect = document.getElementById('governorate');
     const citySelect = document.getElementById('city');
     const villageSelect = document.getElementById('village');
@@ -29,6 +30,10 @@
     }
 
     function saveStoredApplications(applications) {
+        if (platformStore?.saveStoredApplications) {
+            platformStore.saveStoredApplications(applications);
+            return;
+        }
         localStorage.setItem(STORAGE_KEY, JSON.stringify(applications));
     }
 
@@ -48,19 +53,14 @@
     }
 
     function calculateAge(dateString) {
-        if (!dateString) {
-            return null;
-        }
-
+        if (!dateString) return null;
         const birthDate = new Date(dateString);
         const today = new Date();
         let age = today.getFullYear() - birthDate.getFullYear();
         const monthDiff = today.getMonth() - birthDate.getMonth();
-
         if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
             age -= 1;
         }
-
         return age;
     }
 
@@ -70,19 +70,9 @@
         const hours = Math.floor((totalMinutes % (24 * 60)) / 60);
         const minutes = totalMinutes % 60;
         const parts = [];
-
-        if (days > 0) {
-            parts.push(`${days} يوم`);
-        }
-
-        if (hours > 0) {
-            parts.push(`${hours} ساعة`);
-        }
-
-        if (minutes > 0 && parts.length < 3) {
-            parts.push(`${minutes} دقيقة`);
-        }
-
+        if (days > 0) parts.push(`${days} يوم`);
+        if (hours > 0) parts.push(`${hours} ساعة`);
+        if (minutes > 0 && parts.length < 3) parts.push(`${minutes} دقيقة`);
         return parts.join(' و ');
     }
 
@@ -101,19 +91,20 @@
     function displaySuccess(application, replacedExisting) {
         const noteText = replacedExisting
             ? 'تم إنشاء طلب جديد بهذا الرقم القومي بعد انتهاء مدة الانتظار، وتم حذف الطلب السابق تلقائيًا.'
-            : 'يمكنك الآن متابعة الحالة من صفحة الاستعلام باستخدام رقم الطلب والرقم القومي.';
+            : 'يمكنك الآن متابعة الحالة أو فتح الإيصال الاحترافي مباشرة.';
 
         registerResultDiv.className = 'result-panel';
         registerResultDiv.innerHTML = `
             <div class="card-heading">
                 <span class="mini-badge">تم التسجيل</span>
                 <h3>تم استلام الطلب بنجاح</h3>
-                <p>احتفظ برقم الطلب التالي لاستخدامه في الاستعلام عن حالة الطلب.</p>
+                <p>احتفظ برقم الطلب التالي لاستخدامه في الاستعلام عن حالة الطلب أو فتح الإيصال.</p>
             </div>
             <div id="request-code-text" class="result-code">${application.requestId}</div>
-            <div class="result-actions">
+            <div class="result-actions wrap-actions">
                 <button type="button" class="btn-secondary" data-copy-target="#request-code-text" data-copy-label="نسخ رقم الطلب">نسخ رقم الطلب</button>
-                <a href="./status.html?requestId=${encodeURIComponent(application.requestId)}&nationalId=${encodeURIComponent(application.nationalId)}" class="btn-ghost">فتح حالة الطلب</a>
+                <a href="./status.html?requestId=${encodeURIComponent(application.requestId)}&nationalId=${encodeURIComponent(application.nationalId)}" class="btn-ghost">حالة الطلب</a>
+                <a href="./receipt.html?requestId=${encodeURIComponent(application.requestId)}" class="btn-ghost">الإيصال</a>
             </div>
             <p class="result-note">${noteText}</p>
         `;
@@ -124,10 +115,7 @@
             copyButton.addEventListener('click', async () => {
                 const target = document.querySelector(copyButton.dataset.copyTarget || '');
                 const value = target ? target.textContent.trim() : '';
-                if (!value) {
-                    return;
-                }
-
+                if (!value) return;
                 const originalLabel = copyButton.dataset.copyLabel || copyButton.textContent;
                 try {
                     await navigator.clipboard.writeText(value);
@@ -161,11 +149,7 @@
 
     function populateCities(governorate) {
         resetDependentFields();
-
-        if (!governorate) {
-            return;
-        }
-
+        if (!governorate) return;
         const uniqueCities = sortArabic(new Set(locationData
             .filter((item) => item.governorate === governorate)
             .map((item) => item.city)));
@@ -182,10 +166,7 @@
     function populateVillages(city) {
         villageSelect.innerHTML = '<option value="">اختر القرية...</option>';
         villageSelect.disabled = true;
-
-        if (!city) {
-            return;
-        }
+        if (!city) return;
 
         const villages = locationData
             .filter((item) => item.city === city && item.governorate === governorateSelect.value)
@@ -219,7 +200,6 @@
     if (registerForm) {
         registerForm.addEventListener('submit', async function (event) {
             event.preventDefault();
-
             registerResultDiv.style.display = 'none';
             registerResultDiv.className = '';
             registerResultDiv.innerHTML = '';
@@ -266,11 +246,22 @@
                 leaderCode,
                 ageCategory: String(formData.get('ageCategory') || '').trim(),
                 message: 'طلبك قيد المراجعة حاليًا وسيتم تحديث الحالة بعد الانتهاء من المراجعة.',
-                createdAt: new Date().toISOString()
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
             };
 
             const updatedApplications = [application, ...applications];
             saveStoredApplications(updatedApplications);
+
+            if (platformStore?.addNotification) {
+                platformStore.addNotification({
+                    title: `طلب جديد ${application.requestId}`,
+                    body: `تم تسجيل طلب جديد باسم ${application.name} وهو الآن قيد المراجعة.`,
+                    type: 'application',
+                    actionUrl: './status.html?requestId=' + encodeURIComponent(application.requestId) + '&nationalId=' + encodeURIComponent(application.nationalId),
+                    actionLabel: 'فتح حالة الطلب'
+                });
+            }
 
             try {
                 if (window.QaryaTelegram?.sendRegistration) {
