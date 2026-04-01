@@ -1,144 +1,975 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="بوابة الدخول الآمنة لمنصة قرية متعلمة." />
   <title>دخول المنصة | قرية متعلمة</title>
-  <link rel="stylesheet" href="./styles.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="./js/auth.js"></script>
   <script src="./js/auth-guard.js"></script>
+  <style>
+    /* =============================================
+       WINDOWS 2000 / MICROSOFT 2000 THEME
+       ============================================= */
+
+    :root {
+      --win-bg:          #008080;   /* classic teal desktop */
+      --win-silver:      #d4d0c8;   /* window chrome gray */
+      --win-silver-dark: #c0c0c0;
+      --win-silver-light:#ffffff;
+      --win-title-from:  #000080;   /* navy title bar start */
+      --win-title-to:    #1084d0;   /* blue title bar end */
+      --win-text:        #000000;
+      --win-text-dim:    #444444;
+      --win-input-bg:    #ffffff;
+      --win-btn-face:    #d4d0c8;
+      --win-shadow-dark: #808080;
+      --win-shadow-dkr:  #404040;
+      --win-highlight:   #ffffff;
+      --win-accent:      #000080;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body.auth-page {
+      font-family: Tahoma, Arial, "MS Sans Serif", sans-serif;
+      font-size: 11px;
+      background-color: var(--win-bg);
+      background-image:
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 1px,
+          rgba(0,0,0,.035) 1px,
+          rgba(0,0,0,.035) 2px
+        );
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      direction: rtl;
+    }
+
+    /* ---- Taskbar at bottom ---- */
+    .win-taskbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 28px;
+      background: var(--win-silver);
+      border-top: 2px solid var(--win-highlight);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 0 4px;
+      z-index: 9999;
+      /* classic bevel top */
+      box-shadow: inset 0 1px 0 var(--win-highlight);
+    }
+
+    .win-start-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      height: 22px;
+      padding: 0 6px;
+      background: var(--win-btn-face);
+      border: 2px solid;
+      border-color: var(--win-highlight) var(--win-shadow-dkr) var(--win-shadow-dkr) var(--win-highlight);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: bold;
+      cursor: pointer;
+      color: var(--win-text);
+    }
+    .win-start-btn:active {
+      border-color: var(--win-shadow-dkr) var(--win-highlight) var(--win-highlight) var(--win-shadow-dkr);
+    }
+    .win-start-logo {
+      width: 16px;
+      height: 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+    }
+    .win-start-logo span {
+      display: block;
+    }
+    .win-start-logo span:nth-child(1) { background: #f25022; }
+    .win-start-logo span:nth-child(2) { background: #7fba00; }
+    .win-start-logo span:nth-child(3) { background: #00a4ef; }
+    .win-start-logo span:nth-child(4) { background: #ffb900; }
+
+    .win-taskbar-clock {
+      margin-right: auto;
+      padding: 0 8px;
+      font-size: 11px;
+      border: 1px solid;
+      border-color: var(--win-shadow-dark) var(--win-highlight) var(--win-highlight) var(--win-shadow-dark);
+      height: 22px;
+      display: flex;
+      align-items: center;
+    }
+
+    .win-taskbar-tray {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 6px;
+      border: 1px solid;
+      border-color: var(--win-shadow-dark) var(--win-highlight) var(--win-highlight) var(--win-shadow-dark);
+      height: 22px;
+      font-size: 13px;
+      color: var(--win-text-dim);
+    }
+
+    /* ---- Main window shell ---- */
+    main.auth-shell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: calc(100vh - 44px);
+      padding: 8px;
+    }
+
+    .auth-vision-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+      gap: 8px;
+      width: min(1100px, 100%);
+      align-items: start;
+    }
+
+    /* ---- Win2k window chrome ---- */
+    .win-window {
+      background: var(--win-silver);
+      border: 2px solid;
+      border-color: var(--win-highlight) var(--win-shadow-dkr) var(--win-shadow-dkr) var(--win-highlight);
+      box-shadow: 2px 2px 0 var(--win-shadow-dark);
+    }
+
+    .win-titlebar {
+      height: 24px;
+      background: linear-gradient(90deg, var(--win-title-from) 0%, var(--win-title-to) 100%);
+      display: flex;
+      align-items: center;
+      padding: 0 4px;
+      gap: 4px;
+      user-select: none;
+    }
+    .win-titlebar-icon {
+      width: 16px;
+      height: 16px;
+      background: #ffff00;
+      border-radius: 0;
+      display: grid;
+      place-items: center;
+      font-size: 10px;
+      color: #000;
+      font-weight: 900;
+    }
+    .win-titlebar-text {
+      flex: 1;
+      color: #fff;
+      font-size: 11px;
+      font-weight: bold;
+      font-family: Tahoma, Arial, sans-serif;
+    }
+    .win-titlebar-btns {
+      display: flex;
+      gap: 2px;
+    }
+    .win-chrome-btn {
+      width: 16px;
+      height: 14px;
+      background: var(--win-btn-face);
+      border: 1px solid;
+      border-color: var(--win-highlight) var(--win-shadow-dkr) var(--win-shadow-dkr) var(--win-highlight);
+      font-size: 9px;
+      font-family: "Marlett", "Wingdings", Arial, sans-serif;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      color: var(--win-text);
+      font-weight: bold;
+      padding: 0;
+      line-height: 1;
+    }
+    .win-chrome-btn:active {
+      border-color: var(--win-shadow-dkr) var(--win-highlight) var(--win-highlight) var(--win-shadow-dkr);
+    }
+    .win-close-btn {
+      background: var(--win-btn-face);
+    }
+
+    .win-menubar {
+      display: flex;
+      align-items: center;
+      padding: 2px 4px;
+      gap: 0;
+      border-bottom: 1px solid var(--win-silver-dark);
+      background: var(--win-silver);
+    }
+    .win-menu-item {
+      padding: 3px 8px;
+      font-size: 11px;
+      color: var(--win-text);
+      cursor: pointer;
+      text-decoration: underline;
+      text-decoration-color: transparent;
+    }
+    .win-menu-item:first-letter { text-decoration: underline; }
+    .win-menu-item:hover {
+      background: var(--win-title-from);
+      color: #fff;
+    }
+
+    .win-window-body {
+      padding: 12px;
+    }
+
+    /* ---- Showcase panel ---- */
+    .auth-vision-showcase {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .auth-vision-showcase .win-window-body {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .win-info-banner {
+      background: #ffffcc;
+      border: 1px solid #808080;
+      padding: 8px 10px;
+      font-size: 11px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .win-info-banner .win-info-icon {
+      font-size: 20px;
+      color: var(--win-accent);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .win-info-banner p {
+      margin: 0;
+      line-height: 1.6;
+    }
+    .win-info-banner strong {
+      display: block;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    /* group box */
+    .win-groupbox {
+      border: 1px solid var(--win-shadow-dark);
+      padding: 12px 10px 10px;
+      position: relative;
+      margin-top: 8px;
+      background: var(--win-silver);
+    }
+    .win-groupbox-legend {
+      position: absolute;
+      top: -9px;
+      right: 8px;
+      background: var(--win-silver);
+      padding: 0 4px;
+      font-size: 11px;
+      font-weight: bold;
+    }
+
+    .win-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .win-grid-2-tall {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .win-card-item {
+      background: var(--win-silver);
+      border: 1px solid;
+      border-color: var(--win-shadow-dark) var(--win-highlight) var(--win-highlight) var(--win-shadow-dark);
+      padding: 8px;
+      font-size: 11px;
+    }
+    .win-card-item strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 11px;
+    }
+    .win-card-item span {
+      color: var(--win-text-dim);
+      line-height: 1.5;
+    }
+
+    /* alert box */
+    .win-alert-box {
+      background: #fff8dc;
+      border: 2px solid;
+      border-color: var(--win-shadow-dark) var(--win-highlight) var(--win-highlight) var(--win-shadow-dark);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .win-alert-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--win-silver-dark);
+    }
+    .win-alert-icon-big {
+      font-size: 28px;
+      color: #c8900a;
+    }
+    .win-alert-title-block strong {
+      display: block;
+      font-size: 13px;
+      font-weight: bold;
+    }
+    .win-alert-title-block span {
+      font-size: 11px;
+      color: var(--win-text-dim);
+    }
+    .win-alert-body {
+      font-size: 11px;
+      line-height: 1.7;
+    }
+    .win-alert-body strong {
+      font-weight: bold;
+    }
+    .win-alert-checklist {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 11px;
+    }
+    .win-alert-checklist span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--win-text-dim);
+    }
+    .win-alert-checklist i {
+      color: #008000;
+    }
+
+    .win-statusbar {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-top: 1px solid var(--win-shadow-dark);
+      background: var(--win-silver);
+      font-size: 11px;
+    }
+    .win-statusbar-pane {
+      flex: 1;
+      border: 1px solid;
+      border-color: var(--win-shadow-dark) var(--win-highlight) var(--win-highlight) var(--win-shadow-dark);
+      padding: 2px 6px;
+      color: var(--win-text-dim);
+    }
+
+    /* ---- Login panel ---- */
+    .auth-vision-panel .win-window-body {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .win-brand-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--win-silver-dark);
+    }
+    .win-brand-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--win-accent);
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 20px;
+      font-weight: 900;
+      border: 2px solid;
+      border-color: var(--win-highlight) var(--win-shadow-dkr) var(--win-shadow-dkr) var(--win-highlight);
+    }
+    .win-brand-text {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .win-brand-text strong {
+      font-size: 13px;
+      font-weight: bold;
+      color: var(--win-accent);
+    }
+    .win-brand-text small {
+      font-size: 10px;
+      color: var(--win-text-dim);
+    }
+    .win-secure-badge {
+      margin-right: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border: 1px solid var(--win-shadow-dark);
+      background: var(--win-silver);
+      font-size: 10px;
+      color: #008000;
+    }
+
+    .win-dialog-title {
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 2px;
+    }
+    .win-dialog-subtitle {
+      font-size: 11px;
+      color: var(--win-text-dim);
+      line-height: 1.5;
+    }
+
+    /* form fields */
+    .win-field {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .win-field label {
+      font-size: 11px;
+      font-weight: bold;
+      color: var(--win-text);
+    }
+    .win-input-wrap {
+      position: relative;
+    }
+    .win-input {
+      width: 100%;
+      height: 22px;
+      padding: 2px 6px;
+      font-family: Tahoma, Arial, sans-serif;
+      font-size: 11px;
+      background: var(--win-input-bg);
+      color: var(--win-text);
+      border: 2px solid;
+      border-color: var(--win-shadow-dkr) var(--win-highlight) var(--win-highlight) var(--win-shadow-dkr);
+      outline: none;
+    }
+    .win-input:focus {
+      border-color: var(--win-accent);
+      outline: 1px dotted var(--win-accent);
+      outline-offset: -3px;
+    }
+    .win-pwd-toggle {
+      position: absolute;
+      top: 50%;
+      left: 2px;
+      transform: translateY(-50%);
+      height: 18px;
+      width: 24px;
+      background: var(--win-btn-face);
+      border: 1px solid;
+      border-color: var(--win-highlight) var(--win-shadow-dkr) var(--win-shadow-dkr) var(--win-highlight);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      font-size: 10px;
+      color: var(--win-text-dim);
+      padding: 0;
+    }
+    .win-pwd-toggle:active {
+      border-color: var(--win-shadow-dkr) var(--win-highlight) var(--win-highlight) var(--win-shadow-dkr);
+    }
+
+    .win-helper-box {
+      background: #eff3fb;
+      border: 1px solid var(--win-shadow-dark);
+      padding: 6px 8px;
+      font-size: 11px;
+    }
+    .win-helper-box strong { display: block; margin-bottom: 2px; }
+    .win-helper-box p, .win-helper-box small {
+      margin: 0;
+      color: var(--win-text-dim);
+      line-height: 1.5;
+    }
+
+    #login-message {
+      padding: 6px 8px;
+      border: 1px solid;
+      font-size: 11px;
+      font-weight: bold;
+    }
+    #login-message.success {
+      border-color: #008000;
+      background: #e6ffe6;
+      color: #006400;
+    }
+    #login-message.error {
+      border-color: #cc0000;
+      background: #ffe6e6;
+      color: #990000;
+    }
+
+    /* buttons */
+    .win-btn-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      justify-content: flex-end;
+    }
+    .win-btn {
+      min-width: 75px;
+      height: 23px;
+      padding: 0 12px;
+      font-family: Tahoma, Arial, sans-serif;
+      font-size: 11px;
+      background: var(--win-btn-face);
+      color: var(--win-text);
+      border: 2px solid;
+      border-color: var(--win-highlight) var(--win-shadow-dkr) var(--win-shadow-dkr) var(--win-highlight);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .win-btn:hover {
+      background: #e8e4d8;
+    }
+    .win-btn:active {
+      border-color: var(--win-shadow-dkr) var(--win-highlight) var(--win-highlight) var(--win-shadow-dkr);
+    }
+    .win-btn.win-btn-default {
+      border-color: var(--win-shadow-dkr) var(--win-highlight) var(--win-highlight) var(--win-shadow-dkr);
+      box-shadow: inset 0 0 0 1px var(--win-highlight), 0 0 0 2px var(--win-shadow-dkr);
+    }
+    .win-btn-primary {
+      background: var(--win-btn-face);
+      font-weight: bold;
+    }
+
+    /* footer links area */
+    .win-foot-section {
+      border-top: 1px solid var(--win-silver-dark);
+      padding-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .win-foot-section strong {
+      font-size: 11px;
+      display: block;
+    }
+    .win-foot-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+    }
+    .win-foot-grid span {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      padding: 3px 6px;
+      border: 1px solid var(--win-silver-dark);
+      background: var(--win-silver);
+      cursor: default;
+    }
+    .win-foot-grid i {
+      color: var(--win-accent);
+      font-size: 11px;
+    }
+
+    /* separator */
+    .win-hr {
+      border: none;
+      border-top: 1px solid var(--win-shadow-dark);
+      border-bottom: 1px solid var(--win-highlight);
+      margin: 2px 0;
+    }
+
+    /* ---- Wallpaper icons ---- */
+    .win-desktop-icons {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      z-index: 0;
+    }
+    .win-icon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: default;
+      width: 64px;
+      text-align: center;
+    }
+    .win-icon-img {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+    }
+    .win-icon span {
+      font-family: Tahoma, Arial, sans-serif;
+      font-size: 11px;
+      color: #fff;
+      text-shadow: 1px 1px 2px #000;
+      line-height: 1.3;
+    }
+
+    /* ====== RESPONSIVE ====== */
+    @media (max-width: 900px) {
+      .auth-vision-layout {
+        grid-template-columns: 1fr;
+      }
+      .auth-vision-panel {
+        order: -1;
+      }
+    }
+    @media (max-width: 520px) {
+      .win-grid-2, .win-grid-2-tall, .win-foot-grid {
+        grid-template-columns: 1fr;
+      }
+      body.auth-page { padding: 4px; }
+    }
+  </style>
 </head>
 <body class="auth-page">
+
+  <!-- Desktop icons -->
+  <div class="win-desktop-icons" aria-hidden="true">
+    <div class="win-icon">
+      <div class="win-icon-img"><i class="fas fa-desktop" style="color:#fff"></i></div>
+      <span>My Computer</span>
+    </div>
+    <div class="win-icon">
+      <div class="win-icon-img"><i class="fas fa-folder" style="color:#ffcc00"></i></div>
+      <span>My Documents</span>
+    </div>
+    <div class="win-icon">
+      <div class="win-icon-img"><i class="fas fa-trash" style="color:#c0c0c0"></i></div>
+      <span>Recycle Bin</span>
+    </div>
+    <div class="win-icon">
+      <div class="win-icon-img"><i class="fas fa-globe" style="color:#80bfff"></i></div>
+      <span>Internet Explorer</span>
+    </div>
+  </div>
+
   <main class="auth-shell">
     <div class="auth-vision-layout">
+
+      <!-- ======= LEFT: Showcase window ======= -->
       <section class="auth-vision-showcase" aria-label="عرض تعريفي للمنصة">
-        <span class="auth-vision-kicker"><i class="fas fa-shield-halved"></i> بوابة الدخول الذكية</span>
-        <h1 class="auth-vision-title">صفحة دخول عصرية تعكس قوة وتنظيم منصة قرية متعلمة</h1>
-        <p class="auth-vision-text">واجهة دخول حديثة، واضحة، ومتناسقة تلقائيًا مع الهاتف والتابلت والشاشات الكبيرة، مع تجربة بصرية قوية ومسار تحقق مباشر نحو الصفحات الداخلية.</p>
 
-        <div class="auth-vision-grid">
-          <article class="auth-vision-card">
-            <strong>وصول منظم</strong>
-            <span>الدخول يفتح الصفحة المطلوبة مباشرة بدون نوافذ إضافية.</span>
-          </article>
-          <article class="auth-vision-card">
-            <strong>تصميم مرن</strong>
-            <span>كل العناصر تتكيّف تلقائيًا مع المقاس المعروض.</span>
-          </article>
-          <article class="auth-vision-card">
-            <strong>حماية الروابط</strong>
-            <span>كل الروابط الداخلية تمر أولًا عبر التحقق المعتمد.</span>
-          </article>
-          <article class="auth-vision-card">
-            <strong>واجهة أوضح</strong>
-            <span>فصل بصري واضح بين المعلومات والدخول والإشعارات المهمة.</span>
-          </article>
+        <!-- Window 1: Platform Info -->
+        <div class="win-window">
+          <div class="win-titlebar">
+            <div class="win-titlebar-icon">ق</div>
+            <span class="win-titlebar-text">قرية متعلمة — بوابة الدخول الذكية</span>
+            <div class="win-titlebar-btns">
+              <button class="win-chrome-btn" aria-hidden="true" tabindex="-1">_</button>
+              <button class="win-chrome-btn" aria-hidden="true" tabindex="-1">□</button>
+              <button class="win-chrome-btn win-close-btn" aria-hidden="true" tabindex="-1">✕</button>
+            </div>
+          </div>
+          <div class="win-menubar">
+            <span class="win-menu-item">ملف</span>
+            <span class="win-menu-item">تحرير</span>
+            <span class="win-menu-item">عرض</span>
+            <span class="win-menu-item">مفضلة</span>
+            <span class="win-menu-item">مساعدة</span>
+          </div>
+          <div class="win-window-body">
+            <div class="win-info-banner">
+              <i class="fas fa-shield-halved win-info-icon"></i>
+              <div>
+                <strong>صفحة دخول عصرية تعكس قوة وتنظيم منصة قرية متعلمة</strong>
+                <p>واجهة دخول حديثة، واضحة، ومتناسقة تلقائيًا مع الهاتف والتابلت والشاشات الكبيرة، مع تجربة بصرية قوية ومسار تحقق مباشر نحو الصفحات الداخلية.</p>
+              </div>
+            </div>
+
+            <div class="win-groupbox">
+              <span class="win-groupbox-legend">مزايا المنصة</span>
+              <div class="win-grid-2">
+                <div class="win-card-item">
+                  <strong><i class="fas fa-check-square" style="color:#000080"></i> وصول منظم</strong>
+                  <span>الدخول يفتح الصفحة المطلوبة مباشرة بدون نوافذ إضافية.</span>
+                </div>
+                <div class="win-card-item">
+                  <strong><i class="fas fa-check-square" style="color:#000080"></i> تصميم مرن</strong>
+                  <span>كل العناصر تتكيّف تلقائيًا مع المقاس المعروض.</span>
+                </div>
+                <div class="win-card-item">
+                  <strong><i class="fas fa-check-square" style="color:#000080"></i> حماية الروابط</strong>
+                  <span>كل الروابط الداخلية تمر أولًا عبر التحقق المعتمد.</span>
+                </div>
+                <div class="win-card-item">
+                  <strong><i class="fas fa-check-square" style="color:#000080"></i> واجهة أوضح</strong>
+                  <span>فصل بصري واضح بين المعلومات والدخول والإشعارات.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="win-statusbar">
+            <span class="win-statusbar-pane"><i class="fas fa-circle-info"></i> &nbsp;جاهز</span>
+            <span class="win-statusbar-pane">Internet zone</span>
+          </div>
         </div>
 
-        <section class="auth-money-alert" aria-label="إشعار التحويلات">
-          <div class="auth-money-head">
-            <span class="auth-money-badge"><i class="fas fa-sparkles"></i> إشعار بارز</span>
-            <span class="auth-money-status">تم اعتماد التحويلات</span>
-          </div>
-          <div class="auth-money-main">
-            <div class="auth-money-icon" aria-hidden="true">
-              <i class="fas fa-wallet"></i>
+        <!-- Window 2: Money Alert -->
+        <div class="win-window">
+          <div class="win-titlebar" style="background: linear-gradient(90deg, #8b0000 0%, #c00020 100%);">
+            <div class="win-titlebar-icon" style="background:#ffff00"><i class="fas fa-exclamation" style="font-size:9px;color:#c00020"></i></div>
+            <span class="win-titlebar-text">إشعار بارز — تم اعتماد التحويلات</span>
+            <div class="win-titlebar-btns">
+              <button class="win-chrome-btn" aria-hidden="true" tabindex="-1">_</button>
+              <button class="win-chrome-btn win-close-btn" aria-hidden="true" tabindex="-1">✕</button>
             </div>
-            <div class="auth-money-copy">
-              <h2 class="auth-money-title">إشعار الأموال</h2>
-              <p class="auth-money-message">
+          </div>
+          <div class="win-window-body">
+            <div class="win-alert-box">
+              <div class="win-alert-head">
+                <i class="fas fa-wallet win-alert-icon-big"></i>
+                <div class="win-alert-title-block">
+                  <strong>إشعار الأموال</strong>
+                  <span>تم اعتماد التحويلات — تأكد من تفعيل الأدمن</span>
+                </div>
+              </div>
+              <div class="win-alert-body">
                 <strong>تم إرسال جميع الأموال إلى القائد على جميع الطلاب.</strong>
-                تأكدوا من تفعيل الأدمن لكم حتى تتمكنوا من استلام الدفعات.
-              </p>
+                <br>تأكدوا من تفعيل الأدمن لكم حتى تتمكنوا من استلام الدفعات.
+              </div>
+              <hr class="win-hr">
+              <div class="win-alert-checklist">
+                <span><i class="fas fa-circle-check"></i> مراجعة حالة التفعيل</span>
+                <span><i class="fas fa-circle-check"></i> المتابعة مع الأدمن</span>
+                <span><i class="fas fa-circle-check"></i> استلام الدفعات بعد الاعتماد</span>
+              </div>
+            </div>
+            <div class="win-btn-row" style="margin-top:4px">
+              <button class="win-btn">موافق</button>
+              <button class="win-btn">إلغاء</button>
+              <button class="win-btn">تفاصيل &gt;&gt;</button>
             </div>
           </div>
-          <div class="auth-money-points">
-            <span><i class="fas fa-circle-check"></i> مراجعة حالة التفعيل</span>
-            <span><i class="fas fa-user-shield"></i> المتابعة مع الأدمن</span>
-            <span><i class="fas fa-money-bill-wave"></i> استلام الدفعات بعد الاعتماد</span>
-          </div>
-        </section>
-
-        <div class="auth-vision-lane">
-          <article class="auth-lane-card">
-            <span class="auth-lane-label">خدمة</span>
-            <strong>التسجيل والمتابعة</strong>
-            <p>ابدأ التسجيل ثم استخدم رقم الطلب للوصول إلى حالة الطلب بسهولة.</p>
-          </article>
-          <article class="auth-lane-card">
-            <span class="auth-lane-label">تجربة</span>
-            <strong>تصميم أكثر هدوءًا</strong>
-            <p>عناصر أقل تشتيتًا، ومساحات أوضح، وقراءة أسهل للمحتوى المهم.</p>
-          </article>
         </div>
+
+        <!-- Window 3: Services strip -->
+        <div class="win-window">
+          <div class="win-titlebar">
+            <div class="win-titlebar-icon"><i class="fas fa-list" style="font-size:9px"></i></div>
+            <span class="win-titlebar-text">خدمات المنصة</span>
+            <div class="win-titlebar-btns">
+              <button class="win-chrome-btn" aria-hidden="true" tabindex="-1">_</button>
+              <button class="win-chrome-btn win-close-btn" aria-hidden="true" tabindex="-1">✕</button>
+            </div>
+          </div>
+          <div class="win-window-body">
+            <div class="win-grid-2-tall">
+              <div class="win-card-item">
+                <strong><i class="fas fa-gears" style="color:#000080"></i> خدمة</strong>
+                <span>التسجيل والمتابعة — ابدأ التسجيل ثم استخدم رقم الطلب للوصول إلى حالته بسهولة.</span>
+              </div>
+              <div class="win-card-item">
+                <strong><i class="fas fa-eye" style="color:#000080"></i> تجربة</strong>
+                <span>تصميم أكثر هدوءًا — عناصر أقل تشتيتًا، ومساحات أوضح، وقراءة أسهل.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </section>
 
+      <!-- ======= RIGHT: Login panel ======= -->
       <section class="auth-vision-panel" aria-labelledby="login-title">
-        <div class="auth-panel-top">
-          <a class="auth-panel-brand" href="./index.html" aria-label="العودة إلى الصفحة الرئيسية">
-            <span class="brand-mark">ق</span>
-            <span class="brand-text">
-              <span class="logo">قرية متعلمة</span>
-              <small>بوابة الدخول الرسمية</small>
-            </span>
-          </a>
-          <span class="auth-panel-tag">جلسة دخول آمنة</span>
-        </div>
+        <div class="win-window">
+          <div class="win-titlebar">
+            <div class="win-titlebar-icon">ق</div>
+            <span class="win-titlebar-text">تسجيل الدخول — قرية متعلمة</span>
+            <div class="win-titlebar-btns">
+              <button class="win-chrome-btn" aria-hidden="true" tabindex="-1">_</button>
+              <button class="win-chrome-btn" aria-hidden="true" tabindex="-1">□</button>
+              <button class="win-chrome-btn win-close-btn" aria-hidden="true" tabindex="-1">✕</button>
+            </div>
+          </div>
+          <div class="win-menubar">
+            <span class="win-menu-item">ملف</span>
+            <span class="win-menu-item">خيارات</span>
+            <span class="win-menu-item">مساعدة</span>
+          </div>
+          <div class="win-window-body">
 
-        <div class="auth-panel-heading">
-          <h2 class="auth-panel-title" id="login-title">تسجيل الدخول</h2>
-          <p class="auth-panel-subtitle">أدخل البريد الإلكتروني وكلمة المرور لفتح المنصة. عند نجاح التحقق سيتم تحويلك مباشرة إلى الصفحة المناسبة.</p>
-        </div>
-
-        <form id="login-form" class="auth-form" novalidate>
-          <div class="auth-form-grid">
-            <div class="auth-field">
-              <label for="login-email">البريد الإلكتروني</label>
-              <div class="auth-input-wrap">
-                <input id="login-email" class="auth-input" type="email" inputmode="email" autocomplete="username" placeholder="Name@qarya.edu" required />
+            <!-- Brand row -->
+            <div class="win-brand-row">
+              <div class="win-brand-icon">ق</div>
+              <div class="win-brand-text">
+                <strong>قرية متعلمة</strong>
+                <small>بوابة الدخول الرسمية</small>
               </div>
+              <span class="win-secure-badge">
+                <i class="fas fa-lock"></i> جلسة دخول آمنة
+              </span>
             </div>
 
-            <div class="auth-field">
-              <label for="login-password">كلمة المرور</label>
-              <div class="auth-input-wrap">
-                <input id="login-password" class="auth-input" type="password" autocomplete="current-password" placeholder="Password" required />
-                <button type="button" class="auth-password-toggle" id="password-visibility-toggle" aria-label="إظهار كلمة المرور" aria-pressed="false">
-                  <i class="fas fa-eye"></i>
+            <!-- Heading -->
+            <div>
+              <p class="win-dialog-title" id="login-title">تسجيل الدخول</p>
+              <p class="win-dialog-subtitle">أدخل البريد الإلكتروني وكلمة المرور لفتح المنصة. عند نجاح التحقق سيتم تحويلك مباشرة إلى الصفحة المناسبة.</p>
+            </div>
+
+            <hr class="win-hr">
+
+            <!-- Form -->
+            <form id="login-form" class="auth-form" novalidate style="display:flex;flex-direction:column;gap:10px;">
+              <!-- Email -->
+              <div class="win-field auth-field">
+                <label for="login-email">البريد الإلكتروني:</label>
+                <div class="win-input-wrap auth-input-wrap">
+                  <input
+                    id="login-email"
+                    class="win-input auth-input"
+                    type="email"
+                    inputmode="email"
+                    autocomplete="username"
+                    placeholder="Name@qarya.edu"
+                    required
+                    style="height:24px;"
+                  />
+                </div>
+              </div>
+
+              <!-- Password -->
+              <div class="win-field auth-field">
+                <label for="login-password">كلمة المرور:</label>
+                <div class="win-input-wrap auth-input-wrap">
+                  <input
+                    id="login-password"
+                    class="win-input auth-input"
+                    type="password"
+                    autocomplete="current-password"
+                    placeholder="Password"
+                    required
+                    style="height:24px; padding-left:30px;"
+                  />
+                  <button
+                    type="button"
+                    class="win-pwd-toggle auth-password-toggle"
+                    id="password-visibility-toggle"
+                    aria-label="إظهار كلمة المرور"
+                    aria-pressed="false"
+                  >
+                    <i class="fas fa-eye"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Helper -->
+              <div class="win-helper-box auth-helper">
+                <strong>مسار الدخول</strong>
+                <p id="next-target-label">بعد التحقق سيتم فتح الصفحة الرئيسية مباشرة.</p>
+                <small>يتم منع الوصول إلى الروابط الداخلية قبل تسجيل الدخول.</small>
+              </div>
+
+              <!-- Message -->
+              <div id="login-message" class="auth-form-message" hidden></div>
+
+              <!-- Submit row -->
+              <div class="win-btn-row">
+                <button id="login-submit" class="win-btn win-btn-primary auth-submit" type="submit" style="min-width:100px;">
+                  <i class="fas fa-arrow-right-to-bracket"></i>
+                  فتح المنصة
                 </button>
+                <button type="button" class="win-btn" onclick="window.location='./index.html'">إلغاء</button>
+              </div>
+            </form>
+
+            <hr class="win-hr">
+
+            <!-- Footer -->
+            <div class="win-foot-section auth-panel-foot">
+              <strong>بعد الدخول يمكنك الوصول إلى:</strong>
+              <div class="win-foot-grid auth-panel-foot-grid">
+                <span><i class="fas fa-user-plus"></i> التسجيل</span>
+                <span><i class="fas fa-magnifying-glass"></i> حالة الطلب</span>
+                <span><i class="fas fa-pen-to-square"></i> بوابة الامتحان</span>
+                <span><i class="fas fa-file-circle-check"></i> التحقق من الأداء</span>
               </div>
             </div>
+
+          </div><!-- /win-window-body -->
+
+          <div class="win-statusbar">
+            <span class="win-statusbar-pane"><i class="fas fa-globe"></i> &nbsp;https://qarya.edu/login</span>
+            <span class="win-statusbar-pane" style="flex:0 0 auto;min-width:80px;">
+              <i class="fas fa-lock" style="color:green"></i> SSL
+            </span>
           </div>
-
-          <div class="auth-helper">
-            <strong>مسار الدخول</strong>
-            <p id="next-target-label">بعد التحقق سيتم فتح الصفحة الرئيسية مباشرة.</p>
-            <small>يتم منع الوصول إلى الروابط الداخلية قبل تسجيل الدخول.</small>
-          </div>
-
-          <div id="login-message" class="auth-form-message" hidden></div>
-
-          <button id="login-submit" class="auth-submit" type="submit">
-            <span>فتح المنصة</span>
-            <i class="fas fa-arrow-left-long"></i>
-          </button>
-        </form>
-
-        <div class="auth-panel-foot">
-          <strong>بعد الدخول يمكنك الوصول إلى:</strong>
-          <div class="auth-panel-foot-grid">
-            <span><i class="fas fa-user-plus"></i> التسجيل</span>
-            <span><i class="fas fa-magnifying-glass"></i> حالة الطلب</span>
-            <span><i class="fas fa-pen-to-square"></i> بوابة الامتحان</span>
-            <span><i class="fas fa-file-circle-check"></i> التحقق من الأداء</span>
-          </div>
-        </div>
+        </div><!-- /win-window -->
       </section>
-    </div>
+
+    </div><!-- /auth-vision-layout -->
   </main>
 
+  <!-- Windows 2000 Taskbar -->
+  <div class="win-taskbar" role="toolbar" aria-label="taskbar">
+    <button class="win-start-btn" aria-label="Start">
+      <div class="win-start-logo" aria-hidden="true">
+        <span></span><span></span><span></span><span></span>
+      </div>
+      ابدأ
+    </button>
+
+    <!-- Active window pill -->
+    <button class="win-btn" style="min-width:160px; height:22px; font-size:11px; justify-content:flex-start; gap:6px;">
+      <i class="fas fa-key" style="font-size:11px;color:#000080;"></i>
+      تسجيل الدخول — قرية متعلمة
+    </button>
+
+    <div class="win-taskbar-tray">
+      <i class="fas fa-volume-up"></i>
+      <i class="fas fa-network-wired"></i>
+    </div>
+    <div class="win-taskbar-clock" id="win-clock">00:00</div>
+  </div>
+
   <script src="./js/login-page.js"></script>
+  <script>
+    // Taskbar clock
+    function updateClock() {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2,'0');
+      const m = String(now.getMinutes()).padStart(2,'0');
+      const el = document.getElementById('win-clock');
+      if (el) el.textContent = h + ':' + m;
+    }
+    updateClock();
+    setInterval(updateClock, 30000);
+  </script>
 </body>
 </html>
