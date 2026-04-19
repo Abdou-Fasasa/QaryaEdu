@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="مركز دعم مباشر داخل منصة قرية متعلمة مع محادثة سريعة ومتوافقة مع الهاتف." />
+  <title>مركز الدعم المباشر | قرية متعلمة</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script type="module" src="../js/firebase-init.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/auth-guard.js"></script>
+</head>
+<body class="inner-page support-page" data-support-page="dedicated">
+  <div class="site-shell">
+    <header class="header">
+      <div class="container">
+        <a class="brand" href="../index.html" aria-label="العودة إلى الصفحة الرئيسية">
+          <span class="brand-mark">ق</span>
+          <span class="brand-text">
+            <span class="logo">قرية متعلمة</span>
+            <small>مركز الدعم المباشر</small>
+          </span>
+        </a>
+
+        <button class="menu-toggle" id="sidebar-toggle" aria-label="فتح القائمة الجانبية">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+        </button>
+
+        <nav class="nav" id="main-nav" aria-label="روابط الموقع">
+          <a href="../index.html" class="nav-link">الرئيسية</a>
+          <a href="./support.html" class="nav-link">المساعدة</a>
+          <a href="./complaints.html" class="nav-link active">الدعم المباشر</a>
+          <a href="./notifications.html" class="nav-link">الإشعارات</a>
+          <a href="./register.html" class="nav-link">التسجيل</a>
+        </nav>
+      </div>
+    </header>
+
+    <aside class="sidebar" id="site-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <span class="brand-mark">ق</span>
+          <span class="logo">قرية متعلمة</span>
+        </div>
+        <button class="sidebar-close" id="sidebar-close" aria-label="إغلاق القائمة">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="../index.html" class="sidebar-link">
+          <i class="fas fa-home"></i>
+          <span>الرئيسية</span>
+        </a>
+        <a href="./support.html" class="sidebar-link">
+          <i class="fas fa-circle-question"></i>
+          <span>المساعدة</span>
+        </a>
+        <a href="./complaints.html" class="sidebar-link active">
+          <i class="fas fa-headset"></i>
+          <span>الدعم المباشر</span>
+        </a>
+        <a href="./notifications.html" class="sidebar-link">
+          <i class="fas fa-bell"></i>
+          <span>الإشعارات</span>
+        </a>
+        <a href="./register.html" class="sidebar-link">
+          <i class="fas fa-user-plus"></i>
+          <span>التسجيل</span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <p>&copy; 2026 جميع الحقوق محفوظة لقرية متعلمة</p>
+      </div>
+    </aside>
+
+    <main class="main-content-container">
+      <section class="page-hero support-hero">
+        <div class="container support-hero-grid">
+          <div class="page-copy">
+            <span class="page-badge"><i class="fas fa-bolt"></i> دعم سريع ومرتب</span>
+            <h1 class="page-title">محادثة مباشرة مع إدارة المنصة بدون لف أو انتظار</h1>
+            <p class="page-text">كل رسالة تحفظ داخل المنصة وتظهر الردود في نفس الشاشة، مع واجهة أخف وأوضح ومهيأة بالكامل للموبايل واللوحة والإدارة.</p>
+            <div class="support-hero-pills">
+              <span><i class="fas fa-mobile-screen-button"></i> متوافق مع الهاتف</span>
+              <span><i class="fas fa-comments"></i> محادثة موحدة</span>
+              <span><i class="fas fa-shield-heart"></i> متابعة مستمرة</span>
+            </div>
+          </div>
+
+          <div class="support-hero-panel">
+            <div class="support-hero-stat">
+              <strong>محادثة واحدة</strong>
+              <span>كل الرسائل والردود في نفس المسار بدون تكرار أو ضياع.</span>
+            </div>
+            <div class="support-hero-stat">
+              <strong>وصول أسرع</strong>
+              <span>يصل الطلب مباشرة إلى لوحة دعم الإدارة بدل الإرسال الشكلي فقط.</span>
+            </div>
+            <div class="support-hero-stat">
+              <strong>أريح على الموبايل</strong>
+              <span>الكتابة، المتابعة، والردود مصممة للشاشات الصغيرة أولًا.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-shell section-tight">
+        <div class="container support-center-shell">
+          <aside class="support-center-aside">
+            <article class="support-side-card">
+              <span class="mini-badge">أسئلة جاهزة</span>
+              <h3>اختصر وقتك قبل إرسال الرسالة</h3>
+              <p>لو سؤالك متكرر يمكنك اختيار أقرب نقطة، وسأجهز لك الإجابة أو أضع نصًا مناسبًا داخل الرسالة مباشرة.</p>
+              <div class="support-faq-chip-grid">
+                <button type="button" class="support-faq-chip" data-support-faq-question="متى يفتح الامتحان؟" data-support-faq-answer="بوابة الامتحان تعمل حسب الضبط الحالي للمنصة. في الوضع العادي تفتح حسب الجدول الرسمي، ويمكن للإدارة فتحها أو إيقافها يدويًا عند الحاجة.">
+                  <i class="fas fa-clock"></i>
+                  <span>مواعيد الامتحان</span>
+                </button>
+                <button type="button" class="support-faq-chip" data-support-faq-question="كيف أتابع حالة الطلب؟" data-support-faq-answer="من صفحة حالة الطلب اكتب رقم الطلب والرقم القومي، وستظهر لك آخر مراجعة ورسالة الإدارة والجدول الزمني الخاص بطلبك.">
+                  <i class="fas fa-file-lines"></i>
+                  <span>حالة الطلب</span>
+                </button>
+                <button type="button" class="support-faq-chip" data-support-faq-question="متى أستطيع إعادة التقديم؟" data-support-faq-answer="إعادة التقديم بنفس الرقم القومي تصبح متاحة بعد 72 ساعة، ثم يُحذف الطلب السابق تلقائيًا عند حفظ الطلب الجديد.">
+                  <i class="fas fa-rotate-left"></i>
+                  <span>إعادة التقديم</span>
+                </button>
+                <button type="button" class="support-faq-chip" data-support-faq-question="أين أجد الإشعارات؟" data-support-faq-answer="كل الإشعارات العامة والخاصة تظهر داخل مركز الإشعارات، كما أن ردود الدعم تظهر هنا داخل المحادثة نفسها بشكل مباشر.">
+                  <i class="fas fa-bell"></i>
+                  <span>الإشعارات</span>
+                </button>
+              </div>
+            </article>
+
+            <article class="support-side-card support-answer-card" id="support-answer-card" hidden>
+              <span class="mini-badge">إجابة سريعة</span>
+              <h3 id="support-answer-title">اختر سؤالًا</h3>
+              <p id="support-answer-text">ستظهر هنا الإجابة المختصرة لتبدأ منها بسرعة.</p>
+            </article>
+
+            <article class="support-side-card">
+              <span class="mini-badge">ملاحظات مهمة</span>
+              <h3>قبل إرسال أي شكوى</h3>
+              <ul class="support-side-list">
+                <li><i class="fas fa-check-circle"></i><span>اذكر رقم الطلب أو البريد إن وُجد ليسهل الوصول لحالتك.</span></li>
+                <li><i class="fas fa-check-circle"></i><span>اكتب المشكلة في رسالة واحدة واضحة بدل عدة رسائل قصيرة.</span></li>
+                <li><i class="fas fa-check-circle"></i><span>ستظهر الردود الجديدة هنا مباشرة، ويمكنك متابعتها من الهاتف بسهولة.</span></li>
+              </ul>
+            </article>
+          </aside>
+
+          <section class="support-chat-shell" aria-labelledby="support-chat-title">
+            <header class="support-chat-shell-header">
+              <div>
+                <span class="mini-badge">محادثة الدعم</span>
+                <h2 id="support-chat-title">تواصل مباشر مع الإدارة</h2>
+                <p id="support-chat-subtitle">اكتب الرسالة الآن، وسيتم حفظها داخل المنصة ومزامنتها مع لوحة التحكم.</p>
+              </div>
+
+              <div class="support-chat-state" id="support-thread-state">
+                <span class="support-state-dot"></span>
+                <strong>جاهز للاستقبال</strong>
+                <small>متوافق مع الهاتف والشاشات الصغيرة</small>
+              </div>
+            </header>
+
+            <div class="support-chat-shell-body">
+              <div class="support-chat-messages-panel" id="support-page-messages" aria-live="polite"></div>
+
+              <div class="support-chat-empty-panel" id="support-page-empty">
+                <i class="fas fa-headset"></i>
+                <strong>ابدأ المحادثة من هنا</strong>
+                <p>اكتب مشكلتك أو استفسارك وسيظهر الرد داخل نفس الشاشة بمجرد وصوله من الإدارة.</p>
+              </div>
+
+              <form class="support-chat-page-composer" id="support-page-form" novalidate>
+                <div class="support-chat-page-guest-fields" id="support-guest-fields">
+                  <label class="support-chat-page-field">
+                    <span>الاسم الكامل</span>
+                    <input id="support-guest-name" class="form-control" type="text" autocomplete="name" placeholder="اكتب الاسم الكامل" />
+                  </label>
+                  <label class="support-chat-page-field">
+                    <span>البريد الإلكتروني</span>
+                    <input id="support-guest-email" class="form-control" type="email" inputmode="email" autocomplete="email" placeholder="name@example.com" />
+                  </label>
+                </div>
+
+                <label class="support-chat-page-entry">
+                  <span>رسالتك إلى الإدارة</span>
+                  <textarea id="support-page-input" class="form-control support-chat-page-input" rows="4" placeholder="اكتب المشكلة أو الاستفسار بشكل واضح، مثل: هناك تأخير في حفظ الطلب أو لا أستطيع فتح الامتحان من الهاتف."></textarea>
+                </label>
+
+                <div class="support-chat-page-footer">
+                  <p class="support-chat-inline-note" id="support-compose-note">يمكنك المتابعة من نفس الصفحة، والرسائل الجديدة ستظهر هنا تلقائيًا.</p>
+                  <button type="submit" class="btn-primary support-chat-page-send" id="support-page-send-btn">
+                    <i class="fas fa-paper-plane"></i>
+                    <span>إرسال الرسالة</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <div>
+          <p class="footer-brand">قرية متعلمة</p>
+          <p class="footer-copy">واجهة دعم أخف وأسرع للوصول إلى الإدارة ومتابعة الردود بدون تعقيد.</p>
+        </div>
+        <div class="footer-links">
+          <a href="./support.html">المساعدة</a>
+          <a href="./notifications.html">الإشعارات</a>
+          <a href="./register.html">التسجيل</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="../js/platform-store.js"></script>
+  <script src="../js/main.js"></script>
+  <script src="../js/telegram.js"></script>
+  <script src="../js/complaints.js"></script>
+</body>
+</html>

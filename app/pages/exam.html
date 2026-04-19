@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>امتحان الطلاب | قرية متعلمة</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="../js/auth.js"></script>
+  <script src="../js/auth-guard.js"></script>
+</head>
+<body class="exam-page" data-exam-level="junior">
+    <div class="site-shell">
+        <header class="header">
+            <div class="container">
+                <a class="brand" href="../index.html" aria-label="العودة إلى الصفحة الرئيسية">
+                    <span class="brand-mark">ق</span>
+                    <span class="brand-text">
+                        <span class="logo">قرية متعلمة</span>
+                        <small>امتحان الطلاب</small>
+                    </span>
+                </a>
+                <button class="menu-toggle" id="sidebar-toggle" aria-label="فتح القائمة الجانبية">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </button>
+                <div class="card-actions header-desktop-only">
+                    <a href="./exam-status.html" class="btn-ghost">بوابة الامتحان</a>
+                </div>
+            </div>
+        </header>
+
+        <aside class="sidebar" id="site-sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-brand">
+                    <span class="brand-mark">ق</span>
+                    <span class="logo">قرية متعلمة</span>
+                </div>
+                <button class="sidebar-close" id="sidebar-close" aria-label="إغلاق القائمة">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="../index.html" class="sidebar-link"><i class="fas fa-home"></i><span>الرئيسية</span></a>
+                <a href="./register.html" class="sidebar-link"><i class="fas fa-user-plus"></i><span>التسجيل</span></a>
+                <a href="./exam-status.html" class="sidebar-link"><i class="fas fa-pen-to-square"></i><span>بوابة الامتحان</span></a>
+                <a href="./verification.html" class="sidebar-link"><i class="fas fa-file-circle-check"></i><span>التحقق من الأداء</span></a>
+                <a href="./guide.html" class="sidebar-link"><i class="fas fa-book-open"></i><span>الدليل</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <p>&copy; 2026 جميع الحقوق محفوظة لقرية متعلمة</p>
+            </div>
+        </aside>
+
+        <main>
+            <div class="container exam-shell">
+                <section class="exam-frame">
+                    <div class="exam-intro">
+                        <span class="mini-badge"><i class="fas fa-shield-halved"></i> امتحان صعب ومراقب</span>
+                        <h1 class="exam-title">امتحان الطلاب المتقدم</h1>
+                        <p class="page-text">هذا الامتحان مكون من 50 سؤالا بمستوى صعب. لا يمكن الإرسال قبل مرور 15 دقيقة كاملة، ولا يمكن استخدام هذا الجهاز إلا لطلب واحد فقط طوال دورة الامتحان.</p>
+                        <div id="exam-timer-banner" class="timer-banner">
+                            <i class="fas fa-clock"></i> الوقت المتبقي قبل السماح بالإرسال: <span id="submit-timer">15:00</span>
+                        </div>
+                    </div>
+
+                    <form id="exam-form">
+                        <div class="exam-form-head">
+                            <div class="form-group">
+                                <label for="student-name">الاسم الكامل</label>
+                                <input type="text" id="student-name" required />
+                            </div>
+                            <div class="form-group">
+                                <label for="request-id">رقم الطلب</label>
+                                <input type="text" id="request-id" required />
+                            </div>
+                            <div class="form-group">
+                                <label for="exam-day">يوم الامتحان</label>
+                                <select id="exam-day" required>
+                                    <option value="">-- اختر اليوم --</option>
+                                    <option value="السبت">السبت</option>
+                                    <option value="الأحد">الأحد</option>
+                                    <option value="الاثنين">الاثنين</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="questions"></div>
+                        <button type="submit" id="submit-btn" class="btn-primary full-width exam-submit" disabled>إرسال الامتحان</button>
+                    </form>
+
+                    <div id="result" class="result"></div>
+                </section>
+
+                <aside class="exam-side">
+                    <div class="side-card sticky-sidebar">
+                        <div class="card-heading">
+                            <span class="mini-badge">ضوابط الامتحان</span>
+                            <h3>تعليمات إلزامية</h3>
+                        </div>
+                        <ul class="tips-list">
+                            <li><i class="fas fa-list-ol"></i><span>عدد الأسئلة: 50 سؤالا جميعها بمستوى صعب.</span></li>
+                            <li><i class="fas fa-hourglass-half"></i><span>الإرسال متاح فقط بعد 15 دقيقة كاملة من بدء الامتحان.</span></li>
+                            <li><i class="fas fa-laptop-house"></i><span id="device-lock-note">هذا الجهاز يقبل طالبا واحدا فقط.</span></li>
+                            <li><i class="fas fa-camera"></i><span id="proctor-note">سيتم تشغيل دائرة كاميرا مراقبة عائمة أثناء الامتحان.</span></li>
+                        </ul>
+                    </div>
+                </aside>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/telegram.js"></script>
+    <script src="../js/main.js"></script>
+    <script src="../js/platform-store.js"></script>
+    <script src="../js/exam-window.js"></script>
+    <script src="../js/questions-data.js"></script>
+    <script src="../js/exam-player.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>مركز الطلاب | قرية متعلمة</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="../js/auth.js"></script>
+  <script src="../js/auth-guard.js"></script>
+</head>
+<body class="inner-page">
+  <div class="site-shell">
+    <header class="header">
+      <div class="container">
+        <a class="brand" href="../index.html" aria-label="العودة إلى الصفحة الرئيسية">
+          <span class="brand-mark">ق</span>
+          <span class="brand-text">
+            <span class="logo">قرية متعلمة</span>
+            <small>مركز الطلاب</small>
+          </span>
+        </a>
+        <button class="menu-toggle" id="sidebar-toggle" aria-label="فتح القائمة الجانبية">
+          <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+        </button>
+        <nav class="nav" id="main-nav" aria-label="روابط الموقع">
+          <a href="../index.html" class="nav-link">الرئيسية</a>
+          <a href="./leader-admin.html" class="nav-link">لوحة القائد</a>
+          <a href="./students-hub.html" class="nav-link active">مركز الطلاب</a>
+          <a href="./exam-status.html" class="nav-link">الامتحان</a>
+        </nav>
+      </div>
+    </header>
+
+    <aside class="sidebar" id="site-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <span class="brand-mark">ق</span>
+          <span class="logo">قرية متعلمة</span>
+        </div>
+        <button class="sidebar-close" id="sidebar-close" aria-label="إغلاق القائمة">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="../index.html" class="sidebar-link"><i class="fas fa-home"></i><span>الرئيسية</span></a>
+        <a href="./leader-admin.html" class="sidebar-link"><i class="fas fa-user-shield"></i><span>لوحة القائد</span></a>
+        <a href="./students-hub.html" class="sidebar-link active"><i class="fas fa-users-viewfinder"></i><span>مركز الطلاب</span></a>
+        <a href="./exam-status.html" class="sidebar-link"><i class="fas fa-pen-to-square"></i><span>بوابة الامتحان</span></a>
+      </nav>
+    </aside>
+
+    <main class="main-content-container">
+      <section class="page-hero">
+        <div class="container page-hero-grid">
+          <div class="page-copy">
+            <span class="page-badge"><i class="fas fa-users-viewfinder"></i> متابعة مباشرة</span>
+            <h1 class="page-title">مركز إدارة الطلاب والحسابات</h1>
+            <p class="page-text">صفحة موحدة لعرض الطلبات والحسابات المرتبطة بها مع البحث والتصفية والانتقال إلى شاشة التعديل الكاملة.</p>
+          </div>
+          <div class="page-visual">
+            <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80" alt="إدارة الطلاب" />
+          </div>
+        </div>
+      </section>
+
+      <section class="section-shell">
+        <div class="container">
+          <div id="students-hub-summary" class="admin-grid"></div>
+          <div class="content-card">
+            <div class="card-heading">
+              <span class="mini-badge">تصفية سريعة</span>
+              <h3>ابحث عن طالب أو اطبق فلتر القائد والحالة</h3>
+            </div>
+            <div class="admin-edit-grid">
+              <div class="admin-field">
+                <label for="student-search">بحث بالاسم أو رقم الطلب</label>
+                <input class="form-control" id="student-search" type="text" placeholder="ابحث هنا" />
+              </div>
+              <div class="admin-field">
+                <label for="student-status-filter">الحالة</label>
+                <select class="form-control" id="student-status-filter">
+                  <option value="">كل الحالات</option>
+                  <option value="pending">قيد المراجعة</option>
+                  <option value="accepted">مقبول</option>
+                  <option value="rejected">مرفوض</option>
+                </select>
+              </div>
+              <div class="admin-field">
+                <label for="student-leader-filter">كود القائد</label>
+                <select class="form-control" id="student-leader-filter">
+                  <option value="">كل الأكواد</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div id="students-hub-list" class="admin-grid" style="margin-top: 1.25rem;"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../js/main.js"></script>
+  <script src="../js/fixed-applications-db.js"></script>
+  <script src="../js/platform-store.js"></script>
+  <script src="../js/students-hub.js"></script>
+</body>
+</html>

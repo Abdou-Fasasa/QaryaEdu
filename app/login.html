@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="بوابة الدخول الآمنة لمنصة قرية متعلمة." />
+  <title>دخول المنصة | قرية متعلمة</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script type="module" src="./js/firebase-init.js"></script>
+  <script src="./js/auth.js"></script>
+  <script src="./js/auth-guard.js"></script>
+</head>
+<body class="auth-page">
+  <main class="auth-shell">
+    <div class="auth-vision-layout">
+      <section class="auth-vision-showcase" aria-label="عرض تعريفي للمنصة">
+        <span class="auth-vision-kicker"><i class="fas fa-shield-halved"></i> بوابة الدخول الذكية</span>
+        <h1 class="auth-vision-title">صفحة دخول عصرية تعكس قوة وتنظيم منصة قرية متعلمة</h1>
+        <p class="auth-vision-text">واجهة دخول حديثة، واضحة، ومتناسقة تلقائيًا مع الهاتف والتابلت والشاشات الكبيرة، مع تجربة بصرية قوية ومسار تحقق مباشر نحو الصفحات الداخلية.</p>
+
+        <div class="auth-vision-grid">
+          <article class="auth-vision-card">
+            <strong>وصول منظم</strong>
+            <span>الدخول يفتح الصفحة المطلوبة مباشرة بدون نوافذ إضافية.</span>
+          </article>
+          <article class="auth-vision-card">
+            <strong>تصميم مرن</strong>
+            <span>كل العناصر تتكيّف تلقائيًا مع المقاس المعروض.</span>
+          </article>
+          <article class="auth-vision-card">
+            <strong>حماية الروابط</strong>
+            <span>كل الروابط الداخلية تمر أولًا عبر التحقق المعتمد.</span>
+          </article>
+          <article class="auth-vision-card">
+            <strong>واجهة أوضح</strong>
+            <span>فصل بصري واضح بين المعلومات والدخول والإشعارات المهمة.</span>
+          </article>
+        </div>
+
+        <section class="auth-money-alert" aria-label="إشعار التحويلات">
+          <div class="auth-money-head">
+            <span class="auth-money-badge"><i class="fas fa-sparkles"></i> إشعار بارز</span>
+            <span class="auth-money-status">تم اعتماد التحويلات</span>
+          </div>
+          <div class="auth-money-main">
+            <div class="auth-money-icon" aria-hidden="true">
+              <i class="fas fa-wallet"></i>
+            </div>
+            <div class="auth-money-copy">
+              <h2 class="auth-money-title">إشعار الأموال</h2>
+              <p class="auth-money-message">
+                <strong>تم إرسال جميع الأموال إلى القائد على جميع الطلاب.</strong>
+                تأكدوا من تفعيل الأدمن لكم حتى تتمكنوا من استلام الدفعات.
+              </p>
+            </div>
+          </div>
+          <div class="auth-money-points">
+            <span><i class="fas fa-circle-check"></i> مراجعة حالة التفعيل</span>
+            <span><i class="fas fa-user-shield"></i> المتابعة مع الأدمن</span>
+            <span><i class="fas fa-money-bill-wave"></i> استلام الدفعات بعد الاعتماد</span>
+          </div>
+        </section>
+
+        <div class="auth-vision-lane">
+          <article class="auth-lane-card">
+            <span class="auth-lane-label">خدمة</span>
+            <strong>التسجيل والمتابعة</strong>
+            <p>ابدأ التسجيل ثم استخدم رقم الطلب للوصول إلى حالة الطلب بسهولة.</p>
+          </article>
+          <article class="auth-lane-card">
+            <span class="auth-lane-label">تجربة</span>
+            <strong>تصميم أكثر هدوءًا</strong>
+            <p>عناصر أقل تشتيتًا، ومساحات أوضح، وقراءة أسهل للمحتوى المهم.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="auth-vision-panel" aria-labelledby="login-title">
+        <div class="auth-panel-top">
+          <a class="auth-panel-brand" href="./index.html" aria-label="العودة إلى الصفحة الرئيسية">
+            <span class="brand-mark">ق</span>
+            <span class="brand-text">
+              <span class="logo">قرية متعلمة</span>
+              <small>بوابة الدخول الرسمية</small>
+            </span>
+          </a>
+          <span class="auth-panel-tag">جلسة دخول آمنة</span>
+        </div>
+
+        <div class="auth-panel-heading">
+          <h2 class="auth-panel-title" id="login-title">تسجيل الدخول</h2>
+          <p class="auth-panel-subtitle">أدخل البريد الإلكتروني وكلمة المرور لفتح المنصة. عند نجاح التحقق سيتم تحويلك مباشرة إلى الصفحة المناسبة.</p>
+        </div>
+
+        <form id="login-form" class="auth-form" novalidate>
+          <div class="auth-form-grid">
+            <div class="auth-field">
+              <label for="login-email">البريد الإلكتروني</label>
+              <div class="auth-input-wrap">
+                <input id="login-email" class="auth-input" type="email" inputmode="email" autocomplete="username" placeholder="Name@qarya.edu" required />
+              </div>
+            </div>
+
+            <div class="auth-field">
+              <label for="login-password">كلمة المرور</label>
+              <div class="auth-input-wrap">
+                <input id="login-password" class="auth-input" type="password" autocomplete="current-password" placeholder="Password" required />
+                <button type="button" class="auth-password-toggle" id="password-visibility-toggle" aria-label="إظهار كلمة المرور" aria-pressed="false">
+                  <i class="fas fa-eye"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="auth-helper">
+            <strong>مسار الدخول</strong>
+            <p id="next-target-label">بعد التحقق سيتم فتح الصفحة الرئيسية مباشرة.</p>
+            <small>يتم منع الوصول إلى الروابط الداخلية قبل تسجيل الدخول.</small>
+          </div>
+
+          <div id="login-message" class="auth-form-message" hidden></div>
+
+          <button id="login-submit" class="auth-submit" type="submit">
+            <span>فتح المنصة</span>
+            <i class="fas fa-arrow-left-long"></i>
+          </button>
+
+          <div class="auth-divider" aria-hidden="true">
+            <span>أو</span>
+          </div>
+
+          <div class="auth-provider-grid">
+            <button id="google-login-btn" class="auth-provider-btn auth-provider-btn-google" type="button">
+              <i class="fab fa-google"></i>
+              <span>تسجيل الدخول عبر Google</span>
+            </button>
+          </div>
+
+          <div class="auth-link-row">
+            <span>لا تملك حسابًا بعد؟</span>
+            <a href="./signup.html" data-auth-switch="signup">إنشاء حساب جديد</a>
+          </div>
+        </form>
+
+        <div class="auth-panel-foot">
+          <strong>بعد الدخول يمكنك الوصول إلى:</strong>
+          <div class="auth-panel-foot-grid">
+            <span><i class="fas fa-user-plus"></i> التسجيل</span>
+            <span><i class="fas fa-magnifying-glass"></i> حالة الطلب</span>
+            <span><i class="fas fa-pen-to-square"></i> بوابة الامتحان</span>
+            <span><i class="fas fa-file-circle-check"></i> التحقق من الأداء</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="./js/telegram.js"></script>
+  <script src="./js/login-page.js?v=20260418-3"></script>
+</body>
+</html>

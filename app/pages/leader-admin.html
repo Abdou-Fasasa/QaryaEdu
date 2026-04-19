@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>لوحة تحكم القائد | قرية متعلمة</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script type="module" src="../js/firebase-init.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/auth-guard.js"></script>
+  <style>
+    .admin-tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin: 2rem 0;
+        background: #f1f5f9;
+        padding: 0.5rem;
+        border-radius: 1rem;
+        overflow-x: auto;
+        border: 1px solid #e2e8f0;
+    }
+    .admin-tab-btn {
+        padding: 0.8rem 1.5rem;
+        border: none;
+        background: transparent;
+        color: #64748b;
+        font-weight: 700;
+        cursor: pointer;
+        border-radius: 0.75rem;
+        white-space: nowrap;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-size: 0.95rem;
+        position: relative;
+    }
+    .admin-tab-btn i {
+        font-size: 1.1rem;
+    }
+    .admin-tab-count {
+        min-width: 1.55rem;
+        height: 1.55rem;
+        padding: 0 0.38rem;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #ef4444, #f97316);
+        color: #fff;
+        font-size: 0.74rem;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 24px rgba(239, 68, 68, 0.24);
+    }
+    .admin-tab-btn:hover {
+        background: #e2e8f0;
+        color: #1e293b;
+    }
+    .admin-tab-btn.active {
+        background: white;
+        color: var(--primary);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .admin-tab-btn.active .admin-tab-count {
+        display: none;
+    }
+    .admin-tab-content {
+        display: none;
+        animation: slideUp 0.4s ease-out;
+    }
+    /* النووي: إصلاح شامل ونهائي لمشكلة اختفاء المحتوى عند الزووم أو تغيير الحجم */
+    html, body {
+        height: auto !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+    }
+
+    .main-content-container, 
+    .section-shell, 
+    .admin-dashboard-shell,
+    .admin-section-card,
+    .content-card {
+        display: block !important;
+        height: auto !important;
+        min-height: min-content !important;
+        overflow: visible !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: none !important;
+        perspective: none !important;
+        backdrop-filter: none !important;
+        filter: none !important;
+    }
+
+    /* التبويبات النشطة وغير النشطة */
+    .admin-tab-content {
+        display: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        overflow: hidden !important;
+    }
+
+    .admin-tab-content.active {
+        display: block !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        height: auto !important;
+        min-height: 400px !important; /* نضمن وجود مساحة دنيا للعرض */
+        overflow: visible !important;
+        animation: none !important;
+    }
+
+    /* إصلاح استقرار الـ Grid */
+    .admin-grid {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
+        gap: 1.5rem !important;
+        margin-top: 1rem !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        overflow: visible !important;
+        height: auto !important;
+        min-height: 100px !important;
+    }
+
+    .admin-card {
+        background: white !important;
+        color: #1e293b !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        display: flex !important;
+        flex-direction: column !important;
+        position: relative !important;
+        z-index: 10 !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    /* التأكد من أن جميع الأبناء داخل التبويب النشط يظهرون */
+    .admin-tab-content.active * {
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+
+    /* استثناءات لتنسيقات معينة */
+    .admin-grid[style*="grid-template-columns: 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .admin-overview-strip {
+        display: grid !important;
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 1rem !important;
+    }
+    .admin-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.06);
+        border-color: var(--primary-soft);
+    }
+    
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+    
+    .user-info h4 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: #1e293b;
+    }
+    .user-info span {
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+    
+    .card-body {
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: 1rem;
+        font-size: 0.9rem;
+    }
+    .card-body p {
+        margin: 0.4rem 0;
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .card-actions {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.6rem;
+    }
+    
+    .btn-action {
+        padding: 0.6rem;
+        border-radius: 0.6rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1px solid #e2e8f0;
+        background: white;
+        color: #475569;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+    }
+    .btn-action:hover {
+        background: #f1f5f9;
+        border-color: #cbd5e1;
+    }
+    .btn-action.danger { color: #ef4444; }
+    .btn-action.success { color: #10b981; }
+    
+    .status-pill {
+        padding: 0.3rem 0.8rem;
+        border-radius: 2rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+    .pill-active { background: #dcfce7; color: #166534; }
+    .pill-suspended { background: #fee2e2; color: #991b1b; }
+
+    .custom-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(4px);
+        z-index: 9999;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 1rem;
+        overflow-y: auto;
+    }
+    .custom-modal.open { display: flex; }
+    .modal-content {
+        background: white;
+        width: 100%;
+        max-width: 920px;
+        border-radius: 1.5rem;
+        max-height: calc(100vh - 2rem);
+        padding: 1.35rem;
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+        animation: modalBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        margin: auto 0;
+    }
+    @keyframes modalBounce {
+        from { transform: scale(0.9); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+    .modal-header { margin-bottom: 1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 1rem; flex-shrink: 0; }
+    .modal-title { font-size: 1.25rem; font-weight: 800; color: #0f172a; }
+    .modal-body {
+        margin-bottom: 1rem;
+        flex: 1 1 auto;
+        overflow: auto;
+        padding-inline-end: 0.25rem;
+    }
+    .modal-footer {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 1rem;
+        flex-shrink: 0;
+    }
+    .admin-modal-form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem 1.1rem;
+        align-items: start;
+    }
+    .admin-modal-form-grid > .form-group,
+    .admin-modal-form-grid > .admin-field,
+    .admin-modal-form-grid > .admin-edit-grid {
+        margin-bottom: 0;
+        min-width: 0;
+    }
+    .admin-modal-form-grid > .form-group.form-group-full,
+    .admin-modal-form-grid > .admin-field-full,
+    .admin-modal-form-grid > .admin-edit-grid,
+    .admin-modal-form-grid > .modal-grid-full {
+        grid-column: 1 / -1;
+    }
+    .custom-modal .admin-edit-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-top: 0;
+    }
+    
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: #475569; font-size: 0.9rem; }
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 0.75rem;
+        font-family: inherit;
+        transition: all 0.2s;
+    }
+    .form-control:focus {
+        border-color: var(--primary);
+        outline: none;
+        box-shadow: 0 0 0 4px var(--primary-soft);
+    }
+    .custom-modal textarea.form-control {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    @media (max-width: 760px) {
+        .modal-content {
+            max-width: 96vw;
+            max-height: calc(100vh - 1rem);
+            padding: 1rem;
+        }
+        .admin-modal-form-grid,
+        .custom-modal .admin-edit-grid {
+            grid-template-columns: 1fr;
+        }
+        .modal-footer {
+            flex-wrap: wrap;
+        }
+        .modal-footer > * {
+            flex: 1 1 100%;
+        }
+    }
+
+    .exam-toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #f1f5f9;
+        padding: 0.6rem 1rem;
+        border-radius: 0.75rem;
+        margin-top: 0.5rem;
+    }
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        inset: 0;
+        background-color: #cbd5e1;
+        transition: .4s;
+        border-radius: 24px;
+    }
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+    input:checked + .slider { background-color: var(--primary); }
+    input:checked + .slider:before { transform: translateX(20px); }
+
+    .page-hero {
+        position: relative;
+        overflow: hidden;
+    }
+    .page-hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(circle at top right, rgba(37, 99, 235, 0.22), transparent 36%),
+            radial-gradient(circle at bottom left, rgba(14, 165, 233, 0.18), transparent 34%);
+        pointer-events: none;
+    }
+    .page-hero-grid {
+        align-items: stretch;
+    }
+    .page-copy {
+        position: relative;
+        z-index: 1;
+    }
+    .admin-hero-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 1.25rem;
+    }
+    .admin-hero-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0.9rem 1rem;
+        border-radius: 1rem;
+        background: rgba(255, 255, 255, 0.84);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        color: #0f172a;
+        box-shadow: 0 18px 35px rgba(15, 23, 42, 0.08);
+    }
+    .admin-hero-pill i {
+        color: var(--primary);
+    }
+    .admin-hero-pill strong {
+        display: block;
+        font-size: 0.95rem;
+    }
+    .admin-hero-pill span {
+        display: block;
+        font-size: 0.78rem;
+        color: #64748b;
+    }
+    .page-visual {
+        position: relative;
+        min-height: 100%;
+    }
+    .page-visual-caption {
+        position: absolute;
+        right: 1rem;
+        left: 1rem;
+        bottom: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.85rem 1rem;
+        border-radius: 1rem;
+        background: rgba(15, 23, 42, 0.72);
+        color: white;
+        backdrop-filter: blur(12px);
+    }
+    .page-visual-caption strong {
+        display: block;
+    }
+    .page-visual-caption span {
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.78);
+    }
+    .page-visual-caption i {
+        font-size: 1.25rem;
+        color: #fbbf24;
+    }
+
+    .admin-dashboard-shell {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+    .admin-command-bar {
+        display: grid;
+        gap: 1rem;
+        padding: 1.2rem;
+        border-radius: 1.6rem;
+        background:
+            linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.95)),
+            linear-gradient(135deg, rgba(37, 99, 235, 0.06), rgba(15, 23, 42, 0.03));
+        border: 1px solid rgba(148, 163, 184, 0.16);
+        box-shadow: 0 24px 50px rgba(15, 23, 42, 0.08);
+    }
+    .admin-command-primary,
+    .admin-command-secondary {
+        display: grid;
+        gap: 1rem;
+    }
+    .admin-command-primary {
+        grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.9fr);
+        align-items: start;
+    }
+    .admin-command-copy h2 {
+        margin: 0.3rem 0 0.55rem;
+        font-size: clamp(1.5rem, 3vw, 2.1rem);
+        color: #0f172a;
+    }
+    .admin-command-copy p {
+        margin: 0;
+        color: #475569;
+        max-width: 58ch;
+        line-height: 1.8;
+    }
+    .admin-command-secondary {
+        grid-template-columns: minmax(220px, 0.9fr) repeat(2, minmax(180px, 0.55fr)) minmax(260px, 1fr);
+        align-items: stretch;
+    }
+    .admin-tab-select-wrap,
+    .admin-context-chip,
+    .admin-quick-panel {
+        min-height: 100%;
+        border-radius: 1.2rem;
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        background: rgba(255, 255, 255, 0.92);
+        box-shadow: 0 14px 30px rgba(15, 23, 42, 0.05);
+    }
+    .admin-tab-select-wrap,
+    .admin-context-chip {
+        padding: 0.95rem 1rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 0.45rem;
+    }
+    .admin-tab-select-wrap label,
+    .admin-context-chip span {
+        font-size: 0.82rem;
+        color: #64748b;
+        font-weight: 700;
+    }
+    .admin-context-chip strong {
+        font-size: 1.05rem;
+        color: #0f172a;
+    }
+    .admin-select {
+        width: 100%;
+        min-height: 50px;
+        padding: 0.85rem 1rem;
+        border-radius: 0.95rem;
+        border: 1px solid rgba(203, 213, 225, 0.95);
+        background: white;
+        color: #0f172a;
+        font: inherit;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+    .admin-select:focus {
+        outline: none;
+        border-color: rgba(37, 99, 235, 0.45);
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+        transform: translateY(-1px);
+    }
+    .admin-search-field {
+        position: relative;
+        display: flex;
+        align-items: center;
+        min-height: 56px;
+        padding: 0 1rem 0 3.2rem;
+        border-radius: 1rem;
+        background: white;
+        border: 1px solid rgba(203, 213, 225, 0.95);
+        box-shadow: 0 16px 28px rgba(15, 23, 42, 0.06);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+    .admin-search-field:focus-within {
+        border-color: rgba(37, 99, 235, 0.45);
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+        transform: translateY(-1px);
+    }
+    .admin-search-field i {
+        position: absolute;
+        right: 1rem;
+        color: var(--primary);
+        font-size: 1rem;
+    }
+    .admin-search-field input {
+        width: 100%;
+        border: none;
+        background: transparent;
+        font: inherit;
+        color: #0f172a;
+        padding: 0;
+    }
+    .admin-search-field input:focus {
+        outline: none;
+    }
+    .admin-search-status {
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 0.4rem;
+        margin-top: 0.75rem;
+        color: #475569;
+        font-size: 0.86rem;
+    }
+    .admin-search-status::before {
+        content: "";
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #22c55e;
+        box-shadow: 0 0 0 5px rgba(34, 197, 94, 0.12);
+    }
+    .admin-quick-panel summary {
+        list-style: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 1rem 1.1rem;
+        font-weight: 800;
+        color: #0f172a;
+    }
+    .admin-quick-panel summary::-webkit-details-marker {
+        display: none;
+    }
+    .admin-quick-panel summary i {
+        color: var(--primary);
+    }
+    .admin-quick-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.7rem;
+        padding: 0 1rem 1rem;
+    }
+    .admin-quick-link {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.85rem 0.95rem;
+        border-radius: 0.95rem;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        color: #0f172a;
+        text-decoration: none;
+        transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+    .admin-quick-link:hover {
+        transform: translateY(-2px);
+        border-color: rgba(37, 99, 235, 0.25);
+        background: #eff6ff;
+    }
+    .admin-quick-link i {
+        color: var(--primary);
+    }
+    .admin-overview-strip {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1rem;
+    }
+    .admin-overview-card {
+        position: relative;
+        overflow: hidden;
+        padding: 1.15rem;
+        border-radius: 1.4rem;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.94));
+        border: 1px solid rgba(148, 163, 184, 0.16);
+        box-shadow: 0 18px 34px rgba(15, 23, 42, 0.05);
+    }
+    .admin-overview-card::after {
+        content: "";
+        position: absolute;
+        inset-inline-start: -20%;
+        inset-block-start: auto;
+        inset-block-end: -42%;
+        width: 70%;
+        height: 70%;
+        border-radius: 50%;
+        background: rgba(37, 99, 235, 0.08);
+    }
+    .admin-overview-card span,
+    .admin-overview-card small {
+        position: relative;
+        z-index: 1;
+    }
+    .admin-overview-card span {
+        display: block;
+        color: #64748b;
+        font-size: 0.82rem;
+        margin-bottom: 0.55rem;
+    }
+    .admin-overview-card strong {
+        position: relative;
+        z-index: 1;
+        display: block;
+        color: #0f172a;
+        font-size: 1.6rem;
+        margin-bottom: 0.35rem;
+    }
+    .admin-overview-card small {
+        display: block;
+        color: #475569;
+        font-size: 0.85rem;
+    }
+    .admin-tabs {
+        gap: 0.7rem;
+        margin: 0;
+        padding: 0.75rem;
+        border-radius: 1.4rem;
+        background: linear-gradient(180deg, #f8fafc, #eef2ff);
+        box-shadow: 0 16px 30px rgba(15, 23, 42, 0.05);
+    }
+    .admin-tab-btn {
+        flex: 1 0 auto;
+        justify-content: center;
+        min-height: 54px;
+        padding: 0.9rem 1.25rem;
+        border: 1px solid transparent;
+    }
+    .admin-tab-btn.active {
+        border-color: rgba(37, 99, 235, 0.15);
+        box-shadow: 0 12px 22px rgba(37, 99, 235, 0.14);
+    }
+    .admin-section-card {
+        padding: 1.35rem;
+        border-radius: 1.6rem;
+        box-shadow: 0 24px 48px rgba(15, 23, 42, 0.07);
+    }
+    .admin-toolbar {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem;
+        margin-bottom: 1.25rem;
+        border-radius: 1.2rem;
+        background: linear-gradient(180deg, #f8fafc, #ffffff);
+        border: 1px solid rgba(226, 232, 240, 0.95);
+    }
+    .admin-toolbar-copy h3 {
+        margin: 0 0 0.35rem;
+        font-size: 1.15rem;
+    }
+    .admin-toolbar-copy p {
+        margin: 0;
+        color: #64748b;
+    }
+    .admin-toolbar-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        align-items: center;
+        justify-content: flex-end;
+        min-width: min(100%, 730px);
+    }
+    .admin-toolbar-controls > * {
+        max-width: 100%;
+    }
+    .admin-toolbar-controls .admin-search-field {
+        min-width: min(100%, 280px);
+        flex: 1 1 260px;
+        margin: 0;
+    }
+    .admin-toolbar-controls .admin-select {
+        width: auto;
+        min-width: 165px;
+    }
+    .admin-grid {
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.1rem;
+    }
+    .admin-card {
+        padding: 1.2rem;
+        border-radius: 1.35rem;
+        border: 1px solid rgba(226, 232, 240, 0.95);
+        box-shadow: 0 16px 30px rgba(15, 23, 42, 0.045);
+    }
+    .card-header {
+        gap: 0.8rem;
+        padding-bottom: 0.85rem;
+        border-bottom: 1px dashed rgba(203, 213, 225, 0.85);
+    }
+    .card-body {
+        background: linear-gradient(180deg, #f8fafc, #ffffff);
+        border: 1px solid rgba(226, 232, 240, 0.9);
+    }
+    .card-body p {
+        gap: 1rem;
+    }
+    .card-body p span {
+        color: #64748b;
+    }
+    .card-body p strong {
+        text-align: left;
+        color: #0f172a;
+    }
+    .card-actions {
+        grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
+    }
+    .status-pill {
+        min-width: 84px;
+        text-align: center;
+    }
+    .admin-empty-state {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.85rem;
+        min-height: 230px;
+        text-align: center;
+        background: linear-gradient(180deg, #f8fafc, #ffffff);
+    }
+    .admin-empty-state i {
+        font-size: 2.1rem;
+        color: var(--primary);
+    }
+    .admin-empty-state p {
+        max-width: 38ch;
+        margin: 0;
+        color: #64748b;
+    }
+    @media (max-width: 1280px) {
+        .admin-command-secondary,
+        .admin-overview-strip {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .admin-grid {
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        }
+    }
+    @media (max-width: 1100px) {
+        .admin-command-primary,
+        .admin-command-secondary,
+        .admin-overview-strip {
+            grid-template-columns: 1fr 1fr;
+        }
+        .admin-toolbar {
+            flex-direction: column;
+        }
+        .admin-toolbar-controls {
+            justify-content: stretch;
+            min-width: 100%;
+        }
+    }
+    @media (max-width: 960px) {
+        .page-hero-grid,
+        .admin-command-primary,
+        .admin-command-secondary,
+        .admin-overview-strip {
+            grid-template-columns: 1fr;
+        }
+        .admin-command-bar,
+        .admin-section-card {
+            padding: 1rem;
+        }
+        .admin-grid {
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        }
+        .admin-toolbar {
+            padding: 0.9rem;
+        }
+        .admin-toolbar-controls {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .admin-toolbar-controls .admin-select,
+        .admin-toolbar-controls .admin-search-field,
+        .admin-toolbar-controls .btn-ghost,
+        .admin-toolbar-controls .btn-action,
+        .admin-toolbar-controls .btn-primary {
+            width: 100%;
+            min-width: 100%;
+        }
+        .page-visual img {
+            min-height: 300px;
+        }
+        .card-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .card-actions {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+    @media (max-width: 780px) {
+        .admin-command-primary,
+        .admin-command-secondary,
+        .admin-overview-strip {
+            grid-template-columns: 1fr;
+        }
+        .admin-tabs {
+            display: none !important;
+        }
+        .admin-toolbar-controls .admin-select,
+        .admin-toolbar-controls .admin-search-field {
+            width: 100%;
+            min-width: 100%;
+        }
+        .page-visual-caption {
+            position: static;
+            margin-top: 0.85rem;
+        }
+    }
+    @media (max-width: 640px) {
+        .admin-command-bar,
+        .admin-section-card,
+        .admin-card {
+            padding: 1rem;
+        }
+        .admin-grid,
+        .admin-overview-strip {
+            grid-template-columns: 1fr;
+        }
+        .card-body p {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .card-body p strong {
+            width: 100%;
+            text-align: right;
+        }
+        .card-actions {
+            grid-template-columns: 1fr;
+        }
+        .page-visual img {
+            min-height: 240px;
+        }
+        .page-visual-caption {
+            padding: 0.85rem;
+        }
+    }
+  </style>
+</head>
+<body class="inner-page">
+  <div class="site-shell">
+    <header class="header">
+      <div class="container">
+        <a class="brand" href="../index.html" aria-label="العودة إلى الصفحة الرئيسية">
+          <span class="brand-mark">ق</span>
+          <span class="brand-text">
+            <span class="logo">قرية متعلمة</span>
+            <small>لوحة تحكم القائد</small>
+          </span>
+        </a>
+
+        <button class="menu-toggle" id="sidebar-toggle" aria-label="فتح القائمة الجانبية">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+        </button>
+
+        <nav class="nav" id="main-nav" aria-label="روابط الموقع">
+          <a href="../index.html" class="nav-link">الرئيسية</a>
+          <a href="./register.html" class="nav-link">التسجيل</a>
+          <a href="./exam-status.html" class="nav-link">الامتحان</a>
+          <a href="./status.html" class="nav-link">حالة الطلب</a>
+          <a href="./students-hub.html" class="nav-link">مركز الطلاب</a>
+          <a href="./leader-admin.html" class="nav-link active">لوحة القائد</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Chic Sidebar -->
+    <aside class="sidebar" id="site-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <span class="brand-mark">ق</span>
+          <span class="logo">قرية متعلمة</span>
+        </div>
+        <button class="sidebar-close" id="sidebar-close" aria-label="إغلاق القائمة">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="../index.html" class="sidebar-link">
+          <i class="fas fa-home"></i> <span>الرئيسية</span>
+        </a>
+        <a href="./leader-admin.html" class="sidebar-link active">
+          <i class="fas fa-user-shield"></i> <span>لوحة تحكم القائد</span>
+        </a>
+        <a href="./students-hub.html" class="sidebar-link">
+          <i class="fas fa-users-viewfinder"></i> <span>مركز الطلاب</span>
+        </a>
+        <a href="./register.html" class="sidebar-link">
+          <i class="fas fa-user-plus"></i> <span>التسجيل الجديد</span>
+        </a>
+        <a href="./exam-status.html" class="sidebar-link">
+          <i class="fas fa-pen-to-square"></i> <span>بوابة الامتحان</span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <p>&copy; 2026 جميع الحقوق محفوظة لقرية متعلمة</p>
+      </div>
+    </aside>
+
+    <main class="main-content-container">
+      <section class="page-hero">
+        <div class="container page-hero-grid">
+          <div class="page-copy">
+            <span class="page-badge"><i class="fas fa-user-shield"></i> إدارة الطلاب</span>
+            <h1 class="page-title">لوحة تحكم القائد</h1>
+            <p class="page-text">واجهة تشغيل موحدة لإدارة الطلاب، مراجعة الطلبات، متابعة الماليات، وضبط الامتحانات من مساحة واحدة واضحة وسريعة.</p>
+            <div class="admin-hero-pills">
+              <div class="admin-hero-pill">
+                <i class="fas fa-layer-group"></i>
+                <div>
+                  <strong>تنظيم على مستوى الأقسام</strong>
+                  <span>تبويبات أوضح، ملخصات أسرع، وتنقل مباشر</span>
+                </div>
+              </div>
+              <div class="admin-hero-pill">
+                <i class="fas fa-magnifying-glass-chart"></i>
+                <div>
+                  <strong>بحث وفلاتر لحظية</strong>
+                  <span>الوصول إلى أي طالب أو عملية خلال ثوان</span>
+                </div>
+              </div>
+              <div class="admin-hero-pill">
+                <i class="fas fa-bolt"></i>
+                <div>
+                  <strong>تشغيل أسرع</strong>
+                  <span>أوامر سريعة وإجراءات مباشرة من نفس الشاشة</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="page-visual">
+            <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1200&q=80" alt="إدارة البيانات" />
+            <div class="page-visual-caption">
+              <div>
+                <strong>لوحة قيادة تشغيلية</strong>
+                <span>منظور موحد للحالة العامة والقرارات السريعة</span>
+              </div>
+              <i class="fas fa-chart-line"></i>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-shell">
+        <div class="container">
+          <div class="admin-dashboard-shell">
+            <div class="admin-command-bar">
+              <div class="admin-command-primary">
+                <div class="admin-command-copy">
+                  <span class="mini-badge">لوحة تشغيل متقدمة</span>
+                  <h2>تنقل أسرع وتحكم أوضح في كل أقسام المنصة</h2>
+                  <p>ابحث مباشرة داخل القسم الحالي، بدّل بين الأقسام من القائمة المنسدلة، وراجع المؤشرات الأساسية قبل الدخول في تفاصيل كل بطاقة.</p>
+                </div>
+                <div>
+                  <label class="admin-search-field" for="admin-global-search">
+                    <i class="fas fa-magnifying-glass"></i>
+                    <input id="admin-global-search" type="search" placeholder="بحث عام داخل القسم الحالي..." />
+                  </label>
+                  <span id="admin-search-status" class="admin-search-status">عرض جميع البيانات بدون أي تصفية.</span>
+                </div>
+              </div>
+              <div class="admin-command-secondary">
+                <div class="admin-tab-select-wrap">
+                  <label for="admin-tab-select">القسم الحالي</label>
+                  <select id="admin-tab-select" class="admin-select">
+                    <option value="students-tab">طلابي</option>
+                    <option value="withdrawals-tab">الماليات</option>
+                    <option value="users-tab">المستخدمين</option>
+                    <option value="exams-tab">الامتحانات</option>
+                    <option value="support-tab">الدعم</option>
+                    <option value="notifications-tab">التنبيهات</option>
+                  </select>
+                </div>
+                <div class="admin-context-chip">
+                  <span>وضع الدخول</span>
+                  <strong id="admin-role-label">جاري التهيئة...</strong>
+                </div>
+                <div class="admin-context-chip">
+                  <span>القسم النشط</span>
+                  <strong id="admin-active-tab-label">طلابي</strong>
+                </div>
+                <details class="admin-quick-panel">
+                  <summary><span>أوامر سريعة</span><i class="fas fa-sliders"></i></summary>
+                  <div class="admin-quick-grid">
+                    <a class="admin-quick-link" href="./students-hub.html"><i class="fas fa-users-viewfinder"></i><span>مركز الطلاب</span></a>
+                    <a class="admin-quick-link" href="./register.html"><i class="fas fa-user-plus"></i><span>تسجيل جديد</span></a>
+                    <a class="admin-quick-link" href="./exam-status.html"><i class="fas fa-pen-to-square"></i><span>بوابة الامتحان</span></a>
+                    <a class="admin-quick-link" href="./notifications.html"><i class="fas fa-bell"></i><span>الإشعارات</span></a>
+                  </div>
+                </details>
+              </div>
+            </div>
+
+            <div id="admin-overview-strip" class="admin-overview-strip">
+              <div class="admin-overview-card">
+                <span>القسم</span>
+                <strong>طلابي</strong>
+                <small>مؤشرات سريعة سيتم تحديثها آليًا.</small>
+              </div>
+              <div class="admin-overview-card">
+                <span>العناصر</span>
+                <strong>0</strong>
+                <small>إجمالي العناصر في القسم الحالي.</small>
+              </div>
+              <div class="admin-overview-card">
+                <span>الحالة الأبرز</span>
+                <strong>--</strong>
+                <small>أهم حالة تحتاج متابعة الآن.</small>
+              </div>
+              <div class="admin-overview-card">
+                <span>التصفية الحالية</span>
+                <strong>بدون فلاتر</strong>
+                <small>يعرض كل البيانات المتاحة.</small>
+              </div>
+            </div>
+
+            <div id="admin-tabs-container" class="admin-tabs" style="display: none;">
+              <button class="admin-tab-btn active" data-tab-target="students-tab" onclick="switchTab('students-tab', event)">
+                <i class="fas fa-users-rectangle"></i> طلابي
+              </button>
+              <button class="admin-tab-btn" id="tab-withdrawals" data-tab-target="withdrawals-tab" onclick="switchTab('withdrawals-tab', event)">
+                <i class="fas fa-money-bill-transfer"></i> الماليات
+              </button>
+              <button class="admin-tab-btn" id="tab-users" data-tab-target="users-tab" onclick="switchTab('users-tab', event)">
+                <i class="fas fa-user-gear"></i> المستخدمين
+              </button>
+              <button class="admin-tab-btn" id="tab-exams" data-tab-target="exams-tab" onclick="switchTab('exams-tab', event)">
+                <i class="fas fa-file-signature"></i> الامتحانات
+              </button>
+              <button class="admin-tab-btn" id="tab-support" data-tab-target="support-tab" onclick="switchTab('support-tab', event)">
+                <i class="fas fa-headset"></i> الدعم
+              </button>
+              <button class="admin-tab-btn" id="tab-notifications" data-tab-target="notifications-tab" onclick="switchTab('notifications-tab', event)">
+                <i class="fas fa-bell"></i> التنبيهات
+              </button>
+            </div>
+
+            <div id="students-tab" class="admin-tab-content active">
+              <div class="content-card admin-section-card">
+                <div class="admin-toolbar">
+                  <div class="admin-toolbar-copy">
+                    <span class="mini-badge">قائمة القائد</span>
+                    <h3 id="leader-welcome">جاري تحميل البيانات...</h3>
+                    <p>إدارة الطلاب التابعين لك، مراجعة الحالة، والتحرك السريع إلى شاشة التعديل أو مركز الطلاب.</p>
+                  </div>
+                  <div class="admin-toolbar-controls">
+                    <label class="admin-search-field" for="students-search">
+                      <i class="fas fa-magnifying-glass"></i>
+                      <input id="students-search" type="search" placeholder="بحث باسم الطالب أو رقم الطلب أو الرقم القومي..." />
+                    </label>
+                    <select id="students-status-filter" class="admin-select">
+                      <option value="all">كل الحالات</option>
+                      <option value="pending">قيد المراجعة</option>
+                      <option value="accepted">مقبول</option>
+                      <option value="rejected">مرفوض</option>
+                    </select>
+                    <select id="students-exam-filter" class="admin-select">
+                      <option value="all">كل أوضاع الامتحان</option>
+                      <option value="allowed">سماح خاص</option>
+                      <option value="blocked">ممنوع امتحان</option>
+                      <option value="schedule">حسب القواعد</option>
+                    </select>
+                    <a href="./students-hub.html" class="btn-ghost"><i class="fas fa-users-viewfinder"></i> فتح مركز الطلاب</a>
+                  </div>
+                </div>
+                <div id="students-list" class="admin-grid">
+                  <div class="admin-card admin-empty-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>جاري تحميل الطلاب وتجهيز المؤشرات والفلاتر.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="withdrawals-tab" class="admin-tab-content">
+              <div class="content-card admin-section-card">
+                <div class="admin-toolbar">
+                  <div class="admin-toolbar-copy">
+                    <span class="mini-badge">الإدارة المالية</span>
+                    <h3>طلبات سحب الرصيد</h3>
+                    <p>فلترة ومراجعة الطلبات بسرعة مع إبقاء إجراءات التنفيذ والرفض والتعديل والحذف من نفس المكان.</p>
+                  </div>
+                  <div class="admin-toolbar-controls">
+                    <label class="admin-search-field" for="withdrawals-search">
+                      <i class="fas fa-magnifying-glass"></i>
+                      <input id="withdrawals-search" type="search" placeholder="بحث بالاسم أو البريد أو رقم العملية..." />
+                    </label>
+                    <select id="withdrawals-status-filter" class="admin-select">
+                      <option value="all">كل الحالات</option>
+                      <option value="pending">قيد المراجعة</option>
+                      <option value="completed">تم التنفيذ</option>
+                      <option value="rejected">مرفوض</option>
+                      <option value="error">خطأ</option>
+                    </select>
+                    <select id="withdrawals-method-filter" class="admin-select">
+                      <option value="all">كل الوسائل</option>
+                      <option value="cash">كاش</option>
+                      <option value="bank">بنك</option>
+                      <option value="wallet">محفظة</option>
+                    </select>
+                    <button class="btn-action danger btn-sm" onclick="clearAllWithdrawals()"><i class="fas fa-trash-can"></i> مسح كافة العمليات</button>
+                  </div>
+                </div>
+                <div id="all-withdrawals-list" class="admin-grid">
+                  <div class="admin-card admin-empty-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>جاري تحميل طلبات السحب.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="users-tab" class="admin-tab-content">
+              <div class="content-card admin-section-card">
+                <div class="admin-toolbar">
+                  <div class="admin-toolbar-copy">
+                    <span class="mini-badge">إدارة المنصة</span>
+                    <h3>قاعدة بيانات المستخدمين</h3>
+                    <p>إدارة الحسابات، الصلاحيات، المنع، السحب، والرصد من واجهة أكثر ترتيبًا.</p>
+                  </div>
+                  <div class="admin-toolbar-controls">
+                    <label class="admin-search-field" for="users-search">
+                      <i class="fas fa-magnifying-glass"></i>
+                      <input id="users-search" type="search" placeholder="بحث بالاسم أو البريد أو كود القائد..." />
+                    </label>
+                    <select id="users-status-filter" class="admin-select">
+                      <option value="all">كل المستخدمين</option>
+                      <option value="active">نشط</option>
+                      <option value="suspended">موقوف</option>
+                    </select>
+                    <select id="users-exam-filter" class="admin-select">
+                      <option value="all">كل صلاحيات الامتحان</option>
+                      <option value="allowed">امتحان مسموح</option>
+                      <option value="blocked">امتحان موقوف</option>
+                    </select>
+                    <button class="btn-primary btn-sm" onclick="showAddUserModal()"><i class="fas fa-plus"></i> إضافة مستخدم جديد</button>
+                    <button class="btn-action danger btn-sm" onclick="clearAllUsers()"><i class="fas fa-user-minus"></i> مسح كافة المستخدمين</button>
+                  </div>
+                </div>
+                <div id="all-users-list" class="admin-grid">
+                  <div class="admin-card admin-empty-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>جاري تحميل قاعدة المستخدمين.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="exams-tab" class="admin-tab-content">
+              <div class="content-card admin-section-card">
+                <div class="admin-toolbar">
+                  <div class="admin-toolbar-copy">
+                    <span class="mini-badge">إدارة الامتحانات</span>
+                    <h3>التحكم في الامتحانات</h3>
+                    <p>تشغيل مباشر، إيقاف يدوي، رجوع للجدول، ومتابعة الحالة الحالية من نفس المساحة.</p>
+                  </div>
+                  <div class="admin-toolbar-controls">
+                    <button class="btn-action success" onclick="openExamWindow()"><i class="fas fa-door-open"></i> فتح الآن</button>
+                    <button class="btn-action danger" onclick="closeExamWindow()"><i class="fas fa-circle-stop"></i> إيقاف الآن</button>
+                    <button class="btn-action" onclick="restoreExamSchedule()"><i class="fas fa-calendar-days"></i> العودة للجدول</button>
+                  </div>
+                </div>
+                <div id="global-exam-control" style="margin-top: 0;">
+                  <div class="admin-card admin-empty-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>جاري تحميل حالة الامتحانات.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="support-tab" class="admin-tab-content">
+              <div class="content-card admin-section-card">
+                <div class="admin-toolbar">
+                  <div class="admin-toolbar-copy">
+                    <span class="mini-badge">الدعم الإداري</span>
+                    <h3>محادثات المستخدمين مع الإدارة</h3>
+                    <p>استعراض الرسائل الواردة من المستخدمين، الرد عليها، ومتابعة حالة كل محادثة من مكان واحد.</p>
+                  </div>
+                  <div class="admin-toolbar-controls">
+                    <label class="admin-search-field" for="support-search">
+                      <i class="fas fa-magnifying-glass"></i>
+                      <input id="support-search" type="search" placeholder="بحث بالاسم أو البريد أو نص الرسالة..." />
+                    </label>
+                    <select id="support-status-filter" class="admin-select">
+                      <option value="all">كل المحادثات</option>
+                      <option value="open">مفتوحة</option>
+                      <option value="closed">مغلقة</option>
+                      <option value="unread">غير مقروءة</option>
+                    </select>
+                  </div>
+                </div>
+                <div id="support-inbox-list" class="admin-grid">
+                  <div class="admin-card admin-empty-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>جاري تحميل محادثات الدعم.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="notifications-tab" class="admin-tab-content">
+              <div class="content-card admin-section-card">
+                <div class="admin-toolbar">
+                  <div class="admin-toolbar-copy">
+                    <span class="mini-badge">التواصل</span>
+                    <h3>التنبيهات والمنشورات</h3>
+                    <p>إدارة الإشعارات العامة والمنشورة مع بحث سريع حسب العنوان أو النوع أو المحتوى.</p>
+                  </div>
+                  <div class="admin-toolbar-controls">
+                    <label class="admin-search-field" for="notifications-search">
+                      <i class="fas fa-magnifying-glass"></i>
+                      <input id="notifications-search" type="search" placeholder="بحث في عنوان أو نص الإشعار..." />
+                    </label>
+                    <select id="notifications-type-filter" class="admin-select">
+                      <option value="all">كل الأنواع</option>
+                      <option value="private">خاص</option>
+                      <option value="sticky">ثابت</option>
+                      <option value="update">تحديث</option>
+                      <option value="application">طلبات</option>
+                      <option value="exam">امتحانات</option>
+                      <option value="finance">ماليات</option>
+                      <option value="support">دعم</option>
+                    </select>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                      <button class="btn-primary" onclick="showGlobalNotifModal()"><i class="fas fa-bullhorn"></i> إنشاء إشعار عام</button>
+                      <button class="btn-action danger" style="width: 100%;" onclick="deleteAllNotifications()"><i class="fas fa-trash-can"></i> حذف الكل</button>
+                    </div>
+                  </div>
+                </div>
+                <!-- الحاوية الأساسية للتنبيهات -->
+                <div id="notifications-feed" class="admin-grid">
+                  <div class="admin-card admin-empty-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>جاري تحميل الإشعارات...</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+    </main>
+
+    <!-- Admin Modals -->
+    <div id="admin-modal" class="custom-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="admin-modal-title" class="modal-title">إجراء إداري</h3>
+        </div>
+        <div id="admin-modal-body" class="modal-body"></div>
+        <div class="modal-footer">
+          <button onclick="closeAdminModal()" class="btn-ghost">إلغاء</button>
+          <button id="admin-modal-confirm" class="btn-primary">حفظ التغييرات</button>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <div>
+          <p class="footer-brand">قرية متعلمة</p>
+          <p class="footer-copy">لوحة تحكم خاصة بالقادة لإدارة الطلاب والمدفوعات.</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="../js/main.js"></script>
+  <script src="../js/fixed-applications-db.js"></script>
+  <script src="../js/platform-store.js"></script>
+  <script src="../js/exam-window.js"></script>
+  <script src="../js/leader-admin.js"></script>
+  <script src="../js/admin-advanced-store.js"></script>
+  <script src="../js/leader-admin-pro.js"></script>
+</body>
+</html>

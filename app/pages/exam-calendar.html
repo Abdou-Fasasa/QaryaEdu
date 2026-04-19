@@ -1,0 +1,183 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>جدول الامتحانات | قرية متعلمة</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="../js/auth.js"></script>
+  <script src="../js/auth-guard.js"></script>
+</head>
+<body class="inner-page">
+  <div class="site-shell">
+    <header class="header">
+      <div class="container">
+        <a class="brand" href="../index.html" aria-label="العودة إلى الصفحة الرئيسية">
+          <span class="brand-mark">ق</span>
+          <span class="brand-text">
+            <span class="logo">قرية متعلمة</span>
+            <small>جدول الامتحانات</small>
+          </span>
+        </a>
+
+        <button class="menu-toggle" id="sidebar-toggle" aria-label="فتح القائمة الجانبية">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+        </button>
+
+        <nav class="nav" id="main-nav" aria-label="روابط الموقع">
+          <a href="../index.html" class="nav-link">الرئيسية</a>
+          <a href="./register.html" class="nav-link">التسجيل</a>
+          <a href="./exam-status.html" class="nav-link">الامتحان</a>
+          <a href="./status.html" class="nav-link">حالة الطلب</a>
+          <a href="./verification.html" class="nav-link">التحقق من الأداء</a>
+          <a href="./villages.html" class="nav-link">القرى</a>
+        </nav>
+      </div>
+    </header>
+
+    <aside class="sidebar" id="site-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <span class="brand-mark">ق</span>
+          <span class="logo">قرية متعلمة</span>
+        </div>
+        <button class="sidebar-close" id="sidebar-close" aria-label="إغلاق القائمة">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="../index.html" class="sidebar-link">
+          <i class="fas fa-home"></i> <span>الرئيسية</span>
+        </a>
+        <a href="./register.html" class="sidebar-link">
+          <i class="fas fa-user-plus"></i> <span>التسجيل الجديد</span>
+        </a>
+        <a href="./exam-status.html" class="sidebar-link">
+          <i class="fas fa-pen-to-square"></i> <span>بوابة الامتحان</span>
+        </a>
+        <a href="./status.html" class="sidebar-link">
+          <i class="fas fa-magnifying-glass"></i> <span>حالة الطلب</span>
+        </a>
+        <a href="./verification.html" class="sidebar-link">
+          <i class="fas fa-file-circle-check"></i> <span>التحقق من الأداء</span>
+        </a>
+        <a href="./services.html" class="sidebar-link">
+          <i class="fas fa-layer-group"></i> <span>مركز الخدمات</span>
+        </a>
+        <a href="./guide.html" class="sidebar-link">
+          <i class="fas fa-book-open"></i> <span>دليل الاستخدام</span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <p>&copy; 2026 جميع الحقوق محفوظة لقرية متعلمة</p>
+      </div>
+    </aside>
+
+    <main class="main-content-container">
+      <section class="page-hero">
+        <div class="container page-hero-grid">
+          <div class="page-copy">
+            <span class="page-badge"><i class="fas fa-calendar-days"></i> جدول الامتحانات</span>
+            <h1 class="page-title">أيام الامتحان للأسبوع الحالي فقط</h1>
+            <p class="page-text">يعرض هذا الجدول أيام السبت والأحد والاثنين الخاصة بالأسبوع الحالي فقط، ويتم تفريغ سجل الأيام تلقائيًا مع بداية أسبوع جديد حتى يبدأ الأسبوع التالي بسجل نظيف.</p>
+            <div class="page-actions">
+              <a href="./verification.html" class="btn-secondary">التحقق من الأداء</a>
+              <a href="./announcements.html" class="btn-ghost">لوحة الإعلانات</a>
+            </div>
+          </div>
+          <div class="page-visual">
+            <img src="https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&w=1200&q=80" alt="جدول امتحانات منظم داخل المنصة" />
+            <div class="visual-note">
+              <strong>نطاق هذا الأسبوع</strong>
+              <span id="calendar-week-window">--</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-shell">
+        <div class="container calendar-day-grid">
+          <article class="calendar-day-card">
+            <div class="calendar-day-head">
+              <div>
+                <span class="mini-badge">اليوم الأول</span>
+                <h3>السبت</h3>
+                <p id="day-saturday-date">--</p>
+              </div>
+            </div>
+            <p class="calendar-day-time">07:00 مساءً - 08:00 مساءً</p>
+            <p class="calendar-day-note" id="day-saturday-note">--</p>
+          </article>
+
+          <article class="calendar-day-card">
+            <div class="calendar-day-head">
+              <div>
+                <span class="mini-badge">اليوم الثاني</span>
+                <h3>الأحد</h3>
+                <p id="day-sunday-date">--</p>
+              </div>
+            </div>
+            <p class="calendar-day-time">07:00 مساءً - 08:00 مساءً</p>
+            <p class="calendar-day-note" id="day-sunday-note">--</p>
+          </article>
+
+          <article class="calendar-day-card">
+            <div class="calendar-day-head">
+              <div>
+                <span class="mini-badge">اليوم الثالث</span>
+                <h3>الاثنين</h3>
+                <p id="day-monday-date">--</p>
+              </div>
+            </div>
+            <p class="calendar-day-time">07:00 مساءً - 08:00 مساءً</p>
+            <p class="calendar-day-note" id="day-monday-note">--</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-shell">
+        <div class="container calendar-rule-grid">
+          <article class="calendar-rule-card">
+            <i class="fas fa-lock"></i>
+            <h3>الدخول في الوقت الرسمي فقط</h3>
+            <p>لا تظهر واجهة الدخول إلى الامتحان إلا أثناء الوقت المخصص، ويغلق المسار تلقائيًا بعد انتهاء الساعة الثامنة مساءً.</p>
+          </article>
+          <article class="calendar-rule-card">
+            <i class="fas fa-rotate"></i>
+            <h3>تفريغ تلقائي كل أسبوع</h3>
+            <p>مع بداية الأسبوع الجديد يبدأ جدول الأداء من جديد، ولا يتم إظهار بيانات أسبوع قديم داخل هذا الجدول.</p>
+          </article>
+          <article class="calendar-rule-card">
+            <i class="fas fa-eye-slash"></i>
+            <h3>بدون عرض أسماء</h3>
+            <p>هذا الجدول يعرض مواعيد الأسبوع الحالي فقط بدون إظهار أسماء الطلاب أو أي قوائم حضور.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <div>
+          <p class="footer-brand">قرية متعلمة</p>
+          <p class="footer-copy">جدول أسبوعي بسيط يعرض أيام الامتحان الحالية فقط بدون أسماء أو أعداد.</p>
+        </div>
+        <div class="footer-links">
+          <a href="../index.html">الرئيسية</a>
+          <a href="./verification.html">التحقق</a>
+          <a href="./announcements.html">الإعلانات</a>
+          <a href="./guide.html">الدليل</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="../js/main.js"></script>
+  <script src="../js/exam-week.js"></script>
+  <script src="../js/exam-calendar.js"></script>
+</body>
+</html>
+

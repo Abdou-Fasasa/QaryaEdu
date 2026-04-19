@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>السحب والمحفظة | قرية متعلمة</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script type="module" src="../js/firebase-init.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/auth-guard.js"></script>
+  <style>
+    .wallet-shell {
+        display: grid;
+        gap: 1.5rem;
+    }
+    .wallet-hero {
+        background:
+            radial-gradient(circle at top left, rgba(255,255,255,0.12), transparent 32%),
+            linear-gradient(135deg, #0f172a 0%, #0f766e 100%);
+        color: white;
+        padding: 2.75rem 0 2rem;
+        border-radius: 0 0 2rem 2rem;
+        margin-bottom: 1.5rem;
+    }
+    .wallet-hero-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
+        gap: 1.5rem;
+        align-items: stretch;
+    }
+    .wallet-balance-panel,
+    .wallet-profile-panel {
+        border-radius: 1.5rem;
+        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.08);
+        backdrop-filter: blur(10px);
+        padding: 1.5rem;
+    }
+    .balance-display {
+        font-family: var(--font-display);
+        font-size: clamp(2.3rem, 4vw, 3.6rem);
+        font-weight: 800;
+        margin: 0.6rem 0 0.9rem;
+        letter-spacing: 0.04em;
+    }
+    .wallet-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1rem;
+    }
+    .wallet-stat-card {
+        background: white;
+        border-radius: 1.3rem;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+        padding: 1.2rem;
+    }
+    .wallet-stat-card strong {
+        display: block;
+        margin-top: 0.5rem;
+        color: #0f172a;
+        font-size: 1.35rem;
+        letter-spacing: 0.03em;
+    }
+    .wallet-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+        gap: 1.5rem;
+    }
+    .wallet-card {
+        background: white;
+        border-radius: 1.5rem;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+        padding: 1.5rem;
+    }
+    .method-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.9rem;
+        margin: 1.2rem 0 1.4rem;
+    }
+    .method-card {
+        padding: 1rem;
+        border-radius: 1.2rem;
+        border: 1px solid #dbe4ee;
+        background: #f8fafc;
+        cursor: pointer;
+        text-align: center;
+        transition: 180ms ease;
+    }
+    .method-card i {
+        display: block;
+        font-size: 1.55rem;
+        margin-bottom: 0.65rem;
+        color: #0f766e;
+    }
+    .method-card.active {
+        background: #ecfeff;
+        border-color: #14b8a6;
+        transform: translateY(-2px);
+    }
+    .wallet-form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+    }
+    .wallet-field {
+        display: grid;
+        gap: 0.45rem;
+    }
+    .wallet-field.full {
+        grid-column: 1 / -1;
+    }
+    .wallet-field label {
+        font-weight: 700;
+        color: #0f172a;
+    }
+    .wallet-input,
+    .wallet-textarea {
+        width: 100%;
+        padding: 0.9rem 1rem;
+        border: 1px solid #dbe4ee;
+        border-radius: 1rem;
+        background: #f8fafc;
+        font: inherit;
+        color: #0f172a;
+    }
+    .wallet-textarea {
+        min-height: 110px;
+        resize: vertical;
+    }
+    .password-input-container {
+        position: relative;
+    }
+    .password-toggle {
+        position: absolute;
+        top: 50%;
+        left: 1rem;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #64748b;
+    }
+    .wallet-picker-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 0.85rem;
+    }
+    .wallet-picker-search {
+        width: min(320px, 100%);
+    }
+    .wallet-picker-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.85rem;
+    }
+    .wallet-picker-card {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        width: 100%;
+        border: 1px solid #dbe4ee;
+        background: #fff;
+        border-radius: 1rem;
+        padding: 0.85rem 0.9rem;
+        cursor: pointer;
+        text-align: right;
+        transition: 180ms ease;
+    }
+    .wallet-picker-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+    }
+    .wallet-picker-card.active {
+        border-color: #14b8a6;
+        background: #ecfeff;
+        box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.12);
+    }
+    .wallet-picker-logo {
+        width: 42px;
+        height: 42px;
+        border-radius: 0.9rem;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+    .wallet-picker-copy {
+        display: grid;
+        gap: 0.15rem;
+    }
+    .wallet-picker-copy strong {
+        color: #0f172a;
+        font-size: 0.94rem;
+    }
+    .wallet-picker-copy span {
+        color: #64748b;
+        font-size: 0.78rem;
+    }
+    .wallet-selection-chip {
+        display: none;
+        align-items: center;
+        gap: 0.55rem;
+        width: fit-content;
+        background: #ecfeff;
+        color: #115e59;
+        border: 1px solid #99f6e4;
+        border-radius: 999px;
+        padding: 0.55rem 0.9rem;
+        font-weight: 700;
+        margin-bottom: 0.85rem;
+    }
+    .wallet-selection-chip img {
+        width: 24px;
+        height: 24px;
+        border-radius: 0.55rem;
+    }
+    .wallet-aside-stack {
+        display: grid;
+        gap: 1rem;
+    }
+    .aside-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px dashed #dbe4ee;
+    }
+    .aside-row span:first-child {
+        color: #64748b;
+        font-weight: 600;
+    }
+    .aside-row strong {
+        color: #0f172a;
+    }
+    .wallet-checklist {
+        display: grid;
+        gap: 0.8rem;
+    }
+    .wallet-checklist li {
+        display: flex;
+        gap: 0.65rem;
+        align-items: flex-start;
+        color: #334155;
+    }
+    .transaction-history-grid {
+        display: grid;
+        gap: 1rem;
+    }
+    .transaction-card {
+        background: white;
+        border-radius: 1.15rem;
+        padding: 1rem 1.1rem;
+        border: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        align-items: center;
+        transition: 160ms ease;
+    }
+    .transaction-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 30px rgba(15, 23, 42, 0.08);
+    }
+    .transaction-card.pending {
+        background: linear-gradient(180deg, #fffdf3 0%, #fffbeb 100%);
+        border-color: #fde68a;
+        box-shadow: 0 16px 34px rgba(245, 158, 11, 0.10);
+    }
+    .transaction-card.completed {
+        background: linear-gradient(180deg, #f2fff7 0%, #ecfdf5 100%);
+        border-color: #86efac;
+        box-shadow: 0 16px 34px rgba(34, 197, 94, 0.12);
+    }
+    .transaction-card.rejected,
+    .transaction-card.error {
+        background: linear-gradient(180deg, #fff5f5 0%, #fef2f2 100%);
+        border-color: #fca5a5;
+        box-shadow: 0 16px 34px rgba(239, 68, 68, 0.10);
+    }
+    .transaction-info h4 {
+        margin: 0 0 0.35rem;
+        color: #0f172a;
+    }
+    .transaction-info small {
+        color: #64748b;
+    }
+    .transaction-admin-message {
+        display: block;
+        margin-top: 0.45rem;
+        padding: 0.7rem 0.8rem;
+        border-radius: 0.9rem;
+        font-weight: 700;
+        line-height: 1.7;
+    }
+    .transaction-admin-message.pending {
+        background: rgba(250, 204, 21, 0.16);
+        color: #a16207;
+    }
+    .transaction-admin-message.completed {
+        background: rgba(34, 197, 94, 0.14);
+        color: #166534;
+    }
+    .transaction-admin-message.rejected,
+    .transaction-admin-message.error {
+        background: rgba(248, 113, 113, 0.14);
+        color: #b91c1c;
+    }
+    .transaction-amount {
+        font-weight: 800;
+        color: #b91c1c;
+        letter-spacing: 0.03em;
+    }
+    .transaction-status {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        padding: 0.35rem 0.7rem;
+        background: #fff7ed;
+        color: #c2410c;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+    .transaction-status.pending {
+        background: #fff7cc;
+        color: #a16207;
+    }
+    .transaction-status.completed {
+        background: #ecfdf5;
+        color: #047857;
+    }
+    .transaction-status.rejected,
+    .transaction-status.error {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+    @media (max-width: 1100px) {
+        .wallet-picker-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+    @media (max-width: 980px) {
+        .wallet-hero-grid,
+        .wallet-grid,
+        .wallet-stats-grid,
+        .method-grid,
+        .wallet-form-grid,
+        .wallet-picker-grid {
+            grid-template-columns: 1fr;
+        }
+        .wallet-field.full {
+            grid-column: auto;
+        }
+    }
+  </style>
+</head>
+<body class="inner-page">
+  <div class="site-shell">
+    <header class="header">
+      <div class="container">
+        <a class="brand" href="../index.html" aria-label="العودة إلى الصفحة الرئيسية">
+          <span class="brand-mark">ق</span>
+          <span class="brand-text">
+            <span class="logo">قرية متعلمة</span>
+            <small>المحفظة والسحب</small>
+          </span>
+        </a>
+
+        <button class="menu-toggle" id="sidebar-toggle" aria-label="فتح القائمة الجانبية">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+        </button>
+
+        <nav class="nav" id="main-nav" aria-label="روابط الموقع">
+          <a href="../index.html" class="nav-link">الرئيسية</a>
+          <a href="./wallet.html" class="nav-link active">السحب</a>
+          <a href="./settings.html" class="nav-link">الإعدادات</a>
+        </nav>
+      </div>
+    </header>
+
+    <aside class="sidebar" id="site-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <span class="brand-mark">ق</span>
+          <span class="logo">قرية متعلمة</span>
+        </div>
+        <button class="sidebar-close" id="sidebar-close" aria-label="إغلاق القائمة">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="../index.html" class="sidebar-link">
+          <i class="fas fa-home"></i> <span>الرئيسية</span>
+        </a>
+        <a href="./wallet.html" class="sidebar-link active">
+          <i class="fas fa-wallet"></i> <span>السحب</span>
+        </a>
+        <a href="./settings.html" class="sidebar-link">
+          <i class="fas fa-cog"></i> <span>الإعدادات</span>
+        </a>
+      </nav>
+    </aside>
+
+    <main class="main-content-container">
+      <section class="wallet-hero">
+        <div class="container wallet-shell">
+          <div class="wallet-hero-grid">
+            <article class="wallet-balance-panel">
+              <span class="mini-badge" style="background: rgba(255,255,255,0.12); color: white; border: 0;">Available Balance</span>
+              <div class="balance-display" id="wallet-balance">0 EGP</div>
+              <p style="margin: 0; color: rgba(255,255,255,0.84);">الرصيد الجاهز لطلبات السحب بعد مراجعة حدود الحساب الحالية.</p>
+            </article>
+
+            <article class="wallet-profile-panel">
+              <div class="aside-row"><span>صاحب الحساب</span><strong id="wallet-holder-name">--</strong></div>
+              <div class="aside-row"><span>الدور</span><strong id="wallet-role">--</strong></div>
+              <div class="aside-row"><span>الوسيلة المفضلة</span><strong id="wallet-preferred-method">--</strong></div>
+              <div class="aside-row" style="border-bottom: 0; padding-bottom: 0;"><span>آخر طلب</span><strong id="wallet-last-request">لا يوجد</strong></div>
+            </article>
+          </div>
+
+          <div class="wallet-stats-grid">
+            <article class="wallet-stat-card">
+              <span>Available Now</span>
+              <strong id="wallet-available-now">0 EGP</strong>
+            </article>
+            <article class="wallet-stat-card">
+              <span>Pending Requests</span>
+              <strong id="wallet-pending-count">0</strong>
+            </article>
+            <article class="wallet-stat-card">
+              <span>Total Requests</span>
+              <strong id="wallet-total-count">0</strong>
+            </article>
+            <article class="wallet-stat-card">
+              <span>Total Withdrawn</span>
+              <strong id="wallet-total-amount">0 EGP</strong>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-shell section-tight">
+        <div class="container wallet-shell">
+          <div class="wallet-grid">
+            <article class="wallet-card">
+              <div class="card-heading">
+                <span class="mini-badge">طلب جديد</span>
+                <h3>إرسال طلب سحب منظم</h3>
+                <p>اختر الوسيلة المناسبة ثم راجع بيانات الاستلام قبل التأكيد.</p>
+              </div>
+
+              <div class="method-grid">
+                <div class="method-card" data-method="instapay">
+                  <i class="fas fa-bolt"></i>
+                  <span>InstaPay</span>
+                </div>
+                <div class="method-card" data-method="bank">
+                  <i class="fas fa-building-columns"></i>
+                  <span>البنوك المصرية</span>
+                </div>
+                <div class="method-card" data-method="cash">
+                  <i class="fas fa-mobile-screen-button"></i>
+                  <span>محافظ الكاش</span>
+                </div>
+                <div class="method-card" data-method="fawry">
+                  <i class="fas fa-money-bill-transfer"></i>
+                  <span>ماي فوري</span>
+                </div>
+              </div>
+
+              <form id="withdrawal-form" class="wallet-form-grid">
+                <input type="hidden" id="selected-method" />
+                <input type="hidden" id="selected-channel-name" />
+
+                <div class="wallet-field">
+                  <label for="withdrawal-account-name">اسم صاحب وسيلة السحب</label>
+                  <input class="wallet-input" type="text" id="withdrawal-account-name" placeholder="الاسم كما يظهر في وسيلة السحب" required />
+                </div>
+                <div class="wallet-field">
+                  <label for="withdrawal-phone">رقم الهاتف المرتبط</label>
+                  <input class="wallet-input" type="text" id="withdrawal-phone" placeholder="01xxxxxxxxx" required />
+                </div>
+
+                <div class="wallet-field full" id="channel-picker-group" style="display: none;">
+                  <div class="wallet-picker-head">
+                    <label id="channel-picker-label">اختر الجهة</label>
+                    <input class="wallet-input wallet-picker-search" id="channel-search-input" type="text" placeholder="ابحث بالاسم..." />
+                  </div>
+                  <div class="wallet-selection-chip" id="selected-channel-chip"></div>
+                  <div class="wallet-picker-grid" id="channel-options-grid"></div>
+                </div>
+
+                <div class="wallet-field full" id="method-details-group" style="display: none;">
+                  <label for="method-details" id="details-label">بيانات وسيلة السحب</label>
+                  <input class="wallet-input" type="text" id="method-details" placeholder="أدخل بيانات وسيلة السحب" required />
+                </div>
+
+                <div class="wallet-field">
+                  <label for="withdrawal-amount">المبلغ المطلوب</label>
+                  <input class="wallet-input" type="number" id="withdrawal-amount" min="100" placeholder="الحد الأدنى 100" required />
+                </div>
+                <div class="wallet-field">
+                  <label for="withdrawal-password">كلمة مرور السحب</label>
+                  <div class="password-input-container">
+                    <input class="wallet-input" type="password" id="withdrawal-password" placeholder="كلمة مرور السحب" required />
+                    <i class="fas fa-eye password-toggle" id="toggle-password"></i>
+                  </div>
+                </div>
+                <div class="wallet-field full">
+                  <label for="withdrawal-notes">ملاحظات إضافية</label>
+                  <textarea class="wallet-textarea" id="withdrawal-notes" placeholder="أي ملاحظات تخص التحويل أو الاستلام..."></textarea>
+                </div>
+
+                <div class="wallet-field full">
+                  <div class="warning-text">
+                    <i class="fas fa-shield-halved"></i>
+                    عند اختيار البنوك أو محافظ الكاش يجب تحديد الجهة أولًا من القائمة، ثم إدخال رقم الحساب أو رقم المحفظة الصحيح.
+                  </div>
+                </div>
+
+                <div class="wallet-field full">
+                  <button type="submit" class="btn-primary full-width" id="withdraw-btn">تأكيد طلب السحب</button>
+                </div>
+              </form>
+
+              <div id="withdrawal-result"></div>
+            </article>
+
+            <div class="wallet-aside-stack">
+              <article class="wallet-card">
+                <div class="card-heading">
+                  <span class="mini-badge">بيانات الاستلام</span>
+                  <h3>ملف السحب الحالي</h3>
+                </div>
+                <div class="aside-row"><span>الوسيلة المفضلة</span><strong id="wallet-aside-method">--</strong></div>
+                <div class="aside-row"><span>الجهة المختارة</span><strong id="wallet-channel-name">--</strong></div>
+                <div class="aside-row"><span>اسم صاحب الحساب</span><strong id="wallet-payout-holder">--</strong></div>
+                <div class="aside-row"><span>المعرف أو رقم الحساب</span><strong id="wallet-payout-identifier">--</strong></div>
+                <div class="aside-row"><span>رقم الهاتف</span><strong id="wallet-payout-phone">--</strong></div>
+                <div class="aside-row" style="border-bottom: 0; padding-bottom: 0;"><span>حالة الحد اليومي</span><strong id="wallet-limit-status">متاح</strong></div>
+              </article>
+
+              <article class="wallet-card">
+                <div class="card-heading">
+                  <span class="mini-badge">إضافات</span>
+                  <h3>تحسينات الاستخدام</h3>
+                </div>
+                <ul class="wallet-checklist">
+                  <li><i class="fas fa-check-circle"></i><span>بحث مباشر داخل قائمة البنوك لتسهيل الوصول السريع.</span></li>
+                  <li><i class="fas fa-check-circle"></i><span>حفظ البنك أو مزود الكاش المختار لاستخدامه لاحقًا.</span></li>
+                  <li><i class="fas fa-check-circle"></i><span>عرض الرصيد بالأرقام الإنجليزية في البطاقة والإشعارات.</span></li>
+                  <li><i class="fas fa-check-circle"></i><span>توضيح حالة السحب والحد اليومي بشكل مباشر داخل الصفحة.</span></li>
+                </ul>
+              </article>
+            </div>
+          </div>
+
+          <article class="wallet-card">
+            <div class="card-heading">
+              <span class="mini-badge">سجل العمليات</span>
+              <h3>الطلبات السابقة</h3>
+              <p>تفاصيل السحب السابقة تظهر هنا مع الحالة والمبلغ والجهة ووقت الإرسال.</p>
+            </div>
+            <div class="transaction-history-grid" id="transactions-list">
+              <p class="text-center" style="padding: 2rem; color: var(--text-muted);">لا يوجد سجل سحب حتى الآن.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <div>
+          <p class="footer-brand">قرية متعلمة</p>
+          <p class="footer-copy">صفحة السحب وإدارة الرصيد وطلبات المحفظة.</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="../js/main.js"></script>
+  <script src="../js/telegram.js"></script>
+  <script src="../js/wallet.js"></script>
+</body>
+</html>
