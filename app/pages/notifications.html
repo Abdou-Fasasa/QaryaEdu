@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
@@ -25,6 +25,7 @@
         </nav>
       </div>
     </header>
+
     <aside class="sidebar" id="site-sidebar">
       <div class="sidebar-header"><div class="sidebar-brand"><span class="brand-mark">ق</span><span class="logo">قرية متعلمة</span></div><button class="sidebar-close" id="sidebar-close" aria-label="إغلاق القائمة"><i class="fas fa-times"></i></button></div>
       <nav class="sidebar-nav">
@@ -37,27 +38,82 @@
       </nav>
       <div class="sidebar-footer"><p>&copy; 2026 جميع الحقوق محفوظة لقرية متعلمة</p></div>
     </aside>
+
     <main class="main-content-container">
       <section class="page-hero">
         <div class="container page-hero-grid">
           <div class="page-copy">
             <span class="page-badge"><i class="fas fa-bell"></i> مركز الإشعارات</span>
-            <h1 class="page-title">كل التنبيهات الرسمية في مكان واحد</h1>
-            <p class="page-text">اعرض إشعارات الطلبات، الامتحانات، الدفعات، والتنبيهات الخاصة والعامة مع فلترة سريعة حسب النوع.</p>
-            <div class="inline-meta"><span><i class="fas fa-list"></i> عدد الإشعارات: <strong id="notification-count">0</strong></span></div>
+            <h1 class="page-title">الإشعارات الثابتة والعائمة والقائمة في شاشة واحدة</h1>
+            <p class="page-text">المركز يعرض كل تنبيهات المنصة مع تصنيف واضح حسب النوع وطريقة الظهور، حتى تتابع الماليات والامتحانات والدعم بدون زحام أو تكرار.</p>
+            <div class="inline-meta">
+              <span><i class="fas fa-list"></i> الظاهر الآن: <strong id="notification-count">0</strong></span>
+              <span><i class="fas fa-layer-group"></i> ثابت وعائم وقائمة</span>
+            </div>
           </div>
-          <div class="page-visual"><img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80" alt="مركز إشعارات حديث" /><div class="visual-note"><strong>تحديثات مركزية</strong><span>لا حاجة للبحث بين الصفحات، كل المستجدات أصبحت هنا.</span></div></div>
+          <div class="page-visual">
+            <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80" alt="مركز إشعارات حديث" />
+            <div class="visual-note"><strong>تنبيهات مرتبة</strong><span>فلترة سريعة، عرض أوضح، ورسائل خاصة وعامة داخل نفس المساحة.</span></div>
+          </div>
         </div>
       </section>
+
       <section class="section-shell section-tight">
-        <div class="container filter-panel">
-          <div class="filter-group"><label for="notification-filter">نوع الإشعار</label><select id="notification-filter"><option value="">كل الأنواع</option><option value="private">إشعارات خاصة</option><option value="application">الطلبات</option><option value="exam">الامتحانات</option><option value="finance">الدفعات</option><option value="support">الدعم</option><option value="update">تحديثات عامة</option></select></div>
+        <div class="container page-stats notifications-overview">
+          <article class="mini-stat"><strong id="notification-stat-total">0</strong><span>كل الإشعارات</span></article>
+          <article class="mini-stat"><strong id="notification-stat-private">0</strong><span>الإشعارات الخاصة</span></article>
+          <article class="mini-stat"><strong id="notification-stat-banner">0</strong><span>الإشعارات الثابتة</span></article>
+          <article class="mini-stat"><strong id="notification-stat-floating">0</strong><span>الإشعارات العائمة</span></article>
+          <article class="mini-stat"><strong id="notification-stat-feed">0</strong><span>إشعارات القائمة</span></article>
         </div>
       </section>
-      <section class="section-shell"><div class="container notification-grid" id="notification-list"></div></section>
+
+      <section class="section-shell section-tight">
+        <div class="container filter-panel notification-filter-panel">
+          <div class="filter-group">
+            <label for="notification-search">بحث سريع</label>
+            <input id="notification-search" type="search" placeholder="ابحث في عنوان أو نص الإشعار" />
+          </div>
+          <div class="filter-group">
+            <label for="notification-filter">نوع الإشعار</label>
+            <select id="notification-filter">
+              <option value="">كل الأنواع</option>
+              <option value="private">إشعارات خاصة</option>
+              <option value="application">الطلبات</option>
+              <option value="exam">الامتحانات</option>
+              <option value="finance">الدفعات</option>
+              <option value="support">الدعم</option>
+              <option value="update">تحديثات عامة</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="notification-display-filter">طريقة العرض</label>
+            <select id="notification-display-filter">
+              <option value="">كل الطرق</option>
+              <option value="banner">ثابت أعلى الصفحة</option>
+              <option value="floating">عائم</option>
+              <option value="feed">داخل القائمة</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="notification-scope-filter">النطاق</label>
+            <select id="notification-scope-filter">
+              <option value="">عام وخاص</option>
+              <option value="global">عام</option>
+              <option value="private">خاص</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-shell">
+        <div class="container notification-grid" id="notification-list"></div>
+      </section>
     </main>
+
     <footer class="footer"><div class="container footer-grid"><div><p class="footer-brand">قرية متعلمة</p><p class="footer-copy">مركز موحد للإشعارات الرسمية والتنبيهات المهمة داخل المنصة.</p></div><div class="footer-links"><a href="./dashboard.html">لوحة التحكم</a><a href="./support.html">الدعم</a><a href="./exam-status.html">الامتحان</a></div></div></footer>
   </div>
+
   <script src="../js/main.js"></script>
   <script src="../js/platform-store.js"></script>
   <script src="../js/notifications.js"></script>

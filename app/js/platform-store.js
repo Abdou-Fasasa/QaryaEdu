@@ -229,16 +229,50 @@
         return String(status || '').trim() === 'closed' ? 'closed' : 'open';
     }
 
+    function normalizeSupportAttachment(attachment) {
+        const src = normalizeText(attachment?.src);
+        if (!src) return null;
+
+        return {
+            id: normalizeText(attachment?.id) || `SUPATT-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+            type: normalizeText(attachment?.type) || 'image',
+            name: normalizeText(attachment?.name) || 'attachment',
+            mimeType: normalizeText(attachment?.mimeType) || 'image/jpeg',
+            src,
+            size: Math.max(0, Number(attachment?.size || 0)),
+            width: Math.max(0, Number(attachment?.width || 0)),
+            height: Math.max(0, Number(attachment?.height || 0))
+        };
+    }
+
+    function getSupportMessagePreview(message) {
+        const text = normalizeText(message?.text);
+        if (text) return text;
+
+        const attachments = normalizeArray(message?.attachments).map((item) => normalizeSupportAttachment(item)).filter(Boolean);
+        if (!attachments.length) return '';
+        if (attachments.length === 1) return 'تم إرفاق صورة واحدة.';
+        return `تم إرفاق ${attachments.length} صور.`;
+    }
+
     function normalizeSupportMessage(message) {
         const sender = ['user', 'admin', 'bot'].includes(String(message?.sender || '').trim())
             ? String(message.sender).trim()
             : 'user';
+        const attachments = normalizeArray(message?.attachments)
+            .map((item) => normalizeSupportAttachment(item))
+            .filter(Boolean)
+            .slice(0, 4);
+        const text = normalizeText(message?.text);
         return {
             id: normalizeText(message?.id) || `SUPMSG-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
             sender,
             senderName: normalizeText(message?.senderName) || (sender === 'admin' ? 'الدعم الإداري' : sender === 'bot' ? 'المساعد الآلي' : 'مستخدم المنصة'),
-            text: normalizeText(message?.text),
+            text,
+            attachments,
             createdAt: message?.createdAt || new Date().toISOString(),
+            readByAdminAt: normalizeText(message?.readByAdminAt),
+            readByUserAt: normalizeText(message?.readByUserAt),
             deleted: Boolean(message?.deleted)
         };
     }
@@ -261,7 +295,7 @@
             unreadByUser: Math.max(0, Number(thread?.unreadByUser || 0)),
             createdAt: thread?.createdAt || latestMessage?.createdAt || new Date().toISOString(),
             updatedAt: thread?.updatedAt || latestMessage?.createdAt || thread?.createdAt || new Date().toISOString(),
-            lastMessagePreview: normalizeText(thread?.lastMessagePreview || latestMessage?.text).slice(0, 180),
+            lastMessagePreview: normalizeText(thread?.lastMessagePreview || getSupportMessagePreview(latestMessage)).slice(0, 180),
             messages
         };
     }
@@ -747,13 +781,18 @@
     function sendSupportMessage(payload = {}, options = {}) {
         const email = normalizeText(payload.email).toLowerCase();
         const text = normalizeText(payload.text);
-        if (!email || !text) return null;
+        const attachments = normalizeArray(payload.attachments)
+            .map((item) => normalizeSupportAttachment(item))
+            .filter(Boolean)
+            .slice(0, 4);
+        if (!email || (!text && !attachments.length)) return null;
 
         const existing = getSupportThreadByEmail(email);
         const message = normalizeSupportMessage({
             sender: payload.sender || 'user',
             senderName: payload.senderName || (payload.sender === 'admin' ? 'الدعم الإداري' : payload.userName || 'مستخدم المنصة'),
             text,
+            attachments,
             createdAt: payload.createdAt || new Date().toISOString()
         });
 
@@ -773,7 +812,7 @@
                 : Math.max(0, Number(existing?.unreadByUser || 0)),
             createdAt: existing?.createdAt || message.createdAt,
             updatedAt: message.createdAt,
-            lastMessagePreview: text,
+            lastMessagePreview: getSupportMessagePreview(message),
             messages: [...normalizeArray(existing?.messages), message]
         }, options);
 
@@ -783,11 +822,29 @@
     function markSupportThreadRead(email, audience, options = {}) {
         const existing = getSupportThreadByEmail(email);
         if (!existing) return null;
+        const readAt = new Date().toISOString();
+        const messages = normalizeArray(existing.messages).map((message) => {
+            const normalizedMessage = normalizeSupportMessage(message);
+            if (audience === 'admin' && normalizedMessage.sender === 'user' && !normalizedMessage.readByAdminAt) {
+                return {
+                    ...normalizedMessage,
+                    readByAdminAt: readAt
+                };
+            }
+            if (audience === 'user' && normalizedMessage.sender !== 'user' && !normalizedMessage.readByUserAt) {
+                return {
+                    ...normalizedMessage,
+                    readByUserAt: readAt
+                };
+            }
+            return normalizedMessage;
+        });
 
         return saveSupportThreadRecord({
             ...existing,
             unreadByAdmin: audience === 'admin' ? 0 : existing.unreadByAdmin,
             unreadByUser: audience === 'user' ? 0 : existing.unreadByUser,
+            messages,
             updatedAt: existing.updatedAt
         }, options);
     }

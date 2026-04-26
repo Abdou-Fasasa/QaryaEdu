@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>لوحة التحكم | قرية متعلمة</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="../js/auth.js"></script>
+  <script src="../js/auth-guard.js"></script>
+</head>
+<body class="inner-page">
+  <div class="site-shell">
+    <header class="header">
+      <div class="container">
+        <a class="brand" href="../index.html"><span class="brand-mark">ق</span><span class="brand-text"><span class="logo">قرية متعلمة</span><small>لوحة التحكم</small></span></a>
+        <button class="menu-toggle" id="sidebar-toggle" aria-label="فتح القائمة الجانبية"><span class="bar"></span><span class="bar"></span><span class="bar"></span></button>
+        <nav class="nav" id="main-nav" aria-label="روابط الموقع">
+          <a href="../index.html" class="nav-link">الرئيسية</a>
+          <a href="./dashboard.html" class="nav-link active">لوحة التحكم</a>
+          <a href="./notifications.html" class="nav-link">الإشعارات</a>
+          <a href="./support.html" class="nav-link">الدعم</a>
+          <a href="./status.html" class="nav-link">حالة الطلب</a>
+          <a href="./settings.html" class="nav-link">الإعدادات</a>
+        </nav>
+      </div>
+    </header>
+
+    <aside class="sidebar" id="site-sidebar">
+      <div class="sidebar-header"><div class="sidebar-brand"><span class="brand-mark">ق</span><span class="logo">قرية متعلمة</span></div><button class="sidebar-close" id="sidebar-close" aria-label="إغلاق القائمة"><i class="fas fa-times"></i></button></div>
+      <nav class="sidebar-nav">
+        <a href="../index.html" class="sidebar-link"><i class="fas fa-home"></i><span>الرئيسية</span></a>
+        <a href="./dashboard.html" class="sidebar-link active"><i class="fas fa-table-columns"></i><span>لوحة التحكم</span></a>
+        <a href="./notifications.html" class="sidebar-link"><i class="fas fa-bell"></i><span>الإشعارات</span></a>
+        <a href="./support.html" class="sidebar-link"><i class="fas fa-headset"></i><span>الدعم</span></a>
+        <a href="./wallet.html" class="sidebar-link"><i class="fas fa-wallet"></i><span>المحفظة</span></a>
+        <a href="./exam-status.html" class="sidebar-link"><i class="fas fa-pen-to-square"></i><span>الامتحان</span></a>
+        <a href="./settings.html" class="sidebar-link"><i class="fas fa-gear"></i><span>الإعدادات</span></a>
+      </nav>
+      <div class="sidebar-footer"><p>&copy; 2026 جميع الحقوق محفوظة لقرية متعلمة</p></div>
+    </aside>
+
+    <main class="main-content-container">
+      <section class="page-hero">
+        <div class="container page-hero-grid">
+          <div class="page-copy">
+            <span class="page-badge"><i class="fas fa-table-columns"></i> لوحة التحكم</span>
+            <h1 class="page-title" id="dashboard-welcome">جاري تجهيز لوحة الحساب</h1>
+            <p class="page-text" id="dashboard-subtitle">ملخص موحد للحساب، الإشعارات، الدعم، الامتحان، والحركة المالية داخل المنصة.</p>
+            <div class="inline-meta">
+              <span><i class="fas fa-user-shield"></i> <strong id="dashboard-role-badge">--</strong></span>
+              <span><i class="fas fa-circle-info"></i> <strong id="dashboard-status-badge">--</strong></span>
+            </div>
+          </div>
+          <div class="page-visual">
+            <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1200&q=80" alt="لوحة تحكم حديثة" />
+            <div class="visual-note"><strong>متابعة أسرع</strong><span>أهم ما يخص الحساب في صفحة واحدة مع اختصارات مباشرة للمسارات اليومية.</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-shell section-tight">
+        <div class="container page-stats">
+          <article class="mini-stat"><strong id="dashboard-stat-notifications">0</strong><span>إشعارات نشطة</span></article>
+          <article class="mini-stat"><strong id="dashboard-stat-support">0</strong><span>رسائل دعم</span></article>
+          <article class="mini-stat"><strong id="dashboard-stat-balance">0 EGP</strong><span>الرصيد الحالي</span></article>
+          <article class="mini-stat"><strong id="dashboard-stat-exam">--</strong><span>آخر نتيجة امتحان</span></article>
+        </div>
+      </section>
+
+      <section class="section-shell">
+        <div class="container dashboard-overview-shell">
+          <div class="dashboard-overview-grid">
+            <article class="dashboard-overview-card">
+              <div class="dashboard-highlight">
+                <div class="dashboard-highlight-copy">
+                  <h3>ملخص الحساب</h3>
+                  <p id="dashboard-highlight-text">جاري تحميل حالة الحساب الحالية.</p>
+                </div>
+                <div class="dashboard-highlight-badges" id="dashboard-highlight-badges"></div>
+              </div>
+              <div class="dashboard-info-list" id="dashboard-info-list"></div>
+            </article>
+            <aside class="dashboard-quick-card">
+              <div class="card-heading">
+                <span class="mini-badge">الوضع الحالي</span>
+                <h3>أولوية المتابعة الآن</h3>
+              </div>
+              <ul class="dashboard-activity-list" id="dashboard-focus-list"></ul>
+            </aside>
+          </div>
+
+          <div class="dashboard-route-grid" id="dashboard-route-grid"></div>
+
+          <div class="dashboard-activity-grid">
+            <article class="dashboard-activity-card">
+              <div class="card-heading">
+                <span class="mini-badge">ملخص الطلب</span>
+                <h3>حالة الطلب والامتحان</h3>
+              </div>
+              <ul class="dashboard-activity-list" id="dashboard-request-list"></ul>
+            </article>
+            <article class="dashboard-activity-card">
+              <div class="card-heading">
+                <span class="mini-badge">آخر نشاط</span>
+                <h3>الماليات والدعم والإشعارات</h3>
+              </div>
+              <ul class="dashboard-activity-list" id="dashboard-activity-list"></ul>
+            </article>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer"><div class="container footer-grid"><div><p class="footer-brand">قرية متعلمة</p><p class="footer-copy">لوحة عملية لمتابعة الحساب والتنقل السريع داخل المنصة.</p></div><div class="footer-links"><a href="./notifications.html">الإشعارات</a><a href="./support.html">الدعم</a><a href="./settings.html">الإعدادات</a></div></div></footer>
+  </div>
+
+  <script src="../js/main.js"></script>
+  <script src="../js/platform-store.js"></script>
+  <script src="../js/dashboard.js"></script>
+</body>
+</html>

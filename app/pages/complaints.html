@@ -156,7 +156,7 @@
               <div>
                 <span class="mini-badge">محادثة الدعم</span>
                 <h2 id="support-chat-title">تواصل مباشر مع الإدارة</h2>
-                <p id="support-chat-subtitle">اكتب الرسالة الآن، وسيتم حفظها داخل المنصة ومزامنتها مع لوحة التحكم.</p>
+            <p id="support-chat-subtitle">اكتب الرسالة الآن، وأرفق الصور عند الحاجة، وستظهر حالة القراءة والردود في نفس المسار.</p>
               </div>
 
               <div class="support-chat-state" id="support-thread-state">
@@ -191,9 +191,17 @@
                   <span>رسالتك إلى الإدارة</span>
                   <textarea id="support-page-input" class="form-control support-chat-page-input" rows="4" placeholder="اكتب المشكلة أو الاستفسار بشكل واضح، مثل: هناك تأخير في حفظ الطلب أو لا أستطيع فتح الامتحان من الهاتف."></textarea>
                 </label>
+                <input id="support-page-image-input" type="file" accept="image/*" multiple hidden />
+                <div class="support-chat-page-uploads" id="support-page-uploads" hidden></div>
 
                 <div class="support-chat-page-footer">
-                  <p class="support-chat-inline-note" id="support-compose-note">يمكنك المتابعة من نفس الصفحة، والرسائل الجديدة ستظهر هنا تلقائيًا.</p>
+                  <div class="support-chat-page-tools">
+                    <button type="button" class="support-chat-page-tool-btn" id="support-page-image-trigger" aria-label="إرفاق صورة">
+                      <i class="fas fa-paperclip"></i>
+                      <span id="support-page-image-count" hidden>0</span>
+                    </button>
+                    <p class="support-chat-inline-note" id="support-compose-note">يمكنك المتابعة من نفس الصفحة، والرسائل الجديدة ستظهر هنا تلقائيًا.</p>
+                  </div>
                   <button type="submit" class="btn-primary support-chat-page-send" id="support-page-send-btn">
                     <i class="fas fa-paper-plane"></i>
                     <span>إرسال الرسالة</span>

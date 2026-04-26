@@ -2237,7 +2237,7 @@
         store.markSupportThreadRead?.(email, 'admin', { silent: true });
         await syncAll();
         await refreshAll(true);
-        showToast(`تم ${nextWithdrawalState ? 'فتح' : 'إغلاق'} خدمة السحب للمستخدم بنجاح.`);
+        showToast(nextStatus === 'closed' ? 'تم إغلاق المحادثة بنجاح.' : 'تمت إعادة فتح المحادثة بنجاح.');
     };
 
     window.removeSupportThread = async (encodedEmail) => {
@@ -3277,6 +3277,90 @@
                 </div>
             </div>
         `).join('');
+    }
+
+    function normalizeAdminSupportAttachment(attachment) {
+        const src = String(attachment?.src || '').trim();
+        if (!src) return null;
+
+        return {
+            src,
+            name: String(attachment?.name || 'attachment').trim() || 'attachment'
+        };
+    }
+
+    function renderAdminSupportAttachments(attachments) {
+        const safeAttachments = (Array.isArray(attachments) ? attachments : [])
+            .map((item) => normalizeAdminSupportAttachment(item))
+            .filter(Boolean);
+        if (!safeAttachments.length) return '';
+
+        return `
+            <div class="admin-support-message-attachments">
+                ${safeAttachments.map((attachment, index) => `
+                    <a class="admin-support-message-attachment" href="${attachment.src}" target="_blank" rel="noreferrer" aria-label="فتح الصورة ${index + 1}">
+                        <img src="${attachment.src}" alt="${escapeHtml(attachment.name || `attachment-${index + 1}`)}" loading="lazy" />
+                    </a>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    function getAdminSupportMessageState(message) {
+        if (message?.sender === 'user') {
+            return message.readByAdminAt ? 'تمت المراجعة' : 'غير مقروءة';
+        }
+        if (message?.sender === 'admin') {
+            return message.readByUserAt ? 'قرأها المستخدم' : 'بانتظار القراءة';
+        }
+        return '';
+    }
+
+    function renderSupportMessages(thread) {
+        if (!Array.isArray(thread.messages) || !thread.messages.length) {
+            return '<div class="admin-card"><p>لا توجد رسائل داخل هذه المحادثة بعد.</p></div>';
+        }
+
+        return thread.messages.map((message) => {
+            const sender = message.sender === 'admin'
+                ? 'admin'
+                : message.sender === 'bot'
+                    ? 'bot'
+                    : 'user';
+            const senderLabel = sender === 'admin'
+                ? 'الدعم الإداري'
+                : sender === 'bot'
+                    ? 'المساعد الآلي'
+                    : thread.userName || 'المستخدم';
+            const typeLabel = sender === 'admin'
+                ? 'رد الإدارة'
+                : sender === 'bot'
+                    ? 'رد تلقائي'
+                    : 'رسالة مستخدم';
+            const stateLabel = getAdminSupportMessageState(message);
+            const attachmentsHtml = renderAdminSupportAttachments(message.attachments);
+            const textHtml = message.text ? `<p class="admin-support-message-text">${escapeHtml(message.text)}</p>` : '';
+
+            return `
+                <div class="admin-card admin-support-message-card is-${sender}">
+                    <div class="card-header" style="padding-bottom:0.65rem;">
+                        <div class="user-info">
+                            <h4>${escapeHtml(senderLabel)}</h4>
+                            <span>${escapeHtml(formatDate(message.createdAt))}</span>
+                        </div>
+                        <span class="status-pill ${sender === 'admin' ? 'pill-active' : ''}">${escapeHtml(typeLabel)}</span>
+                    </div>
+                    <div class="card-body">
+                        ${textHtml}
+                        ${attachmentsHtml}
+                        <div class="admin-support-message-meta">
+                            <span>${escapeHtml(message.senderName || '')}</span>
+                            ${stateLabel ? `<span class="admin-support-message-state">${escapeHtml(stateLabel)}</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
     }
 
     renderSupport = function renderSupportModern() {

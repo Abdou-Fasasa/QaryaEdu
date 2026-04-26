@@ -28,6 +28,7 @@
 
     const DAILY_WAIT_HOURS = 24;
     const MIN_WITHDRAWAL = 100;
+    const WALLET_REFRESH_INTERVAL_MS = 20000;
 
     const BANK_OPTIONS = [
         { id: 'nbe', name: 'البنك الأهلي المصري', hint: 'NBE', code: 'NBE', colors: ['#0f766e', '#134e4a'] },
@@ -316,13 +317,14 @@
 
         transactionsListEl.innerHTML = transactions.map((transaction) => {
             const statusMeta = getTransactionStatusMeta(transaction.status);
+            const statusMessage = String(transaction.adminMessage || statusMeta.message || '').trim();
             return `
                 <article class="transaction-card ${statusMeta.className}">
                     <div class="transaction-info">
                         <h4>${transaction.method}${transaction.channelName ? ` - ${transaction.channelName}` : ''}</h4>
                         <small>${transaction.txId} - ${formatDate(transaction.createdAt)}</small>
                         <small style="display:block; margin-top:0.35rem;">${transaction.details}</small>
-                        ${transaction.adminMessage ? `<small class="transaction-admin-message ${statusMeta.className}">${transaction.adminMessage}</small>` : ''}
+                        ${statusMessage ? `<small class="transaction-admin-message ${statusMeta.className}">${statusMessage}</small>` : ''}
                     </div>
                     <div style="text-align:left;">
                         <div class="transaction-amount">-${formatBalance(transaction.amount)}</div>
@@ -371,7 +373,7 @@
             ...request,
             status: 'pending',
             statusLabel: 'قيد المراجعة',
-            adminMessage: '',
+            adminMessage: 'تم استلام طلب السحب وهو الآن قيد المراجعة المالية.',
             debitedAt: '',
             resolvedAt: ''
         });
@@ -577,31 +579,61 @@
     function getTransactionStatusMeta(status) {
         const normalized = String(status || 'pending').trim();
         if (normalized === 'completed') {
-            return { label: 'تم التنفيذ', className: 'completed' };
+            return {
+                label: 'تم التنفيذ',
+                className: 'completed',
+                message: 'تم تنفيذ عملية السحب بنجاح وتحويل المبلغ إلى وسيلة الدفع المسجلة.'
+            };
         }
         if (normalized === 'rejected') {
-            return { label: 'مرفوض', className: 'rejected' };
+            return {
+                label: 'مرفوض',
+                className: 'rejected',
+                message: 'تم رفض الطلب. راجع بيانات السحب أو تواصل مع الإدارة لمعرفة السبب.'
+            };
         }
         if (normalized === 'error') {
-            return { label: 'خطأ في البيانات', className: 'error' };
+            return {
+                label: 'خطأ في البيانات',
+                className: 'error',
+                message: 'توجد مشكلة في بيانات التحويل. عدّل البيانات ثم أرسل طلبًا جديدًا.'
+            };
         }
-        return { label: 'قيد المراجعة', className: 'pending' };
+        return {
+            label: 'قيد المراجعة',
+            className: 'pending',
+            message: 'الطلب وصل إلى الإدارة وهو الآن في قائمة المراجعة والتنفيذ.'
+        };
     }
 
     let walletProfilePrefilled = false;
+    let walletRefreshTask = null;
 
     async function refreshWalletView(forceRemote = false, prefillForm = false) {
-        if (forceRemote) {
-            await authApi.refreshFromRemote?.({ force: true });
+        if (walletRefreshTask) {
+            await walletRefreshTask;
+            return;
         }
 
-        const currentUser = authApi.getUserByEmail(authSession.email);
-        if (currentUser && (prefillForm || !walletProfilePrefilled)) {
-            fillFromSettings(currentUser);
-            walletProfilePrefilled = true;
+        walletRefreshTask = (async () => {
+            if (forceRemote) {
+                await authApi.refreshFromRemote?.({ force: true });
+            }
+
+            const currentUser = authApi.getUserByEmail(authSession.email);
+            if (currentUser && (prefillForm || !walletProfilePrefilled)) {
+                fillFromSettings(currentUser);
+                walletProfilePrefilled = true;
+            }
+            renderSummary();
+            renderTransactions();
+        })();
+
+        try {
+            await walletRefreshTask;
+        } finally {
+            walletRefreshTask = null;
         }
-        renderSummary();
-        renderTransactions();
     }
 
     window.addEventListener('qarya_auth_store_updated', async (event) => {
@@ -615,7 +647,7 @@
     window.addEventListener('qarya_user_data_updated', async (event) => {
         const updatedEmail = authApi.normalizeEmail(event.detail?.email || '');
         if (updatedEmail === authApi.normalizeEmail(authSession.email)) {
-            await refreshWalletView(true, false);
+            await refreshWalletView(false, false);
         }
     });
 
@@ -630,8 +662,10 @@
     });
 
     window.setInterval(() => {
-        void refreshWalletView(true, false);
-    }, 3000);
+        if (!document.hidden) {
+            void refreshWalletView(false, false);
+        }
+    }, WALLET_REFRESH_INTERVAL_MS);
 
     void refreshWalletView(true, true);
 })();

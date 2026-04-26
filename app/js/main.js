@@ -43,6 +43,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let supportGuestEmailInput = null;
     let supportInput = null;
     let supportSendBtn = null;
+    let supportAttachmentInput = null;
+    let supportAttachmentPreview = null;
+    let supportAttachmentCounter = null;
+    let supportAttachmentHint = null;
+    let pendingSupportAttachments = [];
     let supportView = 'home';
     let supportSubmitInFlight = false;
     let platformStoreReadyPromise = null;
@@ -176,16 +181,51 @@ document.addEventListener('DOMContentLoaded', () => {
         window.dispatchEvent(new CustomEvent('qarya:store-updated', { detail: { source: 'support-fallback' } }));
     }
 
+    function normalizeSupportAttachmentLocal(attachment = {}) {
+        const src = String(attachment.src || '').trim();
+        if (!src) return null;
+
+        return {
+            id: String(attachment.id || `SUPATT-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`).trim(),
+            type: String(attachment.type || 'image').trim() || 'image',
+            name: String(attachment.name || 'attachment').trim() || 'attachment',
+            mimeType: String(attachment.mimeType || 'image/jpeg').trim() || 'image/jpeg',
+            src,
+            size: Math.max(0, Number(attachment.size || 0)),
+            width: Math.max(0, Number(attachment.width || 0)),
+            height: Math.max(0, Number(attachment.height || 0))
+        };
+    }
+
+    function getSupportMessagePreviewLocal(message = {}) {
+        const text = String(message.text || '').trim();
+        if (text) return text;
+
+        const attachments = (Array.isArray(message.attachments) ? message.attachments : [])
+            .map((item) => normalizeSupportAttachmentLocal(item))
+            .filter(Boolean);
+        if (!attachments.length) return '';
+        if (attachments.length === 1) return 'تم إرفاق صورة واحدة.';
+        return `تم إرفاق ${attachments.length} صور.`;
+    }
+
     function normalizeSupportMessageLocal(message = {}) {
         const sender = ['user', 'admin', 'bot'].includes(String(message.sender || '').trim())
             ? String(message.sender).trim()
             : 'user';
+        const attachments = (Array.isArray(message.attachments) ? message.attachments : [])
+            .map((item) => normalizeSupportAttachmentLocal(item))
+            .filter(Boolean)
+            .slice(0, 4);
         return {
             id: String(message.id || `SUPMSG-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`).trim(),
             sender,
             senderName: String(message.senderName || (sender === 'admin' ? 'الدعم الإداري' : sender === 'bot' ? 'المساعد الآلي' : 'مستخدم المنصة')).trim(),
             text: String(message.text || '').trim(),
+            attachments,
             createdAt: message.createdAt || new Date().toISOString(),
+            readByAdminAt: String(message.readByAdminAt || '').trim(),
+            readByUserAt: String(message.readByUserAt || '').trim(),
             deleted: Boolean(message.deleted)
         };
     }
@@ -194,7 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const email = normalizeGuestEmail(thread.email || '');
         const messages = (Array.isArray(thread.messages) ? thread.messages : [])
             .map((message) => normalizeSupportMessageLocal(message))
-            .filter((message) => message.text && !message.deleted)
+            .filter((message) => (message.text || message.attachments.length) && !message.deleted)
             .slice(-120);
         const latestMessage = messages[messages.length - 1] || null;
 
@@ -208,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
             unreadByUser: Math.max(0, Number(thread.unreadByUser || 0)),
             createdAt: thread.createdAt || latestMessage?.createdAt || new Date().toISOString(),
             updatedAt: thread.updatedAt || latestMessage?.createdAt || new Date().toISOString(),
-            lastMessagePreview: String(thread.lastMessagePreview || latestMessage?.text || '').trim(),
+            lastMessagePreview: String(thread.lastMessagePreview || getSupportMessagePreviewLocal(latestMessage) || '').trim(),
             deletedForUser: Boolean(thread.deletedForUser),
             messages
         };
@@ -227,7 +267,11 @@ document.addEventListener('DOMContentLoaded', () => {
             sendSupportMessage(payload = {}) {
                 const email = normalizeGuestEmail(payload.email || '');
                 const text = String(payload.text || '').trim();
-                if (!email || !text) return null;
+                const attachments = (Array.isArray(payload.attachments) ? payload.attachments : [])
+                    .map((item) => normalizeSupportAttachmentLocal(item))
+                    .filter(Boolean)
+                    .slice(0, 4);
+                if (!email || (!text && !attachments.length)) return null;
 
                 const existingThreads = getSupportThreadsLocalRaw().map((thread) => normalizeSupportThreadLocal(thread));
                 const existing = existingThreads.find((thread) => thread.email === email) || null;
@@ -235,6 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     sender: payload.sender || 'user',
                     senderName: payload.senderName || (payload.sender === 'admin' ? 'الدعم الإداري' : payload.userName || 'مستخدم المنصة'),
                     text,
+                    attachments,
                     createdAt: payload.createdAt || new Date().toISOString()
                 });
 
@@ -254,7 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     createdAt: existing?.createdAt || message.createdAt,
                     updatedAt: message.createdAt,
                     deletedForUser: false,
-                    lastMessagePreview: text,
+                    lastMessagePreview: getSupportMessagePreviewLocal(message),
                     messages: [...(existing?.messages || []), message]
                 });
 
@@ -269,9 +314,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 const existingThreads = getSupportThreadsLocalRaw().map((thread) => normalizeSupportThreadLocal(thread));
                 const existing = existingThreads.find((thread) => thread.email === normalizedEmail);
                 if (!existing) return null;
+                const readAt = new Date().toISOString();
 
                 const nextThread = normalizeSupportThreadLocal({
                     ...existing,
+                    messages: (existing.messages || []).map((message) => {
+                        const normalizedMessage = normalizeSupportMessageLocal(message);
+                        if (audience === 'admin' && normalizedMessage.sender === 'user' && !normalizedMessage.readByAdminAt) {
+                            return {
+                                ...normalizedMessage,
+                                readByAdminAt: readAt
+                            };
+                        }
+                        if (audience === 'user' && normalizedMessage.sender !== 'user' && !normalizedMessage.readByUserAt) {
+                            return {
+                                ...normalizedMessage,
+                                readByUserAt: readAt
+                            };
+                        }
+                        return normalizedMessage;
+                    }),
                     unreadByAdmin: audience === 'admin' ? 0 : existing.unreadByAdmin,
                     unreadByUser: audience === 'user' ? 0 : existing.unreadByUser
                 });
@@ -1215,6 +1277,137 @@ document.addEventListener('DOMContentLoaded', () => {
         showLiveNotification('تنبيه المنصة', message || 'تم تنفيذ العملية.');
     }
 
+    function getSupportMessageReadLabel(message) {
+        if (!message || message.sender !== 'user') return '';
+        if (message.readByAdminAt) return 'مقروءة';
+        return 'تم الإرسال';
+    }
+
+    function setSupportAttachmentHintText(text) {
+        if (!supportAttachmentHint) return;
+        supportAttachmentHint.textContent = text || 'يمكنك إضافة صور توضيحية مع الرسالة.';
+    }
+
+    function renderPendingSupportAttachments() {
+        if (!supportAttachmentPreview) return;
+
+        supportAttachmentPreview.hidden = pendingSupportAttachments.length === 0;
+        supportAttachmentPreview.innerHTML = pendingSupportAttachments.map((attachment, index) => `
+            <div class="support-chat-upload-chip">
+                <img src="${attachment.src}" alt="${escapeHtml(attachment.name || `attachment-${index + 1}`)}" />
+                <div class="support-chat-upload-copy">
+                    <strong>${escapeHtml(attachment.name || `صورة ${index + 1}`)}</strong>
+                    <span>${attachment.width > 0 && attachment.height > 0 ? `${attachment.width}×${attachment.height}` : 'صورة مرفقة'}</span>
+                </div>
+                <button type="button" class="support-chat-upload-remove" data-support-remove-attachment="${attachment.id}" aria-label="حذف الصورة">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `).join('');
+
+        if (supportAttachmentCounter) {
+            supportAttachmentCounter.hidden = pendingSupportAttachments.length === 0;
+            supportAttachmentCounter.textContent = pendingSupportAttachments.length > 9 ? '+9' : String(pendingSupportAttachments.length);
+        }
+
+        setSupportAttachmentHintText(
+            pendingSupportAttachments.length
+                ? `تم تجهيز ${pendingSupportAttachments.length} ${pendingSupportAttachments.length === 1 ? 'صورة' : 'صور'} للإرسال.`
+                : ''
+        );
+    }
+
+    function clearPendingSupportAttachments() {
+        pendingSupportAttachments = [];
+        if (supportAttachmentInput) {
+            supportAttachmentInput.value = '';
+        }
+        renderPendingSupportAttachments();
+    }
+
+    function readFileAsDataUrl(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result || ''));
+            reader.onerror = () => reject(reader.error || new Error('file-read-failed'));
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function loadImageFromDataUrl(src) {
+        return new Promise((resolve, reject) => {
+            const image = new Image();
+            image.onload = () => resolve(image);
+            image.onerror = () => reject(new Error('image-load-failed'));
+            image.src = src;
+        });
+    }
+
+    async function buildSupportAttachmentFromFile(file) {
+        const originalSrc = await readFileAsDataUrl(file);
+        const image = await loadImageFromDataUrl(originalSrc);
+        const maxEdge = 1280;
+        const scale = Math.min(1, maxEdge / Math.max(image.naturalWidth || 1, image.naturalHeight || 1));
+        const width = Math.max(1, Math.round((image.naturalWidth || 1) * scale));
+        const height = Math.max(1, Math.round((image.naturalHeight || 1) * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const context = canvas.getContext('2d');
+        context?.drawImage(image, 0, 0, width, height);
+
+        let src = canvas.toDataURL('image/jpeg', 0.84);
+        if (src.length > 650000) {
+            src = canvas.toDataURL('image/jpeg', 0.72);
+        }
+
+        return normalizeSupportAttachmentLocal({
+            id: `SUPATT-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+            type: 'image',
+            name: file.name || 'image.jpg',
+            mimeType: 'image/jpeg',
+            src,
+            size: Number(file.size || 0),
+            width,
+            height
+        });
+    }
+
+    async function appendSupportAttachments(files) {
+        const nextFiles = Array.from(files || []).filter((file) => String(file?.type || '').startsWith('image/'));
+        if (!nextFiles.length) {
+            showLiveNotification('الدعم الإداري', 'يرجى اختيار صورة صحيحة بصيغة مدعومة.');
+            return;
+        }
+
+        const availableSlots = Math.max(0, 3 - pendingSupportAttachments.length);
+        if (availableSlots <= 0) {
+            showLiveNotification('الدعم الإداري', 'يمكن إرفاق 3 صور كحد أقصى في الرسالة الواحدة.');
+            return;
+        }
+
+        const prepared = await Promise.all(nextFiles.slice(0, availableSlots).map((file) => buildSupportAttachmentFromFile(file)));
+        pendingSupportAttachments = [...pendingSupportAttachments, ...prepared.filter(Boolean)].slice(0, 3);
+        renderPendingSupportAttachments();
+    }
+
+    function buildSupportAttachmentMarkup(attachments, className) {
+        const safeAttachments = (Array.isArray(attachments) ? attachments : [])
+            .map((item) => normalizeSupportAttachmentLocal(item))
+            .filter(Boolean);
+        if (!safeAttachments.length) return '';
+
+        return `
+            <div class="${className}-attachments">
+                ${safeAttachments.map((attachment, index) => `
+                    <a class="${className}-attachment" href="${attachment.src}" target="_blank" rel="noreferrer" aria-label="فتح الصورة ${index + 1}">
+                        <img src="${attachment.src}" alt="${escapeHtml(attachment.name || `attachment-${index + 1}`)}" loading="lazy" />
+                    </a>
+                `).join('')}
+            </div>
+        `;
+    }
+
     function setSupportView(view) {
         supportView = ['home', 'faq', 'chat'].includes(view) ? view : 'home';
         renderSupportWidget();
@@ -1256,9 +1449,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (supportSendBtn) {
-            supportSendBtn.disabled = !canSend;
-            supportSendBtn.setAttribute('aria-disabled', String(!canSend));
+            supportSendBtn.disabled = !canSend || (!String(supportInput?.value || '').trim() && pendingSupportAttachments.length === 0);
+            supportSendBtn.setAttribute('aria-disabled', String(supportSendBtn.disabled));
             supportSendBtn.classList.toggle('is-loading', supportSubmitInFlight);
+        }
+
+        if (supportAttachmentInput) {
+            supportAttachmentInput.disabled = !canSend;
         }
     }
 
@@ -1275,7 +1472,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const text = String(supportInput?.value || '').trim();
-            if (!text) {
+            const attachments = pendingSupportAttachments.slice(0, 3);
+            if (!text && !attachments.length) {
                 focusSupportField(supportInput);
                 return;
             }
@@ -1309,18 +1507,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 role: identity.role || 'مستخدم المنصة',
                 sender: 'user',
                 senderName: identity.name,
-                text
+                text,
+                attachments
             }, { silent: true });
 
             if (supportInput) {
                 supportInput.value = '';
                 supportInput.style.height = '';
             }
+            clearPendingSupportAttachments();
 
             setSupportView('chat');
             renderSupportWidget();
 
-            Promise.resolve(notifyAdminsAboutSupportMessage(text, identity.name)).catch((error) => {
+            Promise.resolve(notifyAdminsAboutSupportMessage(text || getSupportMessagePreviewLocal({ attachments }), identity.name)).catch((error) => {
                 console.error('Admin support notification failed:', error);
             });
 
@@ -1351,13 +1551,19 @@ document.addEventListener('DOMContentLoaded', () => {
             : message.sender === 'bot'
                 ? 'آ'
                 : 'أ';
+        const attachmentsHtml = buildSupportAttachmentMarkup(message.attachments, 'support-chat');
+        const readLabel = getSupportMessageReadLabel(message);
         return `
             <div class="support-chat-message ${message.sender === 'admin' ? 'is-admin' : message.sender === 'bot' ? 'is-bot' : 'is-user'}">
                 ${isUserMessage ? '' : `<span class="support-chat-avatar">${escapeHtml(avatarLabel)}</span>`}
                 <div class="support-chat-bubble">
                     <span class="support-chat-sender">${escapeHtml(senderLabel)}</span>
-                    <p>${escapeHtml(message.text)}</p>
-                    <small>${escapeHtml(new Date(message.createdAt || Date.now()).toLocaleString('ar-EG'))}</small>
+                    ${message.text ? `<p>${escapeHtml(message.text)}</p>` : ''}
+                    ${attachmentsHtml}
+                    <div class="support-chat-meta-row">
+                        <small>${escapeHtml(new Date(message.createdAt || Date.now()).toLocaleString('ar-EG'))}</small>
+                        ${readLabel ? `<small class="support-chat-read-state">${escapeHtml(readLabel)}</small>` : ''}
+                    </div>
                 </div>
                 ${isUserMessage ? `<span class="support-chat-avatar support-chat-avatar-user">${escapeHtml(avatarLabel)}</span>` : ''}
             </div>
@@ -1378,6 +1584,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (supportBadge) {
             supportBadge.hidden = unreadCount <= 0;
             supportBadge.textContent = unreadCount > 9 ? '+9' : String(unreadCount);
+        }
+        if (supportAttachmentCounter) {
+            supportAttachmentCounter.hidden = pendingSupportAttachments.length === 0;
+            supportAttachmentCounter.textContent = pendingSupportAttachments.length > 9 ? '+9' : String(pendingSupportAttachments.length);
         }
 
         if (supportHomeView) supportHomeView.hidden = supportView !== 'home';
@@ -1429,6 +1639,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (supportEmpty) {
             supportEmpty.hidden = hasMessages;
             supportEmpty.innerHTML = getSupportEmptyMarkup(identity, hasMessages);
+        }
+
+        renderPendingSupportAttachments();
+        if (!pendingSupportAttachments.length) {
+            setSupportAttachmentHintText(
+                unreadCount > 0
+                    ? `لديك ${unreadCount} ${unreadCount === 1 ? 'رسالة غير مقروءة' : 'رسائل غير مقروءة'} داخل المحادثة.`
+                    : 'يمكنك إضافة صور توضيحية مع الرسالة.'
+            );
         }
 
         setSupportComposerState(storeApi);
@@ -1487,10 +1706,14 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="support-chat-entry-label">اكتب رسالتك</span>
                                 <textarea class="form-control support-chat-input" rows="3" placeholder="اكتب رسالتك إلى الإدارة هنا"></textarea>
                             </label>
+                            <input type="file" class="support-chat-attachment-input" accept="image/*" hidden multiple>
+                            <div class="support-chat-upload-list" hidden></div>
                             <div class="support-chat-composer-footer">
-                                <div class="support-chat-composer-tools" aria-hidden="true">
-                                    <button type="button" class="support-chat-tool-btn" tabindex="-1"><i class="fas fa-paperclip"></i></button>
-                                    <button type="button" class="support-chat-tool-btn" tabindex="-1"><i class="far fa-face-smile"></i></button>
+                                <div class="support-chat-composer-tools">
+                                    <button type="button" class="support-chat-tool-btn support-chat-attach-btn" aria-label="إرفاق صورة">
+                                        <i class="fas fa-paperclip"></i>
+                                        <span class="support-chat-tool-count" hidden>0</span>
+                                    </button>
                                 </div>
                                 <span class="support-chat-inline-note">الخدمة متاحة لكل الزوار والمستخدمين.</span>
                                 <button type="button" class="btn-primary support-chat-send-btn">
@@ -1521,6 +1744,11 @@ document.addEventListener('DOMContentLoaded', () => {
         supportGuestEmailInput = supportWidget.querySelector('.support-chat-guest-email');
         supportInput = supportWidget.querySelector('.support-chat-input');
         supportSendBtn = supportWidget.querySelector('.support-chat-send-btn');
+        supportAttachmentInput = supportWidget.querySelector('.support-chat-attachment-input');
+        supportAttachmentPreview = supportWidget.querySelector('.support-chat-upload-list');
+        supportAttachmentCounter = supportWidget.querySelector('.support-chat-tool-count');
+        supportAttachmentHint = supportWidget.querySelector('.support-chat-inline-note');
+        const attachBtn = supportWidget.querySelector('.support-chat-attach-btn');
         const openViewButtons = [];
         const backButtons = [];
 
@@ -1541,11 +1769,31 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         supportInput?.addEventListener('input', autoSizeSupportInput);
+        supportInput?.addEventListener('input', () => setSupportComposerState(getSupportStoreApi()));
         supportInput?.addEventListener('keydown', (event) => {
             if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
                 event.preventDefault();
                 void submitSupportMessage();
             }
+        });
+        attachBtn?.addEventListener('click', () => {
+            supportAttachmentInput?.click();
+        });
+        supportAttachmentInput?.addEventListener('change', async (event) => {
+            try {
+                await appendSupportAttachments(event.target?.files);
+                setSupportComposerState(getSupportStoreApi());
+            } catch (error) {
+                console.error('Support attachment failed:', error);
+                showLiveNotification('الدعم الإداري', 'تعذر تجهيز الصورة. جرّب صورة أصغر أو أوضح.');
+            }
+        });
+        supportAttachmentPreview?.addEventListener('click', (event) => {
+            const button = event.target.closest('[data-support-remove-attachment]');
+            if (!button) return;
+            pendingSupportAttachments = pendingSupportAttachments.filter((attachment) => attachment.id !== button.dataset.supportRemoveAttachment);
+            renderPendingSupportAttachments();
+            setSupportComposerState(getSupportStoreApi());
         });
         requestAnimationFrame(autoSizeSupportInput);
         const supportSections = Array.from(supportWidget.querySelectorAll('.support-chat-section'));
