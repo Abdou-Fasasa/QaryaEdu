@@ -81,8 +81,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         return lock;
     }
 
-    function hasAttempted(requestId) {
-        return Boolean(store?.getExamHistoryByRequestId?.(requestId)?.length);
+    function hasAttemptedToday(requestId, dateValue = Date.now()) {
+        if (store?.hasExamAttemptOnDate) {
+            return store.hasExamAttemptOnDate(requestId, dateValue);
+        }
+        return Boolean(store?.getExamAttemptsByRequestIdAndDate?.(requestId, dateValue)?.length);
     }
 
     function renderBanner(windowState) {
@@ -219,8 +222,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             showMessage('هذا الطلب غير مسموح له بدخول الامتحان حاليًا.');
             return;
         }
-        if (hasAttempted(application.requestId)) {
-            showMessage('هذا الطلب استخدم فرصة الامتحان بالفعل.');
+        if (hasAttemptedToday(application.requestId, now)) {
+            showMessage('تم استخدام محاولة الامتحان الخاصة بهذا اليوم بالفعل. يمكنك الدخول مرة أخرى في يوم الامتحان التالي فقط.');
             return;
         }
 

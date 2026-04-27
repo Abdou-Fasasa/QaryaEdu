@@ -97,7 +97,7 @@
                 : '<span class="muted-chip">--</span>';
             const timeText = attempt
                 ? `<span class="time-badge">${formatTime(attempt.date)}</span>`
-                : '<span class="muted-chip">07:00 م - 08:00 م</span>';
+                : '<span class="muted-chip">08:00 م - 09:00 م</span>';
 
             return `
                 <tr>

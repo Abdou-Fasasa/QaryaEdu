@@ -895,7 +895,7 @@
             {
                 id: 'default-exam-window',
                 title: 'مواعيد الامتحان الرسمية',
-                body: 'تفتح الامتحانات أيام السبت والأحد والاثنين من 07:00 مساءً إلى 08:00 مساءً بتوقيت مصر.',
+                body: 'تفتح الامتحانات أيام السبت والأحد والاثنين من 08:00 مساءً إلى 09:00 مساءً بتوقيت مصر.',
                 type: 'exam',
                 createdAt: '2026-03-01T18:00:00+02:00',
                 actionUrl: './exam-status.html',
@@ -1139,6 +1139,7 @@
             percentage: attempt.percentage,
             passed: attempt.status === 'passed',
             date: attempt.date,
+            examDateKey: attempt.examDateKey || '',
             source: 'official',
             approved: attempt.approved !== false
         }));
@@ -1154,6 +1155,36 @@
             }
         });
         return Array.from(map.values()).sort((first, second) => new Date(second.date || 0).getTime() - new Date(first.date || 0).getTime());
+    }
+
+    function getEgyptDateKey(value = Date.now()) {
+        const date = value instanceof Date ? value : new Date(value || Date.now());
+        if (Number.isNaN(date.getTime())) return '';
+
+        const parts = new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'Africa/Cairo',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        }).formatToParts(date);
+        const year = parts.find((part) => part.type === 'year')?.value || '';
+        const month = parts.find((part) => part.type === 'month')?.value || '';
+        const day = parts.find((part) => part.type === 'day')?.value || '';
+        return year && month && day ? `${year}-${month}-${day}` : '';
+    }
+
+    function getExamAttemptDateKey(attempt) {
+        return String(attempt?.examDateKey || '').trim() || getEgyptDateKey(attempt?.date);
+    }
+
+    function getExamAttemptsByRequestIdAndDate(requestId, dateValue = Date.now()) {
+        const targetDateKey = getEgyptDateKey(dateValue);
+        if (!targetDateKey) return [];
+        return getAllExamAttemptsByRequestId(requestId).filter((attempt) => getExamAttemptDateKey(attempt) === targetDateKey);
+    }
+
+    function hasExamAttemptOnDate(requestId, dateValue = Date.now()) {
+        return getExamAttemptsByRequestIdAndDate(requestId, dateValue).length > 0;
     }
 
     function getLatestExamAttempt(requestId) {
@@ -1243,8 +1274,10 @@
         getExamHistory,
         saveExamHistory,
         getExamHistoryByRequestId,
-        getLatestExamAttempt,
         getAllExamAttemptsByRequestId,
+        getExamAttemptsByRequestIdAndDate,
+        hasExamAttemptOnDate,
+        getLatestExamAttempt,
         getExamSummary,
         buildApplicationTimeline,
         getDashboardMetrics,

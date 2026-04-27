@@ -1,6 +1,6 @@
 (() => {
-    const EXAM_START_HOUR = 19;
-    const EXAM_END_HOUR = 20;
+    const EXAM_START_HOUR = 20;
+    const EXAM_END_HOUR = 21;
     const EXAM_DAYS = [6, 0, 1];
     const DAY_NAMES = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
     const DEFAULT_MANUAL_MINUTES = 60;
@@ -58,7 +58,7 @@
     }
 
     function formatNextSlot(date) {
-        return `${DAY_NAMES[date.getDay()]} ${date.toLocaleDateString('ar-EG', { day: 'numeric', month: 'long' })} - 07:00 مساءً`;
+        return `${DAY_NAMES[date.getDay()]} ${date.toLocaleDateString('ar-EG', { day: 'numeric', month: 'long' })} - 08:00 مساءً`;
     }
 
     function normalizeSettings(settings = {}) {
@@ -154,7 +154,7 @@
                 countdownTarget: examEndToday,
                 countdownPrefix: 'الامتحان مفتوح الآن. المتبقي على الإغلاق',
                 todayText: `نعم، ${DAY_NAMES[now.getDay()]}`,
-                nextText: 'يغلق 08:00 مساءً',
+                nextText: 'يغلق 09:00 مساءً',
                 accessText: 'الحقول متاحة الآن.',
                 bannerText: 'الامتحان مفتوح الآن وفق الجدول الرسمي.',
                 statusText: 'الامتحان مفتوح الآن'
@@ -168,7 +168,7 @@
                 showCountdown: true,
                 countdownTarget: examStartToday,
                 countdownPrefix: 'متبقٍ على فتح امتحان اليوم',
-                todayText: 'يبدأ 07:00 مساءً',
+                todayText: 'يبدأ 08:00 مساءً',
                 nextText: formatNextSlot(examStartToday),
                 accessText: 'الامتحان لم يبدأ بعد.',
                 bannerText: 'يوجد امتحان اليوم لكنه لم يبدأ بعد.',

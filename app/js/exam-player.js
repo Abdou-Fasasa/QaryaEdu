@@ -98,8 +98,27 @@
         return sameEmail || sameNationalId;
     }
 
-    function hasAttempted(store, requestId) {
-        return Boolean(store?.getExamHistoryByRequestId?.(requestId)?.length);
+    function getEgyptDateKey(value = Date.now()) {
+        const date = value instanceof Date ? value : new Date(value || Date.now());
+        if (Number.isNaN(date.getTime())) return '';
+
+        const parts = new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'Africa/Cairo',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        }).formatToParts(date);
+        const year = parts.find((part) => part.type === 'year')?.value || '';
+        const month = parts.find((part) => part.type === 'month')?.value || '';
+        const day = parts.find((part) => part.type === 'day')?.value || '';
+        return year && month && day ? `${year}-${month}-${day}` : '';
+    }
+
+    function hasAttemptedToday(store, requestId, dateValue = Date.now()) {
+        if (store?.hasExamAttemptOnDate) {
+            return store.hasExamAttemptOnDate(requestId, dateValue);
+        }
+        return Boolean(store?.getExamAttemptsByRequestIdAndDate?.(requestId, dateValue)?.length);
     }
 
     function blockExam(form, resultDiv, message) {
@@ -366,8 +385,8 @@
             blockExam(form, resultDiv, 'هذا الطلب غير مسموح له بدخول الامتحان حاليًا.');
             return;
         }
-        if (hasAttempted(store, verifiedStudent.requestId)) {
-            blockExam(form, resultDiv, 'هذا الطلب استخدم فرصة الامتحان بالفعل.');
+        if (hasAttemptedToday(store, verifiedStudent.requestId, examWindowApi.getEgyptNow())) {
+            blockExam(form, resultDiv, 'تم استخدام محاولة هذا اليوم بالفعل. يمكنك العودة في يوم الامتحان التالي فقط.');
             return;
         }
 
@@ -434,13 +453,14 @@
                 return;
             }
 
-            if (hasAttempted(store, verifiedStudent.requestId)) {
-                blockExam(form, resultDiv, 'تم تسجيل محاولة سابقة لهذا الطلب.');
+            if (hasAttemptedToday(store, verifiedStudent.requestId, examWindowApi.getEgyptNow())) {
+                blockExam(form, resultDiv, 'تم تسجيل محاولة هذا اليوم بالفعل. لا يمكن إعادة الامتحان إلا في يوم الامتحان التالي.');
                 return;
             }
 
             const answers = collectAnswers(form, selectedQuestions);
             const { totalPoints, studentScore, percentage, passed } = evaluateAnswers(answers, selectedQuestions);
+            const attemptDate = new Date();
             const examAttempt = {
                 requestId: verifiedStudent.requestId,
                 name: application.name || verifiedStudent.name,
@@ -452,7 +472,8 @@
                 total: totalPoints,
                 percentage,
                 passed,
-                date: new Date().toISOString(),
+                date: attemptDate.toISOString(),
+                examDateKey: getEgyptDateKey(attemptDate),
                 approved: true
             };
 
