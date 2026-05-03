@@ -400,6 +400,7 @@
             balance: walletEnabled ? Number(user.balance || 0) : 0,
             walletEnabled,
             withdrawalsEnabled: walletEnabled && user.withdrawalsEnabled !== false,
+            withdrawalLockMessage: user.withdrawalLockMessage || '',
             privateNotificationsEnabled: accountType === ACCOUNT_TYPES.EXAM_STUDENT ? true : user.privateNotificationsEnabled !== false,
             withdrawalPassword: user.withdrawalPassword || (walletEnabled ? 'SPEED' : (user.password || '123456')),
             profileImage: user.profileImage || null,

@@ -898,6 +898,7 @@
                 <div class="admin-pro-form-group"><label>القرية</label><input class="form-control" id="pro-user-village" type="text" value="${escapeHtml(current.village || '')}"></div>
                 <div class="admin-pro-form-group"><label>الرصيد</label><input class="form-control" id="pro-user-balance" type="number" value="${escapeHtml(current.balance || 0)}"></div>
                 <div class="admin-pro-form-group full"><div class="admin-pro-inline-actions"><label><input type="checkbox" id="pro-user-exam-allowed" ${current.examAllowed !== false ? 'checked' : ''}> السماح بالامتحان</label><label><input type="checkbox" id="pro-user-wallet-enabled" ${current.walletEnabled !== false ? 'checked' : ''}> إظهار المحفظة</label><label><input type="checkbox" id="pro-user-withdrawals-enabled" ${current.withdrawalsEnabled !== false ? 'checked' : ''}> فتح السحب</label><label><input type="checkbox" id="pro-user-private-notes" ${current.privateNotificationsEnabled !== false ? 'checked' : ''}> إشعارات خاصة</label></div></div>
+                <div class="admin-pro-form-group full"><label>رسالة قفل السحب</label><textarea class="form-control" id="pro-user-withdrawal-lock-message" rows="3" placeholder="تظهر للمستخدم عند قفل السحب">${escapeHtml(current.withdrawalLockMessage || '')}</textarea></div>
             </div>
         `;
     }
@@ -1073,6 +1074,7 @@
                     examAllowed: document.getElementById('pro-user-exam-allowed')?.checked,
                     walletEnabled: document.getElementById('pro-user-wallet-enabled')?.checked,
                     withdrawalsEnabled: document.getElementById('pro-user-withdrawals-enabled')?.checked,
+                    withdrawalLockMessage: document.getElementById('pro-user-withdrawal-lock-message')?.value.trim() || '',
                     privateNotificationsEnabled: document.getElementById('pro-user-private-notes')?.checked,
                     isLeader: managementRole === 'leader'
                 });
@@ -1119,6 +1121,7 @@
                     examAllowed: document.getElementById('pro-user-exam-allowed')?.checked,
                     walletEnabled: document.getElementById('pro-user-wallet-enabled')?.checked,
                     withdrawalsEnabled: document.getElementById('pro-user-withdrawals-enabled')?.checked,
+                    withdrawalLockMessage: document.getElementById('pro-user-withdrawal-lock-message')?.value.trim() || '',
                     privateNotificationsEnabled: document.getElementById('pro-user-private-notes')?.checked,
                     isLeader: managementRole === 'leader'
                 });

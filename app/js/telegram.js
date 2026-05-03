@@ -159,7 +159,19 @@
             `البريد الإلكتروني: ${payload.email}`,
             `الدور: ${payload.role || 'مستخدم المنصة'}`,
             `الوجهة بعد الدخول: ${payload.targetLabel || 'المنصة'}`,
-            `المتصفح: ${payload.userAgent || 'غير متاح'}`,
+            `نوع الجهاز: ${payload.deviceType || 'غير متاح'}`,
+            `موديل الجهاز: ${payload.deviceModel || 'غير متاح'}`,
+            `نظام التشغيل: ${payload.operatingSystem || 'غير متاح'}`,
+            `المتصفح: ${payload.browserBrands || payload.userAgent || 'غير متاح'}`,
+            `IP: ${payload.ip || 'غير متاح'}`,
+            `الموقع التقريبي: ${payload.location || 'غير متاح'}`,
+            `مزود الإنترنت / ASN: ${[payload.isp, payload.asn].filter(Boolean).join(' - ') || 'غير متاح'}`,
+            `نوع الاتصال من المتصفح: ${payload.connectionType || 'غير متاح'}`,
+            `سرعة الاتصال التقريبية: ${payload.effectiveType || 'غير متاح'}${payload.downlink ? ` - ${payload.downlink}` : ''}${payload.rtt ? ` - RTT ${payload.rtt}` : ''}`,
+            `توفير البيانات: ${payload.saveData || 'غير متاح'}`,
+            `شركة خط الموبايل المتوقعة: ${payload.inferredMobileCarrier || 'غير متاح'}`,
+            `ملاحظة الشبكة: ${payload.networkNote || 'بعض تفاصيل الشبكة مقيدة من المتصفح.'}`,
+            `المتصفح الكامل: ${payload.userAgent || 'غير متاح'}`,
             `وقت الدخول: ${payload.loggedAt || new Date().toLocaleString('ar-EG')}`
         ].join('\n');
     }

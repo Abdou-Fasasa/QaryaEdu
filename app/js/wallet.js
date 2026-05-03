@@ -399,6 +399,11 @@
         return userData?.withdrawalsEnabled !== false;
     }
 
+    function getWithdrawalLockMessage(userData) {
+        return String(userData?.withdrawalLockMessage || '').trim()
+            || 'السحب موقوف من الإدارة حاليًا. يمكنك متابعة سجل العمليات فقط.';
+    }
+
     function applyWithdrawalAvailability(userData) {
         const enabled = isWithdrawalEnabled(userData);
         const controls = withdrawalForm ? Array.from(withdrawalForm.querySelectorAll('input, textarea, button, select')) : [];
@@ -419,7 +424,7 @@
         if (!enabled) {
             limitStatusEl.textContent = 'مغلق من الإدارة';
             resultDiv.dataset.withdrawalLocked = 'true';
-            renderResult('error', 'السحب موقوف من الإدارة حاليًا. يمكنك متابعة سجل العمليات فقط.');
+            renderResult('error', getWithdrawalLockMessage(userData));
             return;
         }
 
@@ -443,7 +448,7 @@
         if (isWithdrawalEnabled(userData)) return;
         event.preventDefault();
         event.stopImmediatePropagation();
-        renderResult('error', 'السحب موقوف من الإدارة حاليًا. لا يمكن إرسال طلب جديد الآن.');
+        renderResult('error', getWithdrawalLockMessage(userData));
     }, true);
 
     methodCards.forEach((card) => {

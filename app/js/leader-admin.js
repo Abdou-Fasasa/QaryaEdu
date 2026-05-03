@@ -1943,6 +1943,7 @@
                     <label><input type="checkbox" id="edit-user-private-notes" ${user.privateNotificationsEnabled !== false ? 'checked' : ''}> إشعارات خاصة</label>
                 </div>
             </div>
+            <div class="form-group"><label>رسالة قفل السحب</label><textarea class="form-control" id="edit-user-withdrawal-lock-message" rows="3" placeholder="تظهر للمستخدم عند قفل السحب">${escapeHtml(user.withdrawalLockMessage || '')}</textarea></div>
         `, async () => {
             const mRole = document.getElementById('edit-user-management-role').value;
             const nextRoleName = document.getElementById('edit-user-role').value.trim();
@@ -1958,6 +1959,7 @@
                 examAllowed: document.getElementById('edit-user-exam-allowed')?.checked,
                 walletEnabled: document.getElementById('edit-user-wallet-enabled')?.checked,
                 withdrawalsEnabled: document.getElementById('edit-user-withdrawals-enabled')?.checked,
+                withdrawalLockMessage: document.getElementById('edit-user-withdrawal-lock-message')?.value.trim() || '',
                 privateNotificationsEnabled: document.getElementById('edit-user-private-notes')?.checked,
                 updatedAt: new Date().toISOString()
             };
@@ -2506,6 +2508,7 @@
                     <p><span>كود القائد</span><strong>${escapeHtml(user.leaderCode || '--')}</strong></p>
                     <p><span>صلاحية الامتحان</span><strong>${user.examAllowed === false ? 'موقوفة' : 'مسموحة'}</strong></p>
                     <p><span>صلاحية السحب</span><strong>${user.withdrawalsEnabled === false ? 'مغلقة' : 'مفتوحة'}</strong></p>
+                    ${user.withdrawalLockMessage ? `<p style="display:block; margin-top:0.75rem;"><span>رسالة قفل السحب</span><strong style="display:block; margin-top:0.35rem;">${escapeHtml(user.withdrawalLockMessage)}</strong></p>` : ''}
                     <p><span>آخر دخول</span><strong>${escapeHtml(formatDate(user.lastLoginAt))}</strong></p>
                 </div>
                 <div class="card-actions">
@@ -2528,12 +2531,35 @@
         const user = authApi.getUserByEmail(email);
         if (!user) return;
         const nextWithdrawalState = user.withdrawalsEnabled === false;
-        authApi.updateUserPersistentData(email, { withdrawalsEnabled: nextWithdrawalState });
+        const defaultLockMessage = user.withdrawalLockMessage || 'تم إيقاف خدمة السحب على حسابك مؤقتًا بقرار من الإدارة.';
+
+        if (!nextWithdrawalState) {
+            openModal('قفل السحب وكتابة رسالة للمستخدم', `
+                <div class="form-group"><label>المستخدم</label><input class="form-control" type="text" value="${escapeHtml(user.name || user.email)}" disabled></div>
+                <div class="form-group"><label>رسالة تظهر للمستخدم داخل صفحة السحب</label><textarea class="form-control" id="withdrawal-lock-message" rows="5">${escapeHtml(defaultLockMessage)}</textarea></div>
+            `, async () => {
+                const lockMessage = document.getElementById('withdrawal-lock-message')?.value.trim() || defaultLockMessage;
+                authApi.updateUserPersistentData(email, {
+                    withdrawalsEnabled: false,
+                    withdrawalLockMessage: lockMessage
+                });
+                await notifyUserAccountChange(email, {
+                    title: 'إغلاق السحب على الحساب',
+                    body: lockMessage
+                });
+                await syncAll();
+                await refreshAll(true);
+            }, 'قفل السحب وإرسال الرسالة');
+            return;
+        }
+
+        authApi.updateUserPersistentData(email, {
+            withdrawalsEnabled: true,
+            withdrawalLockMessage: ''
+        });
         await notifyUserAccountChange(email, {
-            title: nextWithdrawalState ? 'فتح السحب على الحساب' : 'إغلاق السحب على الحساب',
-            body: nextWithdrawalState
-                ? 'تم فتح خدمة السحب على حسابك من الإدارة.'
-                : 'تم إيقاف خدمة السحب على حسابك من الإدارة.'
+            title: 'فتح السحب على الحساب',
+            body: 'تم فتح خدمة السحب على حسابك من الإدارة.'
         });
         await syncAll();
         await refreshAll(true);
@@ -3161,6 +3187,7 @@
                     <p><span>كود القائد</span><strong>${escapeHtml(user.leaderCode || '--')}</strong></p>
                     <p><span>صلاحية الامتحان</span><strong>${user.examAllowed === false ? 'موقوفة' : 'مسموحة'}</strong></p>
                     <p><span>صلاحية السحب</span><strong>${user.withdrawalsEnabled === false ? 'مغلقة' : 'مفتوحة'}</strong></p>
+                    ${user.withdrawalLockMessage ? `<p style="display:block; margin-top:0.75rem;"><span>رسالة قفل السحب</span><strong style="display:block; margin-top:0.35rem;">${escapeHtml(user.withdrawalLockMessage)}</strong></p>` : ''}
                     <p><span>آخر دخول</span><strong>${escapeHtml(formatDate(user.lastLoginAt))}</strong></p>
                 </div>
                 <div class="card-actions">

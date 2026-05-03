@@ -74,6 +74,108 @@
         return known[code] || fallback;
     }
 
+    function withTimeout(promise, timeoutMs = 2500) {
+        return Promise.race([
+            promise,
+            new Promise((resolve) => window.setTimeout(() => resolve(null), timeoutMs))
+        ]);
+    }
+
+    function getDeviceType() {
+        const ua = navigator.userAgent || '';
+        if (/tablet|ipad|playbook|silk/i.test(ua)) return 'تابلت';
+        if (/mobi|android|iphone|ipod/i.test(ua)) return 'موبايل';
+        return 'كمبيوتر';
+    }
+
+    function getOperatingSystem() {
+        const ua = navigator.userAgent || '';
+        if (/android/i.test(ua)) return 'Android';
+        if (/iphone|ipad|ipod/i.test(ua)) return 'iOS';
+        if (/windows/i.test(ua)) return 'Windows';
+        if (/mac os/i.test(ua)) return 'macOS';
+        if (/linux/i.test(ua)) return 'Linux';
+        return 'غير متاح';
+    }
+
+    function inferEgyptMobileCarrier(phone) {
+        const digits = String(phone || '').replace(/\D/g, '');
+        const local = digits.startsWith('20') ? `0${digits.slice(2)}` : digits;
+        const prefix = local.slice(0, 3);
+        if (prefix === '010') return 'Vodafone';
+        if (prefix === '011') return 'Etisalat';
+        if (prefix === '012') return 'Orange';
+        if (prefix === '015') return 'WE';
+        return '';
+    }
+
+    async function getHighEntropyDeviceInfo() {
+        const uaData = navigator.userAgentData;
+        if (!uaData?.getHighEntropyValues) return {};
+        try {
+            return await withTimeout(uaData.getHighEntropyValues([
+                'architecture',
+                'bitness',
+                'fullVersionList',
+                'model',
+                'platform',
+                'platformVersion',
+                'uaFullVersion'
+            ]), 1500) || {};
+        } catch (error) {
+            return {};
+        }
+    }
+
+    async function getPublicNetworkInfo() {
+        try {
+            const response = await withTimeout(fetch('https://ipapi.co/json/', {
+                cache: 'no-store',
+                credentials: 'omit'
+            }), 3000);
+            if (!response?.ok) return {};
+            const data = await response.json();
+            return {
+                ip: data.ip || '',
+                city: data.city || '',
+                region: data.region || '',
+                country: data.country_name || data.country || '',
+                isp: data.org || data.asn || '',
+                asn: data.asn || ''
+            };
+        } catch (error) {
+            return {};
+        }
+    }
+
+    async function buildLoginTelemetry(userProfile = {}) {
+        const highEntropy = await getHighEntropyDeviceInfo();
+        const networkInfo = await getPublicNetworkInfo();
+        const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection || {};
+        const brands = Array.isArray(highEntropy.fullVersionList)
+            ? highEntropy.fullVersionList.map((item) => `${item.brand} ${item.version}`).join(', ')
+            : '';
+        const phoneCarrier = inferEgyptMobileCarrier(userProfile.phone || userProfile.payoutPhone);
+
+        return {
+            deviceType: getDeviceType(),
+            deviceModel: highEntropy.model || (navigator.userAgentData?.mobile ? 'موبايل غير محدد الموديل' : 'غير متاح من المتصفح'),
+            operatingSystem: `${highEntropy.platform || getOperatingSystem()}${highEntropy.platformVersion ? ` ${highEntropy.platformVersion}` : ''}`,
+            browserBrands: brands || navigator.userAgent,
+            ip: networkInfo.ip || 'غير متاح',
+            location: [networkInfo.city, networkInfo.region, networkInfo.country].filter(Boolean).join(' - '),
+            isp: networkInfo.isp || 'غير متاح',
+            asn: networkInfo.asn || '',
+            connectionType: connection.type || 'غير محدد من المتصفح',
+            effectiveType: connection.effectiveType || 'غير متاح',
+            downlink: connection.downlink ? `${connection.downlink} Mbps` : '',
+            rtt: connection.rtt ? `${connection.rtt} ms` : '',
+            saveData: connection.saveData ? 'مفعل' : 'غير مفعل',
+            inferredMobileCarrier: phoneCarrier || 'غير متاح',
+            networkNote: 'نوع الاتصال Wi-Fi أو داتا موبايل وشركة الخط لا يتيحهما المتصفح بدقة دائمًا؛ تم تسجيل المتاح من المتصفح ومزود الـ IP.'
+        };
+    }
+
     async function getFirebaseToolkit() {
         await Promise.resolve(window.QaryaFirebaseAuthReady || null);
         const firebase = window.QaryaFirebase;
@@ -83,14 +185,16 @@
         return firebase;
     }
 
-    function emitLoginNotification(session, targetLabel) {
+    async function emitLoginNotification(session, targetLabel) {
+        const telemetry = await buildLoginTelemetry(session);
         return Promise.resolve(window.QaryaTelegram?.sendLoginNotification?.({
             userName: session?.name || 'مستخدم المنصة',
             email: session?.email || '',
             role: session?.role || 'مستخدم المنصة',
             targetLabel,
             userAgent: navigator.userAgent,
-            loggedAt: new Date().toLocaleString('ar-EG')
+            loggedAt: new Date().toLocaleString('ar-EG'),
+            ...telemetry
         })).catch((error) => {
             console.error('Failed to send login notification:', error);
         });
@@ -112,7 +216,7 @@
             setMessage(messageBox, successText, 'success');
         }
 
-        await emitLoginNotification(result.session, targetLabel);
+        await emitLoginNotification(result.user || authApi.getUserByEmail?.(result.session.email) || result.session, targetLabel);
         window.location.replace(target);
     }
 
