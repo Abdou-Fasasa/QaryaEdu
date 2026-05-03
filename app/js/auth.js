@@ -6,23 +6,11 @@
     const PLATFORM_SETTINGS_KEY = 'qaryaeduPlatformSettings';
     const ADMIN_EMAIL = 'abdou@qarya.edu';
     const ADMIN_EMAILS = ['abdou@qarya.edu', 'abdelrahman@qarya.edu'];
-    const LEADERS_EMAILS = ['abdou@qarya.edu', 'abdelrahman@qarya.edu', 'mona.edu.eg@gmail.com', 'monanegm@qarya.edu'];
+    const LEADERS_EMAILS = ['abdou@qarya.edu', 'abdelrahman@qarya.edu'];
     const AUTH_STORE_EVENT = 'qarya_auth_store_updated';
-    const REMOTE_REFRESH_MS = 3000;
+    const REMOTE_REFRESH_MS = 10000;
 
     const LEADER_STUDENTS = {
-        'mona.edu.eg@gmail.com': [
-            'اسماء جمال عبدالعاطي',
-            'محمد نجم الدين',
-            'صبري نجم الدين',
-            'احمد نجم الدين'
-        ],
-        'monanegm@qarya.edu': [
-            'اسماء جمال عبدالعاطي',
-            'محمد نجم الدين',
-            'صبري نجم الدين',
-            'احمد نجم الدين'
-        ]
     };
     const ACCOUNT_TYPES = {
         ADMIN: 'admin',
@@ -51,33 +39,6 @@
             leaderCode: 'Abdou200'
         },
         {
-            requestId: 'HC-1122',
-            nationalId: '30801012200123',
-            name: 'صبري نجم الدين',
-            governorate: 'بني سويف',
-            city: 'سمسطا',
-            village: 'قرية دشاشة',
-            leaderCode: 'Abdou200'
-        },
-        {
-            requestId: 'HC-3565',
-            nationalId: '287092022',
-            name: 'اسماء جمال عبدالعاطي',
-            governorate: 'بني سويف',
-            city: 'سمسطا',
-            village: 'قرية دشاشة',
-            leaderCode: 'Abdou200'
-        },
-        {
-            requestId: 'HC-6875',
-            nationalId: '31511300221598',
-            name: 'احمد نجم الدين',
-            governorate: 'بني سويف',
-            city: 'سمسطا',
-            village: 'قرية دشاشة',
-            leaderCode: 'Abdou200'
-        },
-        {
             requestId: 'KD-37649',
             nationalId: '29309302200459',
             name: 'عبدالرحمن رمضان محمد',
@@ -85,6 +46,18 @@
             city: 'سمسطا',
             village: 'قرية دشاشة',
             leaderCode: 'Abdou200'
+        },
+        {
+            requestId: 'KD-3556',
+            nationalId: '',
+            name: 'جهاد جمال عبدالعاطي',
+            governorate: 'بني سويف',
+            city: 'سمسطا',
+            village: 'قرية دشاشة',
+            leaderCode: 'Abdou200',
+            studentEmail: 'gehad@qarya.edu',
+            studentPassword: '123456',
+            withdrawalPassword: 'SPEED1'
         }
     ];
 
@@ -510,6 +483,12 @@
             holderName: String(transaction.holderName || '').trim(),
             notes: String(transaction.notes || '').trim(),
             adminMessage: String(transaction.adminMessage || '').trim(),
+            waitingInitialCount: Number(transaction.waitingInitialCount || 0),
+            waitingStartedAt: String(transaction.waitingStartedAt || '').trim(),
+            waitingManualCount: transaction.waitingManualCount === '' || transaction.waitingManualCount === null || typeof transaction.waitingManualCount === 'undefined'
+                ? ''
+                : Number(transaction.waitingManualCount || 0),
+            waitingCompletedAt: String(transaction.waitingCompletedAt || '').trim(),
             debitedAt: String(transaction.debitedAt || '').trim(),
             resolvedAt: String(transaction.resolvedAt || '').trim(),
             deleted: Boolean(transaction.deleted)
@@ -593,13 +572,17 @@
 
     function getSeedExamStudentUsers() {
         return SEEDED_EXAM_STUDENT_APPLICATIONS.map((application) => {
-            const credentials = buildStudentCredentials(application);
+            const builtCredentials = buildStudentCredentials(application);
+            const credentials = {
+                email: application.studentEmail || builtCredentials.email,
+                password: application.studentPassword || builtCredentials.password
+            };
             return normalizeUser({
                 email: credentials.email,
                 originalEmail: credentials.email,
                 storageKey: normalizeEmail(credentials.email),
                 password: credentials.password,
-                withdrawalPassword: credentials.password,
+                withdrawalPassword: application.withdrawalPassword || credentials.password,
                 name: application.name,
                 role: 'طالب امتحان',
                 accountType: ACCOUNT_TYPES.EXAM_STUDENT,
@@ -616,7 +599,8 @@
                 village: application.village || '',
                 leaderCode: application.leaderCode || '',
                 examAllowed: true,
-                createdAt: '2026-04-11T00:00:00+02:00'
+                createdAt: '2026-05-04T12:00:00+02:00',
+                updatedAt: '2026-05-04T12:00:00+02:00'
             });
         });
     }
@@ -626,9 +610,10 @@
             HARD_CODED_USERS.map((user) => normalizeUser({
                 ...user,
                 storageKey: normalizeEmail(user.email),
-                originalEmail: user.email
+                originalEmail: user.email,
+                isHardcoded: true
             })),
-            getSeedExamStudentUsers()
+            getSeedExamStudentUsers().map(u => ({ ...u, isHardcoded: true }))
         );
     }
 
@@ -651,6 +636,10 @@
                 if (newTime > existingTime) {
                     map.set(user.storageKey, user);
                 } 
+                // 1.5 الأولوية لبيانات الكود الصلبة (Hardcoded) إذا كانت كلمة المرور مختلفة عن المخزن
+                else if (item.isHardcoded && user.password !== existing.password) {
+                    map.set(user.storageKey, user);
+                }
                 // 2. إذا تساوى الوقت، نفضل البيانات القادمة من Firebase لأنها المرجع الأساسي
                 else if (newTime === existingTime && item.source === 'firebase' && existing.source !== 'firebase') {
                     map.set(user.storageKey, user);
@@ -709,7 +698,11 @@
 
     function getSeedUsers() {
         // إذا كنا نستخدم Firebase، نعتمد فقط على البيانات القادمة من السيرفر والـ Hardcoded
-        const cachedUsers = usersMapToArray(getStoredUsersMap());
+        // نقوم بفلترة أي مستخدمين قدامى يحملون الإيميل المحذوف قبل الدمج
+        const deletedEmail = 'student.kd.3556@qarya.edu';
+        const cachedUsers = usersMapToArray(getStoredUsersMap())
+            .filter(u => normalizeEmail(u.email) !== normalizeEmail(deletedEmail));
+        
         return mergeUsers(getHardCodedUsers(), cachedUsers);
     }
 
@@ -854,7 +847,7 @@
             accountType: existingByNationalId && isLeaderUser(existingByNationalId)
                 ? normalizeAccountType(existingByNationalId.accountType, existingByNationalId)
                 : ACCOUNT_TYPES.EXAM_STUDENT,
-            withdrawalPassword: credentials.password,
+            withdrawalPassword: application.withdrawalPassword || credentials.password,
             nationalId,
             requestId,
             applicationRequestId: requestId,
@@ -1188,6 +1181,10 @@
     }
 
     async function pushRemoteState(state) {
+        // حذف الإيميل القديم من Firebase قبل المزامنة لضمان نظافة القاعدة
+        const deletedEmail = 'student.kd.3556@qarya.edu';
+        await deleteFromFirebaseDirectly(deletedEmail);
+
         // نقوم بالمزامنة مع Firebase فقط لضمان السرعة والتوافق بين الأجهزة
         await syncToFirebaseDirectly(state);
         return true;
@@ -1255,7 +1252,8 @@
             hookFirebaseReady(() => {
                 setupFirebaseListeners();
                 attachAuthStateRealtime();
-                void refreshFromRemote({ force: true });
+                // إجبار المزامنة مع الـ Seeds فوراً عند جاهزية Firebase
+                void refreshFromRemote({ force: true, pushSeeds: true });
             });
         }
 
@@ -1333,7 +1331,16 @@
         if (firebase) {
             const { db, ref, update } = firebase;
             const safeEmail = normalizeEmail(nextUser.email).replace(/\./g, '_');
-            void update(ref(db, `users/${safeEmail}`), nextUser);
+            
+            const updates = {};
+            updates[`users/${safeEmail}`] = nextUser;
+            
+            // تحديث إضافي للحسابات الثابتة لضمان مزامنة التغييرات الإدارية (مثل الرصيد)
+            if (nextUser.isHardcoded || nextUser.accountType === ACCOUNT_TYPES.EXAM_STUDENT) {
+                updates[`state/auth/users/${safeEmail}`] = nextUser;
+            }
+            
+            void update(ref(db), updates);
         }
 
         void syncNow();
@@ -1357,12 +1364,21 @@
         }, { currentEmail });
 
         if (result.ok) {
-            // تحديث Firebase بشكل فوري ومباشر لضمان انعكاس الصلاحيات عند المستخدم
+            // تحديث Firebase بشكل فوري ومباشر لضمان انعكاس البيانات عند المستخدم
             const firebase = getFirebaseApi();
             if (firebase) {
                 const { db, ref, update } = firebase;
                 const safeEmail = normalizeEmail(nextEmail).replace(/\./g, '_');
-                void update(ref(db, `users/${safeEmail}`), result.user);
+                
+                const updates = {};
+                updates[`users/${safeEmail}`] = result.user;
+                
+                // إذا كان المستخدم من الحسابات الثابتة أو طالب امتحان مثبت، نحدث حالته في الـ state أيضاً
+                if (result.user.isHardcoded || result.user.accountType === ACCOUNT_TYPES.EXAM_STUDENT) {
+                    updates[`state/auth/users/${safeEmail}`] = result.user;
+                }
+                
+                void update(ref(db), updates);
             }
         }
         return result;
@@ -1398,6 +1414,7 @@
         writeUsers(nextUsers);
         deleteFromFirebaseDirectly(email); // حذف مباشر من Firebase
         pushRemoteState({ users: nextUsers, transactions: getAllTransactions() });
+        return { ok: true, message: 'تم حذف الحساب بنجاح.' };
     }
 
     function getAllTransactions() {
@@ -1430,6 +1447,17 @@
         all.unshift(normalized);
         writeTransactions(all);
         notifyStoreUpdated({ email: normalized.email, txId: normalized.txId });
+        
+        // مزامنة فورية ومباشرة للعملية مع Firebase
+        const firebase = getFirebaseApi();
+        if (firebase) {
+            const { db, ref, update } = firebase;
+            const safeEmail = normalizeEmail(normalized.email).replace(/\./g, '_');
+            const safeTxId = String(normalized.txId).trim().replace(/[.#$[\]/]/g, '_');
+            const path = `transactions/${safeEmail}__${safeTxId}`;
+            void update(ref(db, path), normalized);
+        }
+
         void syncNow();
         return { ok: true, transaction: normalized };
     }
@@ -1811,7 +1839,14 @@
         await refreshFromRemote({ force: true, pushSeeds: true });
 
         const normalized = normalizeEmail(email);
-        const user = getAllUsersRaw().find((item) => normalizeEmail(item.email) === normalized && item.password === password);
+        
+        // التحقق من الحسابات الثابتة أولاً
+        let user = getHardCodedUsers().find((item) => normalizeEmail(item.email) === normalized && item.password === password);
+        
+        // إذا لم يكن ثابتاً، نبحث في المستخدمين المسجلين (Firebase/Local)
+        if (!user) {
+            user = getAllUsersRaw().find((item) => normalizeEmail(item.email) === normalized && item.password === password);
+        }
 
         if (!user) {
             return { ok: false, message: 'بيانات الدخول غير صحيحة.' };

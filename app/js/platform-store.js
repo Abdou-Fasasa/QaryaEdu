@@ -930,32 +930,6 @@
                 sticky: false,
                 dismissible: true,
                 systemKey: 'payment-note'
-            },
-            {
-                id: 'fixed-sham-elnessim',
-                title: 'إشعار شم النسيم',
-                body: 'تهنئة موسمية من إدارة المنصة. يمكن تعديل هذا الإشعار أو حذفه من لوحة الإدارة في أي وقت.',
-                type: 'update',
-                createdAt: '2026-04-01T10:00:00+02:00',
-                actionUrl: './notifications.html',
-                actionLabel: 'عرض التفاصيل',
-                displayMode: 'banner',
-                sticky: true,
-                dismissible: true,
-                systemKey: 'holiday-banner'
-            },
-            {
-                id: 'fixed-complaint-prompt',
-                title: 'تقديم شكوى',
-                body: 'يمكنك إرسال شكوى أو ملاحظة إلى الإدارة مباشرة من صفحة الشكاوى، ويتم التعامل معها بسرية.',
-                type: 'support',
-                createdAt: '2026-04-01T10:05:00+02:00',
-                actionUrl: './complaints.html',
-                actionLabel: 'تقديم شكوى',
-                displayMode: 'floating',
-                sticky: true,
-                dismissible: true,
-                systemKey: 'complaint-prompt'
             }
         ].map((item) => normalizeNotification(item));
     }

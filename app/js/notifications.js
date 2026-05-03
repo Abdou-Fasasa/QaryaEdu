@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const chipTone = displayMode === 'banner' ? 'is-warm' : displayMode === 'floating' ? 'is-soft' : '';
 
         return `
-            <article class="notification-card reveal-item is-visible is-${displayMode}">
+            <article class="notification-card reveal-item is-visible is-${displayMode}" role="button" tabindex="0" title="اضغط لإغلاق الإشعار" data-dismiss-notification="${note.id}" data-audience="${note.audience}" data-recipient="${note.recipientEmail || ''}" data-created-at="${note.createdAt || ''}" data-updated-at="${note.updatedAt || ''}">
                 <div class="notification-card-head">
                     <div class="notification-card-copy">
                         <div class="notification-card-meta">
@@ -193,15 +193,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                         <h3>${escapeHtml(note.title)}</h3>
                     </div>
-                    <span class="notification-card-time">${escapeHtml(formatDate(note.createdAt))}</span>
+                    <button type="button" class="notification-close-btn" aria-label="إغلاق الإشعار" data-dismiss-notification="${note.id}" data-audience="${note.audience}" data-recipient="${note.recipientEmail || ''}" data-created-at="${note.createdAt || ''}" data-updated-at="${note.updatedAt || ''}"><i class="fas fa-xmark"></i></button>
                 </div>
                 <p class="notification-card-body">${escapeHtml(note.body)}</p>
                 <div class="notification-card-footer">
                     <div class="dashboard-card-actions">
                         ${note.actionUrl ? `<a href="${resolvePlatformUrl(note.actionUrl)}" class="btn-ghost">${escapeHtml(actionLabel)}</a>` : ''}
-                        <button type="button" class="btn-ghost" data-dismiss-notification="${note.id}" data-audience="${note.audience}" data-recipient="${note.recipientEmail || ''}" data-created-at="${note.createdAt || ''}" data-updated-at="${note.updatedAt || ''}">إخفاء</button>
                     </div>
-                    <span class="notification-card-time">${note.audience === 'private' ? 'إشعار خاص' : 'إشعار عام'}</span>
+                    <span class="notification-card-time">${escapeHtml(formatDate(note.createdAt))} - ${note.audience === 'private' ? 'إشعار خاص' : 'إشعار عام'}</span>
                 </div>
             </article>
         `;
@@ -233,18 +232,35 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     searchInput?.addEventListener('input', render);
 
-    list?.addEventListener('click', (event) => {
-        const button = event.target.closest('[data-dismiss-notification]');
-        if (!button) return;
+    function dismissFromElement(element) {
+        if (!element) return;
 
         dismissNotification({
-            id: button.dataset.dismissNotification,
-            audience: button.dataset.audience || 'global',
-            recipientEmail: button.dataset.recipient || '',
-            createdAt: button.dataset.createdAt || '',
-            updatedAt: button.dataset.updatedAt || ''
+            id: element.dataset.dismissNotification,
+            audience: element.dataset.audience || 'global',
+            recipientEmail: element.dataset.recipient || '',
+            createdAt: element.dataset.createdAt || '',
+            updatedAt: element.dataset.updatedAt || ''
         });
         render();
+    }
+
+    list?.addEventListener('click', (event) => {
+        const link = event.target.closest('a');
+        const target = event.target.closest('[data-dismiss-notification]');
+        if (!target) return;
+        if (!link) {
+            event.preventDefault();
+        }
+        dismissFromElement(target);
+    });
+
+    list?.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        const target = event.target.closest('[data-dismiss-notification]');
+        if (!target) return;
+        event.preventDefault();
+        dismissFromElement(target);
     });
 
     window.addEventListener(store.storeEventName || 'qarya:store-updated', render);

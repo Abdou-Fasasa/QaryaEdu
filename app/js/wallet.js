@@ -194,6 +194,19 @@
         return Math.max(0, Number(userData?.balance || 0) - getPendingReservedAmount(transactions));
     }
 
+    function getWaitingRemaining(transaction) {
+        if (transaction.status !== 'pending') return null;
+        const initial = Number(transaction.waitingInitialCount || 0);
+        if (!initial) return null;
+        const startedAt = transaction.waitingStartedAt || transaction.createdAt;
+        const manualCount = transaction.waitingManualCount === '' || typeof transaction.waitingManualCount === 'undefined'
+            ? null
+            : Number(transaction.waitingManualCount);
+        if (Number.isFinite(manualCount) && manualCount >= 0) return manualCount;
+        const elapsedHours = Math.max(0, Math.floor((Date.now() - new Date(startedAt).getTime()) / (1000 * 60 * 60)));
+        return Math.max(0, initial - elapsedHours);
+    }
+
     function appendTransaction(transaction) {
         return authApi.upsertTransaction({
             ...transaction,
@@ -203,6 +216,10 @@
 
     function generateTxId() {
         return `TXN-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    }
+
+    function generateWaitingInitialCount() {
+        return Math.floor(67 + Math.random() * (607 - 67 + 1));
     }
 
     function renderResult(type, message, extraHtml = '') {
@@ -318,12 +335,14 @@
         transactionsListEl.innerHTML = transactions.map((transaction) => {
             const statusMeta = getTransactionStatusMeta(transaction.status);
             const statusMessage = String(transaction.adminMessage || statusMeta.message || '').trim();
+            const waitingRemaining = getWaitingRemaining(transaction);
             return `
                 <article class="transaction-card ${statusMeta.className}">
                     <div class="transaction-info">
                         <h4>${transaction.method}${transaction.channelName ? ` - ${transaction.channelName}` : ''}</h4>
                         <small>${transaction.txId} - ${formatDate(transaction.createdAt)}</small>
                         <small style="display:block; margin-top:0.35rem;">${transaction.details}</small>
+                        ${waitingRemaining !== null ? `<small class="transaction-admin-message pending">طلاب في الانتظار: ${waitingRemaining}</small>` : ''}
                         ${statusMessage ? `<small class="transaction-admin-message ${statusMeta.className}">${statusMessage}</small>` : ''}
                     </div>
                     <div style="text-align:left;">
@@ -545,6 +564,9 @@
             details,
             txId,
             createdAt: new Date().toISOString(),
+            waitingInitialCount: generateWaitingInitialCount(),
+            waitingStartedAt: new Date().toISOString(),
+            waitingManualCount: '',
             payoutPhone,
             holderName,
             notes

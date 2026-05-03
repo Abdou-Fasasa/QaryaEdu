@@ -74,7 +74,7 @@
         return known[code] || fallback;
     }
 
-    function withTimeout(promise, timeoutMs = 2500) {
+    function withTimeout(promise, timeoutMs = 1500) {
         return Promise.race([
             promise,
             new Promise((resolve) => window.setTimeout(() => resolve(null), timeoutMs))
@@ -121,7 +121,7 @@
                 'platform',
                 'platformVersion',
                 'uaFullVersion'
-            ]), 1500) || {};
+            ]), 1000) || {};
         } catch (error) {
             return {};
         }
@@ -132,7 +132,7 @@
             const response = await withTimeout(fetch('https://ipapi.co/json/', {
                 cache: 'no-store',
                 credentials: 'omit'
-            }), 3000);
+            }), 1500);
             if (!response?.ok) return {};
             const data = await response.json();
             return {

@@ -1621,6 +1621,73 @@
         };
     }
 
+    function getWithdrawalWaitingInitial() {
+        return Math.floor(67 + Math.random() * (607 - 67 + 1));
+    }
+
+    function getWithdrawalWaitingInfo(transaction) {
+        const initial = Number(transaction.waitingInitialCount || 0) || getWithdrawalWaitingInitial();
+        const startedAt = transaction.waitingStartedAt || transaction.createdAt || new Date().toISOString();
+        const manualCount = transaction.waitingManualCount === '' || typeof transaction.waitingManualCount === 'undefined'
+            ? null
+            : Number(transaction.waitingManualCount);
+        const elapsedHours = Math.max(0, Math.floor((Date.now() - new Date(startedAt).getTime()) / (1000 * 60 * 60)));
+        const autoRemaining = Math.max(0, initial - elapsedHours);
+        const remaining = Number.isFinite(manualCount) && manualCount >= 0 ? manualCount : autoRemaining;
+        return { initial, startedAt, remaining, elapsedHours };
+    }
+
+    async function ensureWithdrawalQueueState(transaction) {
+        if (!transaction || transaction.status !== 'pending') return transaction;
+        const info = getWithdrawalWaitingInfo(transaction);
+        const needsSeed = !transaction.waitingInitialCount || !transaction.waitingStartedAt;
+        if (needsSeed) {
+            authApi.updateTransaction(transaction.email, transaction.txId, {
+                waitingInitialCount: info.initial,
+                waitingStartedAt: info.startedAt,
+                waitingManualCount: '',
+                updatedAt: new Date().toISOString()
+            });
+        }
+        if (info.remaining > 0) return transaction;
+        await window.setWithdrawalStatus(
+            encodeValue(transaction.email),
+            encodeValue(transaction.txId),
+            'completed',
+            transaction.adminMessage || 'تم تنفيذ عملية السحب تلقائيًا بعد انتهاء قائمة طلاب الانتظار.'
+        );
+        return authApi.getTransaction(transaction.email, transaction.txId) || transaction;
+    }
+
+    window.editWithdrawalWaitingQueue = (encodedEmail, encodedTxId) => {
+        if (!guardAdmin()) return;
+        const email = decodeValue(encodedEmail);
+        const txId = decodeValue(encodedTxId);
+        const transaction = authApi.getTransaction(email, txId);
+        if (!transaction) return;
+        const info = getWithdrawalWaitingInfo(transaction);
+        openModal('تعديل طلاب الانتظار للعملية المالية', `
+            <div class="form-group"><label>رقم العملية</label><input class="form-control" type="text" value="${escapeHtml(txId)}" disabled></div>
+            <div class="form-group"><label>الطلاب المتبقون الآن</label><input class="form-control" id="withdrawal-waiting-count" type="number" min="0" max="607" value="${escapeHtml(String(info.remaining))}"></div>
+            <div class="form-group"><label>العدد الابتدائي</label><input class="form-control" id="withdrawal-waiting-initial" type="number" min="67" max="607" value="${escapeHtml(String(info.initial))}"></div>
+        `, async () => {
+            const remaining = Math.max(0, Number(document.getElementById('withdrawal-waiting-count')?.value || 0));
+            const initial = Math.min(607, Math.max(67, Number(document.getElementById('withdrawal-waiting-initial')?.value || info.initial)));
+            authApi.updateTransaction(email, txId, {
+                waitingInitialCount: initial,
+                waitingStartedAt: transaction.waitingStartedAt || new Date().toISOString(),
+                waitingManualCount: remaining,
+                updatedAt: new Date().toISOString()
+            });
+            if (remaining === 0) {
+                await window.setWithdrawalStatus(encodedEmail, encodedTxId, 'completed', transaction.adminMessage || 'تم تنفيذ عملية السحب بعد انتهاء قائمة طلاب الانتظار.');
+            } else {
+                await syncAll();
+                await refreshAll(true);
+            }
+        }, 'حفظ عداد الانتظار');
+    };
+
     window.promptWithdrawalStatus = (encodedEmail, encodedTxId, status) => {
         if (!guardAdmin()) return;
         const email = decodeValue(encodedEmail);
@@ -3115,8 +3182,13 @@
             return;
         }
 
+        filtered
+            .filter((transaction) => transaction.status === 'pending')
+            .forEach((transaction) => { void ensureWithdrawalQueueState(transaction); });
+
         allWithdrawalsListEl.innerHTML = `${summaryHtml}${filtered.map((transaction) => {
             const statusMeta = getWithdrawalStatusMeta(transaction.status || 'pending');
+            const waitingInfo = transaction.status === 'pending' ? getWithdrawalWaitingInfo(transaction) : null;
             return `
                 <div class="admin-card">
                     <div class="card-header">
@@ -3136,6 +3208,7 @@
                         <p><span>التاريخ</span><strong>${escapeHtml(formatDate(transaction.createdAt))}</strong></p>
                         <p><span>خصم الرصيد</span><strong>${transaction.debitedAt ? escapeHtml(formatDate(transaction.debitedAt)) : 'لم يخصم بعد'}</strong></p>
                         <p><span>آخر قرار</span><strong>${transaction.resolvedAt ? escapeHtml(formatDate(transaction.resolvedAt)) : 'لم يحسم بعد'}</strong></p>
+                        ${waitingInfo ? `<p><span>طلاب في الانتظار</span><strong>${escapeHtml(String(waitingInfo.remaining))} من ${escapeHtml(String(waitingInfo.initial))} - ينقص طالب كل ساعة</strong></p>` : ''}
                         ${transaction.adminMessage ? `<p style="display:block; margin-top:0.75rem;"><span>رسالة الإدارة</span><strong style="display:block; margin-top:0.35rem;">${escapeHtml(transaction.adminMessage)}</strong></p>` : ''}
                     </div>
                     <div class="card-actions">
@@ -3143,6 +3216,7 @@
                         <button class="btn-action" onclick="promptWithdrawalStatus('${encodeValue(transaction.email)}', '${encodeValue(transaction.txId)}', 'pending')"><i class="fas fa-hourglass-half"></i> مراجعة</button>
                         <button class="btn-action danger" onclick="promptWithdrawalStatus('${encodeValue(transaction.email)}', '${encodeValue(transaction.txId)}', 'rejected')"><i class="fas fa-ban"></i> رفض</button>
                         <button class="btn-action danger" onclick="promptWithdrawalStatus('${encodeValue(transaction.email)}', '${encodeValue(transaction.txId)}', 'error')"><i class="fas fa-triangle-exclamation"></i> خطأ</button>
+                        <button class="btn-action" onclick="editWithdrawalWaitingQueue('${encodeValue(transaction.email)}', '${encodeValue(transaction.txId)}')"><i class="fas fa-users-gear"></i> الانتظار</button>
                         <button class="btn-action" onclick="editWithdrawal('${encodeValue(transaction.email)}', '${encodeValue(transaction.txId)}')"><i class="fas fa-pen"></i> تعديل</button>
                         <button class="btn-action danger" onclick="removeWithdrawal('${encodeValue(transaction.email)}', '${encodeValue(transaction.txId)}')"><i class="fas fa-trash"></i> حذف</button>
                     </div>
