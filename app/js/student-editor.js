@@ -174,7 +174,7 @@
             studentPassword: accountFields.password.value.trim()
         };
 
-        const result = authApi.createOrUpdateStudentAccountFromApplication({
+        const result = await authApi.createOrUpdateStudentAccountFromApplication({
             ...payload,
             studentEmail: payload.studentEmail,
             studentPassword: payload.studentPassword
@@ -185,7 +185,7 @@
             return;
         }
 
-        authApi.updateUserPersistentData(result.user.email, {
+        await authApi.updateUserPersistentData(result.user.email, {
             password: accountFields.password.value.trim(),
             role: accountFields.role.value.trim() || 'طالب المنصة',
             balance: Number(accountFields.balance.value || 0),
@@ -207,6 +207,13 @@
             authApi.syncNow?.(),
             store.syncNow?.()
         ]);
+
+        // Real-time broadcast for other tabs (wallet, dashboards)
+        if (typeof BroadcastChannel === 'function') {
+            const channel = new BroadcastChannel('qaryaedu-admin-update');
+            channel.postMessage({ type: 'user-updated', email: result.user.email });
+        }
+
         await loadRecord();
         showMessage('pass', 'تم حفظ بيانات الحساب بنجاح.');
     });

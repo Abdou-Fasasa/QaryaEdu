@@ -704,6 +704,21 @@ document.addEventListener('DOMContentLoaded', () => {
         updateActiveLinks();
     }
 
+    // BroadcastChannel for real-time admin updates
+    if (typeof BroadcastChannel === 'function') {
+        window.userUpdateChannel = new BroadcastChannel('qaryaedu-admin-update');
+        window.userUpdateChannel.onmessage = (e) => {
+            if (e.data.type === 'user-updated') {
+                const liveSession = getLiveSession();
+                if (liveSession && authApi?.normalizeEmail(e.data.email) === authApi?.normalizeEmail(liveSession.email)) {
+                    handleDataUpdate({ detail: { source: 'broadcast-sync' } });
+                }
+            } else if (e.data.type === 'transactions-updated') {
+                handleDataUpdate({ detail: { source: 'transactions-sync' } });
+            }
+        };
+    }
+
     window.addEventListener(authApi?.storeEventName || 'qarya_auth_store_updated', (event) => {
         if (event.detail?.source === 'user-data-update' || event.detail?.source === 'role-change') {
             handleUserUpdateEvent();

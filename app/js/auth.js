@@ -599,8 +599,8 @@
                 village: application.village || '',
                 leaderCode: application.leaderCode || '',
                 examAllowed: true,
-                createdAt: '2026-05-04T12:00:00+02:00',
-                updatedAt: '2026-05-04T12:00:00+02:00'
+                createdAt: '2024-01-01T12:00:00Z',
+                updatedAt: '2024-01-01T12:00:00Z'
             });
         });
     }
@@ -819,7 +819,7 @@
         return { email, password };
     }
 
-    function createOrUpdateStudentAccountFromApplication(application = {}) {
+    async function createOrUpdateStudentAccountFromApplication(application = {}) {
         const requestId = String(application.requestId || '').trim();
         const nationalId = String(application.nationalId || '').trim();
         if (!requestId || !nationalId) {
@@ -836,7 +836,7 @@
             ...(application.studentEmail ? { email: application.studentEmail } : {})
         };
 
-        const result = upsertUser({
+        const result = await upsertUser({
             ...(existingByNationalId || {}),
             email: credentials.email,
             originalEmail: credentials.email,
@@ -1297,7 +1297,7 @@
         saveLegacyCustomUsers(all);
     }
 
-    function upsertUser(userInput, options = {}) {
+    async function upsertUser(userInput, options = {}) {
         const currentUsers = getAllUsersRaw();
         const nextUser = normalizeUser({
             ...userInput,
@@ -1347,7 +1347,7 @@
         return { ok: true, user: nextUser };
     }
 
-    function updateUserPersistentData(email, data) {
+    async function updateUserPersistentData(email, data) {
         const currentUser = getUserByEmail(email);
         if (!currentUser) {
             return { ok: false, message: 'المستخدم غير موجود.' };
@@ -1378,13 +1378,13 @@
                     updates[`state/auth/users/${safeEmail}`] = result.user;
                 }
                 
-                void update(ref(db), updates);
+                await update(ref(db), updates);
             }
         }
         return result;
     }
 
-    function addUser(userData) {
+    async function addUser(userData) {
         const email = normalizeEmail(userData.email);
         if (!email) return { ok: false, message: 'البريد الإلكتروني مطلوب.' };
 
@@ -1394,7 +1394,7 @@
         const accountType = normalizeAccountType(userData.accountType, userData);
         const isExamStudent = accountType === ACCOUNT_TYPES.EXAM_STUDENT;
 
-        return upsertUser({
+        return await upsertUser({
             ...buildDefaultUserData(userData),
             email,
             originalEmail: email,
@@ -1756,9 +1756,23 @@
             loginAt: Date.now()
         };
 
+        // Persist session immediately for reliable login
         sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(session));
+        // remove any legacy localStorage session
         localStorage.removeItem(AUTH_SESSION_KEY);
-        updateUserPersistentData(user.email, { lastLoginAt: new Date().toISOString() });
+
+        // Fire-and-forget: update last login and refresh remote state in background
+        try {
+            updateUserPersistentData(user.email, { lastLoginAt: new Date().toISOString() });
+        } catch (e) {
+            // ignore
+        }
+        Promise.resolve().then(() => {
+            refreshFromRemote({ force: true, pushSeeds: true }).catch(console.error);
+        });
+
+        // Notify listeners that this user's data/session has changed
+        dispatchUserUpdate(user.email, user.storageKey || user.email);
 
         return {
             ok: true,
@@ -1811,10 +1825,10 @@
             isSuspended: Boolean(existingUser?.isSuspended),
             deleted: false
         };
-
-        const result = existingUser
+ 
+        const result = await (existingUser
             ? updateUserPersistentData(existingUser.email, accountPayload)
-            : addUser(accountPayload);
+            : addUser(accountPayload));
 
         if (!result.ok) {
             return result;
@@ -1835,9 +1849,7 @@
 
     // تهيئة Firebase Auth أصبحت مركزية داخل firebase-init.js لضمان الجاهزية قبل أي قراءة أو كتابة.
 
-    async function login(email, password) {
-        await refreshFromRemote({ force: true, pushSeeds: true });
-
+async function login(email, password) {
         const normalized = normalizeEmail(email);
         
         // التحقق من الحسابات الثابتة أولاً
@@ -1865,17 +1877,14 @@
             return { ok: false, message: maintenance.message || 'جاري الآن صيانة الموقع. يرجى المحاولة لاحقًا.' };
         }
 
-        const session = {
-            name: user.name,
-            email: user.email,
-            role: user.role || 'مستخدم المنصة',
-            loginAt: Date.now()
-        };
+        // Start session immediately
+        const sessionResult = startSessionForUser(user);
+        if (!sessionResult.ok) return sessionResult;
 
-        sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(session));
-        localStorage.removeItem(AUTH_SESSION_KEY);
-        updateUserPersistentData(user.email, { lastLoginAt: new Date().toISOString() });
-        return { ok: true, session };
+        // Defer remote sync
+        setTimeout(() => refreshFromRemote({ force: true }).catch(console.error), 100);
+        
+        return { ok: true, session: sessionResult.session, user: sessionResult.user };
     }
 
     function logout() {
@@ -1885,8 +1894,8 @@
         sessionStorage.removeItem('qaryaeduExamGatePass');
     }
 
-    async function login(email, password) {
-        await refreshFromRemote({ force: true, pushSeeds: true });
+async function login(email, password) {
+        // Removed blocking refreshFromRemote - start session immediately
 
         const normalized = normalizeEmail(email);
         const user = getAllUsersRaw().find((item) => normalizeEmail(item.email) === normalized && item.password === password);

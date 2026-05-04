@@ -396,7 +396,7 @@
             debitedAt: '',
             resolvedAt: ''
         });
-        const profileUpdate = authApi.updateUserPersistentData(authSession.email, profileData);
+        const profileUpdate = await authApi.updateUserPersistentData(authSession.email, profileData);
 
         if (profileUpdate?.ok === false || transactionResult?.ok === false) {
             throw new Error('withdrawal-save-failed');
@@ -680,6 +680,11 @@
 
     window.addEventListener(authApi.storeEventName || 'qarya_auth_store_updated', () => {
         void refreshWalletView(false, false);
+    });
+
+    // Real-time balance updates from admin changes
+    window.addEventListener('qarya_user_data_updated', async () => {
+        await refreshWalletView(false, false);
     });
 
     document.addEventListener('visibilitychange', () => {

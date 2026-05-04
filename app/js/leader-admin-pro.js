@@ -1057,7 +1057,7 @@
                 const email = document.getElementById('pro-user-email')?.value.trim();
                 const managementRole = document.getElementById('pro-user-management-role')?.value || 'user';
                 const accountType = document.getElementById('pro-user-account-type')?.value || 'platform';
-                const result = authApi.addUser({
+                const result = await authApi.addUser({
                     email,
                     name: document.getElementById('pro-user-name')?.value.trim() || email,
                     password: document.getElementById('pro-user-password')?.value.trim() || '123456',
@@ -1104,7 +1104,7 @@
             onConfirm: async () => {
                 const nextEmail = document.getElementById('pro-user-email')?.value.trim() || user.email;
                 const managementRole = document.getElementById('pro-user-management-role')?.value || authApi.getManagementRole?.(user) || 'user';
-                const result = authApi.updateUserPersistentData(email, {
+                const result = await authApi.updateUserPersistentData(email, {
                     email: nextEmail,
                     name: document.getElementById('pro-user-name')?.value.trim() || user.name,
                     password: document.getElementById('pro-user-password')?.value.trim() || user.password,
@@ -1160,7 +1160,7 @@
                 const nextManagementRole = document.getElementById('pro-permission-role')?.value || authApi.getManagementRole?.(user) || 'user';
                 const nextPermissions = parsePermissions(document.getElementById('pro-permission-extra')?.value);
                 const nextRoleLabel = getManagementRoleDisplay(nextManagementRole);
-                const result = authApi.updateUserPersistentData(email, buildPermissionUpdatePayload(user, nextManagementRole, nextPermissions));
+                const result = await authApi.updateUserPersistentData(email, buildPermissionUpdatePayload(user, nextManagementRole, nextPermissions));
                 if (!result.ok) {
                     alertToast(result.message);
                     return false;

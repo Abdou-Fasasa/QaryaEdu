@@ -840,170 +840,6 @@
         ));
     }
 
-    function renderStudents() {
-        const applications = getManagedApplications();
-        const summaryHtml = renderSummaryRow([
-            { label: isAdmin ? 'إجمالي الطلبات' : 'طلباتك المرتبطة', value: applications.length },
-            { label: 'قيد المراجعة', value: applications.filter((item) => item.status === 'pending').length },
-            { label: 'مقبول', value: applications.filter((item) => item.status === 'accepted').length },
-            { label: 'مرفوض', value: applications.filter((item) => item.status === 'rejected').length },
-            { label: 'ممنوع امتحان', value: applications.filter((item) => item.examAccess === 'blocked').length }
-        ]);
-
-        if (welcomeEl) {
-            welcomeEl.textContent = `مرحبًا بك يا ${session.name}`;
-        }
-
-        if (!applications.length) {
-            studentsListEl.innerHTML = `${summaryHtml}<div class="admin-card" style="grid-column: 1 / -1; text-align: center;"><h4>لا توجد طلبات مرتبطة حاليًا.</h4><span>سيظهر هنا أي طلب جديد أو تحديث جديد.</span></div>`;
-            return;
-        }
-
-        studentsListEl.innerHTML = `${summaryHtml}${applications.map((application) => {
-            const latestAttempt = store.getLatestExamAttempt(application.requestId);
-            const actionBlock = isAdmin ? `
-                <div class="card-actions">
-                    <button class="btn-action success" onclick="approveApplication('${encodeValue(application.requestId)}')"><i class="fas fa-check"></i> قبول</button>
-                    <button class="btn-action danger" onclick="rejectApplication('${encodeValue(application.requestId)}')"><i class="fas fa-xmark"></i> رفض</button>
-                    <button class="btn-action" onclick="setPendingApplication('${encodeValue(application.requestId)}')"><i class="fas fa-clock"></i> انتظار</button>
-                    <button class="btn-action" onclick="allowStudentExam('${encodeValue(application.requestId)}')"><i class="fas fa-unlock"></i> سماح</button>
-                    <button class="btn-action danger" onclick="blockStudentExam('${encodeValue(application.requestId)}')"><i class="fas fa-ban"></i> منع</button>
-                    <button class="btn-action" onclick="resetStudentExam('${encodeValue(application.requestId)}')"><i class="fas fa-rotate-left"></i> تصفير</button>
-                    <button class="btn-action" onclick="editApplication('${encodeValue(application.requestId)}')"><i class="fas fa-pen"></i> تعديل</button>
-                    <button class="btn-action" onclick="openStudentEditor('${encodeValue(application.requestId)}')"><i class="fas fa-up-right-from-square"></i> شاشة التعديل</button>
-                    <button class="btn-action danger" onclick="removeApplication('${encodeValue(application.requestId)}')"><i class="fas fa-trash"></i> حذف</button>
-                </div>
-            ` : `
-                <div class="card-actions">
-                    <button class="btn-action" onclick="viewStudentStatus('${encodeValue(application.requestId)}', '${encodeValue(application.nationalId || '')}')"><i class="fas fa-eye"></i> فتح الطلب</button>
-                    <button class="btn-action" onclick="openStudentEditor('${encodeValue(application.requestId)}')"><i class="fas fa-up-right-from-square"></i> شاشة التعديل</button>
-                    <button class="btn-action" onclick="copyStudentRequestId('${encodeValue(application.requestId)}')"><i class="fas fa-copy"></i> نسخ الرقم</button>
-                </div>
-            `;
-
-            return `
-                <div class="admin-card student-card">
-                    <div class="card-header">
-                        <div class="user-info">
-                            <h4>${escapeHtml(application.name || application.requestId)}</h4>
-                            <span>${escapeHtml(application.requestId)} - ${escapeHtml(application.nationalId || 'بدون رقم قومي')}</span>
-                        </div>
-                        <span class="status-pill ${application.status === 'accepted' ? 'pill-active' : application.status === 'rejected' ? 'pill-suspended' : ''}">
-                            ${escapeHtml(store.getStatusLabel(application.status))}
-                        </span>
-                    </div>
-                    <div class="card-body">
-                        <p><span>العمر</span><strong>${escapeHtml(application.age || '--')}</strong></p>
-                        <p><span>المحافظة</span><strong>${escapeHtml(application.governorate || '--')}</strong></p>
-                        <p><span>المركز</span><strong>${escapeHtml(application.city || '--')}</strong></p>
-                        <p><span>القرية</span><strong>${escapeHtml(application.village || '--')}</strong></p>
-                        <p><span>كود القائد</span><strong>${escapeHtml(application.leaderCode || '--')}</strong></p>
-                        <p><span>بريد الدخول</span><strong>${escapeHtml(application.studentEmail || '--')}</strong></p>
-                        <p><span>وضع الامتحان</span><strong>${escapeHtml(store.getExamAccessLabel(application.examAccess))}</strong></p>
-                        <p><span>آخر تحديث</span><strong>${escapeHtml(formatDate(application.updatedAt || application.createdAt))}</strong></p>
-                        <p><span>آخر نتيجة</span><strong>${latestAttempt ? `${latestAttempt.percentage || 0}%` : 'لا يوجد'}</strong></p>
-                        ${application.message ? `<p style="display:block; margin-top:0.75rem;"><span>ملاحظة</span><strong style="display:block; margin-top:0.35rem;">${escapeHtml(application.message)}</strong></p>` : ''}
-                    </div>
-                    ${actionBlock}
-                </div>
-            `;
-        }).join('')}`;
-    }
-
-    function renderWithdrawals() {
-        if (!allWithdrawalsListEl) return;
-        if (!isAdmin) {
-            allWithdrawalsListEl.innerHTML = '<div class="admin-card"><h4>هذه المساحة متاحة للإدارة فقط.</h4></div>';
-            return;
-        }
-
-        const transactions = authApi.getAllTransactions();
-        const summaryHtml = renderSummaryRow([
-            { label: 'كل العمليات', value: transactions.length },
-            { label: 'قيد المراجعة', value: transactions.filter((item) => item.status === 'pending').length },
-            { label: 'مرفوض أو خطأ', value: transactions.filter((item) => item.status === 'rejected' || item.status === 'error').length },
-            { label: 'إجمالي المنفذ', value: formatMoney(transactions.filter((item) => item.status === 'completed').reduce((sum, item) => sum + Number(item.amount || 0), 0)) }
-        ]);
-
-        allWithdrawalsListEl.innerHTML = !transactions.length
-            ? `${summaryHtml}<div class="admin-card"><h4>لا توجد طلبات سحب حتى الآن.</h4></div>`
-            : `${summaryHtml}${transactions.map((transaction) => `
-                <div class="admin-card">
-                    <div class="card-header">
-                        <div class="user-info">
-                            <h4>${escapeHtml(transaction.userName || transaction.email)}</h4>
-                            <span>${escapeHtml(transaction.email)} - ${escapeHtml(transaction.txId)}</span>
-                        </div>
-                        <span class="status-pill ${transaction.status === 'completed' ? 'pill-active' : (transaction.status === 'rejected' || transaction.status === 'error') ? 'pill-suspended' : ''}">
-                            ${escapeHtml(transaction.statusLabel || transaction.status)}
-                        </span>
-                    </div>
-                    <div class="card-body">
-                        <p><span>المبلغ</span><strong>${escapeHtml(formatMoney(transaction.amount))}</strong></p>
-                        <p><span>الوسيلة</span><strong>${escapeHtml(transaction.method || '--')}</strong></p>
-                        <p><span>الجهة</span><strong>${escapeHtml(transaction.channelName || '--')}</strong></p>
-                        <p><span>التفاصيل</span><strong>${escapeHtml(transaction.details || '--')}</strong></p>
-                        <p><span>التاريخ</span><strong>${escapeHtml(formatDate(transaction.createdAt))}</strong></p>
-                        <p><span>خصم الرصيد</span><strong>${transaction.debitedAt ? escapeHtml(formatDate(transaction.debitedAt)) : 'لم يخصم بعد'}</strong></p>
-                        <p><span>آخر قرار</span><strong>${transaction.resolvedAt ? escapeHtml(formatDate(transaction.resolvedAt)) : 'لم يحسم بعد'}</strong></p>
-                        ${transaction.adminMessage ? `<p style="display:block; margin-top:0.75rem;"><span>رسالة الإدارة</span><strong style="display:block; margin-top:0.35rem;">${escapeHtml(transaction.adminMessage)}</strong></p>` : ''}
-                    </div>
-                    <div class="card-actions">
-                        <button class="btn-action success" onclick="promptWithdrawalStatus('${encodeValue(transaction.email)}', '${encodeValue(transaction.txId)}', 'completed')"><i class="fas fa-circle-check"></i> تنفيذ</button>
-                        <button class="btn-action" onclick="promptWithdrawalStatus('${encodeValue(transaction.email)}', '${encodeValue(transaction.txId)}', 'pending')"><i class="fas fa-hourglass-half"></i> مراجعة</button>
-                        <button class="btn-action danger" onclick="promptWithdrawalStatus('${encodeValue(transaction.email)}', '${encodeValue(transaction.txId)}', 'rejected')"><i class="fas fa-ban"></i> رفض</button>
-                        <button class="btn-action danger" onclick="promptWithdrawalStatus('${encodeValue(transaction.email)}', '${encodeValue(transaction.txId)}', 'error')"><i class="fas fa-triangle-exclamation"></i> خطأ</button>
-                        <button class="btn-action" onclick="editWithdrawal('${encodeValue(transaction.email)}', '${encodeValue(transaction.txId)}')"><i class="fas fa-pen"></i> تعديل</button>
-                        <button class="btn-action danger" onclick="removeWithdrawal('${encodeValue(transaction.email)}', '${encodeValue(transaction.txId)}')"><i class="fas fa-trash"></i> حذف</button>
-                    </div>
-                </div>
-            `).join('')}`;
-    }
-
-    function renderUsers() {
-        if (!allUsersListEl) return;
-        if (!isAdmin) {
-            allUsersListEl.innerHTML = '<div class="admin-card"><h4>هذه المساحة متاحة للإدارة فقط.</h4></div>';
-            return;
-        }
-
-        const users = authApi.getAllUsers();
-        const summaryHtml = renderSummaryRow([
-            { label: 'كل المستخدمين', value: users.length },
-            { label: 'نشط', value: users.filter((user) => !user.isSuspended).length },
-            { label: 'موقوف', value: users.filter((user) => user.isSuspended).length },
-            { label: 'ممنوع امتحان', value: users.filter((user) => user.examAllowed === false).length }
-        ]);
-
-        allUsersListEl.innerHTML = `${summaryHtml}${users.map((user) => `
-            <div class="admin-card" style="opacity:${user.isSuspended ? 0.7 : 1};">
-                <div class="card-header">
-                    <div class="user-info">
-                        <h4>${escapeHtml(user.name || 'مستخدم بدون اسم')}</h4>
-                        <span>${escapeHtml(user.email)}</span>
-                    </div>
-                    <span class="status-pill ${user.isSuspended ? 'pill-suspended' : 'pill-active'}">${user.isSuspended ? 'موقوف' : 'نشط'}</span>
-                </div>
-                <div class="card-body">
-                    <p><span>الدور</span><strong>${escapeHtml(user.role || '--')}</strong></p>
-                    <p><span>الرصيد</span><strong>${escapeHtml(formatMoney(user.balance))}</strong></p>
-                    <p><span>كود القائد</span><strong>${escapeHtml(user.leaderCode || '--')}</strong></p>
-                    <p><span>صلاحية الامتحان</span><strong>${user.examAllowed === false ? 'موقوفة' : 'مسموحة'}</strong></p>
-                    <p><span>آخر دخول</span><strong>${escapeHtml(formatDate(user.lastLoginAt))}</strong></p>
-                </div>
-                <div class="card-actions">
-                    <button class="btn-action" onclick="editUser('${encodeValue(user.email)}')"><i class="fas fa-user-pen"></i> تعديل</button>
-                    <button class="btn-action" onclick="changeUserBalance('${encodeValue(user.email)}')"><i class="fas fa-coins"></i> رصيد</button>
-                    <button class="btn-action ${user.isSuspended ? 'success' : 'danger'}" onclick="toggleUserStatus('${encodeValue(user.email)}')"><i class="fas ${user.isSuspended ? 'fa-play' : 'fa-pause'}"></i> ${user.isSuspended ? 'تنشيط' : 'إيقاف'}</button>
-                    <button class="btn-action ${user.examAllowed === false ? 'success' : 'danger'}" onclick="toggleUserExam('${encodeValue(user.email)}')"><i class="fas ${user.examAllowed === false ? 'fa-unlock' : 'fa-lock'}"></i> ${user.examAllowed === false ? 'سماح امتحان' : 'منع امتحان'}</button>
-                    ${isSuperAdminSession() ? `<button class="btn-action" data-pro-action="permissions-${escapeHtml(user.email)}" onclick="editUserPermissions('${encodeValue(user.email)}')"><i class="fas fa-shield-halved"></i> صلاحيات</button>` : ''}
-                    <button class="btn-action" onclick="sendUserNotification('${encodeValue(user.email)}')"><i class="fas fa-bell"></i> إشعار</button>
-                    <button class="btn-action danger" onclick="removeUser('${encodeValue(user.email)}')"><i class="fas fa-trash"></i> حذف</button>
-                </div>
-            </div>
-        `).join('')}`;
-    }
-
     function renderExams() {
         if (!globalExamControlEl) return;
         if (!isAdmin) {
@@ -1945,7 +1781,7 @@
             const email = document.getElementById('add-user-email')?.value.trim();
             const name = document.getElementById('add-user-name')?.value.trim();
             
-            const result = authApi.addUser({
+            const result = await authApi.addUser({
                 name: name,
                 email: email,
                 password: document.getElementById('add-user-password')?.value.trim() || '123456',
@@ -2031,8 +1867,8 @@
                 updatedAt: new Date().toISOString()
             };
 
-            const result = authApi.updateUserPersistentData(email, updates);
-            
+            const result = await authApi.updateUserPersistentData(email, updates);
+
             if (result.ok) {
                 // إرسال إشعار عائم للمستخدم فوراً
                 await authApi.pushPrivateNotification(email, {
@@ -2064,7 +1900,7 @@
             <div class="form-group"><label>الرصيد الجديد</label><input class="form-control" id="edit-user-balance" type="number" value="${escapeHtml(user.balance)}"></div>
         `, async () => {
             const nextBalance = Number(document.getElementById('edit-user-balance')?.value || user.balance || 0);
-            const result = authApi.updateUserPersistentData(email, { balance: nextBalance });
+            const result = await authApi.updateUserPersistentData(email, { balance: nextBalance });
             if (result?.ok === false) {
                 showToast(result.message || 'تعذر تحديث رصيد المستخدم.');
                 return false;
@@ -2703,7 +2539,7 @@
         }
 
         if (shouldUpdateBalance) {
-            const balanceResult = authApi.updateUserPersistentData(email, { balance: nextBalance });
+            const balanceResult = await authApi.updateUserPersistentData(email, { balance: nextBalance });
             if (balanceResult?.ok === false) {
                 showToast(balanceResult.message || 'تعذر تحديث رصيد المستخدم.');
                 return false;
@@ -2775,19 +2611,19 @@
             const nextAmount = Math.max(0, Number(document.getElementById('edit-tx-amount')?.value || latestTransaction.amount || 0));
             const amountDelta = nextAmount - Number(latestTransaction.amount || 0);
 
-            if (latestTransaction.status === 'completed' && amountDelta !== 0) {
-                const adjustedBalance = Number(user.balance || 0) - amountDelta;
-                if (adjustedBalance < 0) {
-                    showToast('لا يمكن زيادة مبلغ العملية لأن رصيد المستخدم الحالي لا يكفي.');
-                    return false;
-                }
+                if (latestTransaction.status === 'completed' && amountDelta !== 0) {
+                    const adjustedBalance = Number(user.balance || 0) - amountDelta;
+                    if (adjustedBalance < 0) {
+                        showToast('لا يمكن زيادة مبلغ العملية لأن رصيد المستخدم الحالي لا يكفي.');
+                        return false;
+                    }
 
-                const balanceResult = authApi.updateUserPersistentData(email, { balance: adjustedBalance });
-                if (balanceResult?.ok === false) {
-                    showToast(balanceResult.message || 'تعذر تحديث رصيد المستخدم.');
-                    return false;
+                    const balanceResult = await authApi.updateUserPersistentData(email, { balance: adjustedBalance });
+                    if (balanceResult?.ok === false) {
+                        showToast(balanceResult.message || 'تعذر تحديث رصيد المستخدم.');
+                        return false;
+                    }
                 }
-            }
 
             const updateResult = authApi.updateTransaction(email, txId, {
                 amount: nextAmount,

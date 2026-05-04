@@ -300,7 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
             saveStoredApplications(updatedApplications);
 
             if (authApi?.createOrUpdateStudentAccountFromApplication) {
-                authApi.createOrUpdateStudentAccountFromApplication(application);
+                await authApi.createOrUpdateStudentAccountFromApplication(application);
             }
 
             if (platformStore?.addNotification) {
