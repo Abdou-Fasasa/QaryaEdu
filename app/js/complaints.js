@@ -31,6 +31,38 @@
         pendingAttachments: []
     };
 
+    function renderUserComplaints(messages) {
+        const complaintsCard = document.getElementById('user-complaints-card');
+        const complaintsList = document.getElementById('user-complaints-list');
+        if (!complaintsCard || !complaintsList) return;
+
+        // استخراج رسائل المستخدم التي تتكون من 7 أرقام فقط (الشكاوى الرسمية)
+        const userMessages = (Array.isArray(messages) ? messages : [])
+            .filter(m => m.sender === 'user' && m.id && /^\d{7}$/.test(m.id));
+
+        if (userMessages.length === 0) {
+            complaintsCard.hidden = true;
+            return;
+        }
+
+        complaintsCard.hidden = false;
+        // عرض الـ 5 شكاوى الرسمية المطلوبة فقط
+        const displayMessages = userMessages.slice(-5).reverse();
+
+        complaintsList.innerHTML = displayMessages.map(m => {
+            const date = new Date(m.createdAt).toLocaleDateString('ar-EG', { day: 'numeric', month: 'short', year: 'numeric' });
+            return `
+                <div class="user-complaint-item" style="border-bottom: 1px solid rgba(0,0,0,0.05); padding: 10px 0; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; flex-direction: column; gap: 2px;">
+                        <strong style="color: var(--primary); font-size: 0.95rem; font-family: monospace;"># ${escapeHtml(m.id)}</strong>
+                        <small style="color: #666; font-size: 0.75rem;"><i class="far fa-calendar-alt" style="margin-left: 4px;"></i>${escapeHtml(date)}</small>
+                    </div>
+                    <span style="font-size: 0.7rem; padding: 3px 8px; background: var(--primary-light, #e0f2f1); border-radius: 12px; color: var(--primary, #00796b); font-weight: 600;">مُرسلة</span>
+                </div>
+            `;
+        }).join('');
+    }
+
     function escapeHtml(value) {
         return String(value || '')
             .replace(/&/g, '&amp;')
@@ -249,9 +281,12 @@
         inputEl.style.height = `${Math.min(Math.max(inputEl.scrollHeight, 120), 260)}px`;
     }
 
-    function scrollMessagesToBottom() {
+    function scrollMessagesToBottom(options = {}) {
         if (!messagesEl) return;
-        messagesEl.scrollTop = messagesEl.scrollHeight;
+        messagesEl.scrollTo({
+            top: messagesEl.scrollHeight,
+            behavior: options.behavior || 'auto'
+        });
     }
 
     function renderPendingAttachments() {
@@ -324,12 +359,23 @@
         const attachmentsHtml = buildAttachmentsMarkup(message?.attachments, 'support-chat-page');
         const readLabel = getReadLabel(message);
 
+        // تعديل: يظهر وسم "متابعة" فقط للشكاوى الرسمية المكونة من 7 أرقام
+        const isOfficialComplaint = sender === 'user' && message.id && /^\d{7}$/.test(message.id);
+        const complaintIdHtml = isOfficialComplaint 
+            ? `<div style="font-weight: 700; color: var(--primary); margin-bottom: 4px; font-size: 0.8rem; opacity: 0.8;"># متابعة: ${escapeHtml(message.id)}</div>` 
+            : '';
+
+        let cleanText = message?.text || '';
+        // إزالة كلمة "شكوى" أو "شكوى:" من بداية النص تماماً
+        cleanText = cleanText.replace(/^(شكوى:|شكوى)\s*/, '');
+
         return `
             <article class="support-chat-page-message is-${sender}">
                 ${sender === 'user' ? '' : `<span class="support-chat-page-avatar">${escapeHtml(avatarLabel)}</span>`}
                 <div class="support-chat-page-bubble">
                     <span class="support-chat-page-sender">${escapeHtml(senderLabel)}</span>
-                    ${message?.text ? `<p>${escapeHtml(message.text)}</p>` : ''}
+                    ${complaintIdHtml}
+                    ${cleanText ? `<p style="margin-top: 2px;">${escapeHtml(cleanText)}</p>` : ''}
                     ${attachmentsHtml}
                     <div class="support-chat-page-meta-row">
                         <small>${escapeHtml(timeLabel)}</small>
@@ -389,8 +435,24 @@
         const identity = getIdentity();
         const storedThread = getStoredThread(storeApi, identity);
         const visibleThread = getVisibleThread(storeApi, identity);
-        const messages = Array.isArray(visibleThread?.messages) ? visibleThread.messages : [];
+        
+        // فلترة الرسائل: إزالة الرسائل التي تحمل معرفات تلقائية طويلة مثل SUPMSG-
+        // والاحتفاظ فقط بالرسائل التي ليس لها معرف أو معرفها شكوى رسمية (7 أرقام)
+        const allMessages = Array.isArray(visibleThread?.messages) ? visibleThread.messages : [];
+        const messages = allMessages.filter(m => {
+            if (!m.id) return true; // رسائل عادية بدون معرف
+            if (/^\d{7}$/.test(m.id)) return true; // شكاوى رسمية
+            return false; // حذف أي شيء آخر (مثل SUPMSG-...)
+        });
+
         const unread = Number(visibleThread?.unreadByUser || 0);
+
+        // تحديث قائمة أرقام الشكاوى في القائمة الجانبية من المحادثة المخزنة (فقط الـ 5 شكاوى الرسمية)
+        const storedMessages = (Array.isArray(storedThread?.messages) ? storedThread.messages : [])
+            .filter(m => m.sender === 'user' && m.id && /^\d{7}$/.test(m.id))
+            .slice(-5); // الاحتفاظ بآخر 5 فقط كما طلب المستخدم
+            
+        renderUserComplaints(storedMessages);
 
         if (guestFieldsEl) {
             guestFieldsEl.hidden = Boolean(identity?.authenticated);
@@ -407,13 +469,35 @@
         }
 
         if (messagesEl) {
+            const previousScrollTop = messagesEl.scrollTop;
+            const previousScrollHeight = messagesEl.scrollHeight;
+            const wasNearBottom = messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight < 150;
+            const nextMessageKey = getMessageSignature(messages);
+            const hasNewMessages = nextMessageKey !== state.lastMessageKey;
+            const isFirstRender = !state.lastMessageKey;
+
             messagesEl.innerHTML = messages.map((message) => buildMessageMarkup(message)).join('');
             messagesEl.hidden = messages.length === 0;
 
-            const nextMessageKey = getMessageSignature(messages);
-            if (nextMessageKey !== state.lastMessageKey && messages.length) {
+            if (hasNewMessages && messages.length) {
                 state.lastMessageKey = nextMessageKey;
-                requestAnimationFrame(scrollMessagesToBottom);
+                
+                // سكرول للأسفل فقط في حالتين:
+                // 1. أول مرة تفتح فيها المحادثة
+                // 2. إذا كنت واقف فعلاً عند آخر رسالة (قريب من القاع)
+                if (isFirstRender || wasNearBottom) {
+                    requestAnimationFrame(scrollMessagesToBottom);
+                } else {
+                    // إذا كنت بتقرأ رسائل قديمة، بنحافظ على مكانك بالظبط
+                    requestAnimationFrame(() => {
+                        messagesEl.scrollTop = previousScrollTop;
+                    });
+                }
+            } else {
+                // الحفاظ على موضع السكرول عند أي تحديث دوري للبيانات
+                requestAnimationFrame(() => {
+                    messagesEl.scrollTop = previousScrollTop;
+                });
             }
         }
 
@@ -537,6 +621,7 @@
             clearPendingAttachments();
 
             queueRender();
+            requestAnimationFrame(() => scrollMessagesToBottom({ behavior: 'smooth' }));
             inputEl?.focus();
 
             Promise.resolve(storeApi.syncNow?.()).catch(() => {});

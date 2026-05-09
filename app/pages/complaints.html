@@ -7,6 +7,20 @@
   <title>مركز الدعم المباشر | قرية متعلمة</title>
   <link rel="stylesheet" href="../styles.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    .user-complaints-list {
+        max-height: 300px;
+        overflow-y: auto;
+        padding-left: 5px;
+    }
+    .user-complaints-list::-webkit-scrollbar {
+        width: 4px;
+    }
+    .user-complaints-list::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 10px;
+    }
+  </style>
   <script type="module" src="../js/firebase-init.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/auth-guard.js"></script>
@@ -138,6 +152,15 @@
               <span class="mini-badge">إجابة سريعة</span>
               <h3 id="support-answer-title">اختر سؤالًا</h3>
               <p id="support-answer-text">ستظهر هنا الإجابة المختصرة لتبدأ منها بسرعة.</p>
+            </article>
+
+            <article class="support-side-card" id="user-complaints-card" hidden>
+              <span class="mini-badge">شكواك السابقة</span>
+              <h3>سجل متابعة شكواك</h3>
+              <p>هنا تظهر أرقام الشكاوى التي قدمتها وتواريخها لمتابعتها مع الإدارة.</p>
+              <div id="user-complaints-list" class="user-complaints-list">
+                <!-- ستظهر هنا قائمة الشكاوى -->
+              </div>
             </article>
 
             <article class="support-side-card">

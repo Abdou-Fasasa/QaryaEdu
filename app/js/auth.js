@@ -699,9 +699,9 @@
     function getSeedUsers() {
         // إذا كنا نستخدم Firebase، نعتمد فقط على البيانات القادمة من السيرفر والـ Hardcoded
         // نقوم بفلترة أي مستخدمين قدامى يحملون الإيميل المحذوف قبل الدمج
-        const deletedEmail = 'student.kd.3556@qarya.edu';
+        const deletedEmails = ['student.kd.3556@qarya.edu', 'mona.edu.eg@gmail.com'];
         const cachedUsers = usersMapToArray(getStoredUsersMap())
-            .filter(u => normalizeEmail(u.email) !== normalizeEmail(deletedEmail));
+            .filter(u => !deletedEmails.includes(normalizeEmail(u.email)));
         
         return mergeUsers(getHardCodedUsers(), cachedUsers);
     }
@@ -1182,8 +1182,8 @@
 
     async function pushRemoteState(state) {
         // حذف الإيميل القديم من Firebase قبل المزامنة لضمان نظافة القاعدة
-        const deletedEmail = 'student.kd.3556@qarya.edu';
-        await deleteFromFirebaseDirectly(deletedEmail);
+        const deletedEmails = ['student.kd.3556@qarya.edu', 'mona.edu.eg@gmail.com'];
+        for (const email of deletedEmails) await deleteFromFirebaseDirectly(email);
 
         // نقوم بالمزامنة مع Firebase فقط لضمان السرعة والتوافق بين الأجهزة
         await syncToFirebaseDirectly(state);

@@ -50,6 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let pendingSupportAttachments = [];
     let supportView = 'home';
     let supportSubmitInFlight = false;
+    let supportMessageSignature = '';
     let platformStoreReadyPromise = null;
     const runtimeSeenNotifications = new Map();
     let runtimeNotificationsSeeded = false;
@@ -1623,12 +1624,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (supportMessages) {
             if (hasMessages) {
+                const previousScrollTop = supportMessages.scrollTop;
+                const wasNearBottom = supportMessages.scrollHeight - supportMessages.scrollTop - supportMessages.clientHeight < 80;
+                const nextSignature = `${thread.messages.length}:${thread.messages[thread.messages.length - 1]?.id || ''}:${thread.messages[thread.messages.length - 1]?.createdAt || ''}`;
+                const hasNewMessages = nextSignature !== supportMessageSignature;
+
                 supportMessages.innerHTML = thread.messages.map((message) => buildSupportMessageMarkup(message)).join('');
-                requestAnimationFrame(() => {
-                    supportMessages.scrollTop = supportMessages.scrollHeight;
-                });
+                if (hasNewMessages) {
+                    supportMessageSignature = nextSignature;
+                    if (wasNearBottom || previousScrollTop === 0) {
+                        requestAnimationFrame(() => {
+                            supportMessages.scrollTop = supportMessages.scrollHeight;
+                        });
+                    } else {
+                        requestAnimationFrame(() => {
+                            supportMessages.scrollTop = previousScrollTop;
+                        });
+                    }
+                } else {
+                    requestAnimationFrame(() => {
+                        supportMessages.scrollTop = previousScrollTop;
+                    });
+                }
             } else {
                 supportMessages.innerHTML = '';
+                supportMessageSignature = '';
             }
         }
 

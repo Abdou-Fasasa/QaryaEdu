@@ -940,12 +940,35 @@
             const avatarLabel = sender === 'admin' ? 'د' : sender === 'bot' ? 'آ' : 'م';
             const isUserMessage = sender === 'user';
 
+            // منطق الخصوصية: القائد يرى رقم الشكوى والطرف الآخر فقط، بينما يرى الأدمن كل شيء
+            let displayContent = '';
+            if (!isAdmin && isUserMessage) {
+                if (message.text && message.text.includes(' | التفاصيل:')) {
+                    const parts = message.text.split(' | التفاصيل:');
+                    displayContent = escapeHtml(parts[0]) + ' <br><span style="display:inline-block; color:#dc2626; margin-top:6px; font-weight:bold; font-size:0.85rem;">[تفاصيل الشكوى مخفية: للمدير العام فقط]</span>';
+                } else {
+                    displayContent = '<span style="color:#dc2626; font-weight:bold;">محتوى الشكوى متاح للإدارة العامة فقط.</span>';
+                }
+            } else {
+                displayContent = escapeHtml(message.text);
+            }
+
+            // تعديل: يظهر رقم المتابعة فقط للشكاوى الرسمية المكونة من 7 أرقام
+            const isOfficialComplaint = isUserMessage && message.id && /^\d{7}$/.test(message.id);
+            const complaintIdHtml = isOfficialComplaint 
+                ? `<div style="font-size: 0.75rem; font-weight: bold; color: var(--primary); margin-bottom: 4px; opacity: 0.8;"># متابعة: ${escapeHtml(message.id)}</div>` 
+                : '';
+
+            // تنظيف النص من كلمة "شكوى" المكررة
+            displayContent = displayContent.replace(/^(شكوى:|شكوى)\s*/, '');
+
             return `
                 <article class="support-desk-message is-${sender}">
                     ${isUserMessage ? '' : `<span class="support-desk-avatar">${escapeHtml(avatarLabel)}</span>`}
                     <div class="support-desk-bubble">
-                        <span>${escapeHtml(senderLabel)} - ${escapeHtml(senderState)}</span>
-                        <p>${escapeHtml(message.text)}</p>
+                        <span>${escapeHtml(senderLabel)}</span>
+                        ${complaintIdHtml}
+                        <p>${displayContent}</p>
                         <small>${escapeHtml(formatDate(message.createdAt))}</small>
                     </div>
                     ${isUserMessage ? `<span class="support-desk-avatar">${escapeHtml(avatarLabel)}</span>` : ''}
@@ -2133,6 +2156,93 @@
         }, 'إرسال الرد');
     };
 
+    function toDateTimeLocalValue(value) {
+        const date = value ? new Date(value) : new Date();
+        if (Number.isNaN(date.getTime())) return '';
+        const pad = (number) => String(number).padStart(2, '0');
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    }
+
+    function readDateTimeLocalValue(id, fallback = new Date().toISOString()) {
+        const value = document.getElementById(id)?.value;
+        if (!value) return fallback;
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? fallback : date.toISOString();
+    }
+
+    window.sendSupportAsStudent = (encodedEmail) => {
+        if (!guardAdmin()) return;
+        const email = decodeValue(encodedEmail);
+        const thread = store.getSupportThreadByEmail?.(email);
+        if (!thread) return;
+
+        openModal(`إرسال رسالة باسم ${thread.userName || thread.email}`, `
+            <div class="form-group"><label>اسم الطالب الظاهر</label><input class="form-control" id="support-student-sender-name" type="text" value="${escapeHtml(thread.userName || 'المستخدم')}"></div>
+            <div class="form-group"><label>نص الرسالة</label><textarea class="form-control" id="support-student-message-text" rows="5" placeholder="اكتب الرسالة التي ستظهر باسم الطالب"></textarea></div>
+            <div class="form-group"><label>التاريخ والوقت</label><input class="form-control" id="support-student-message-date" type="datetime-local" value="${escapeHtml(toDateTimeLocalValue(new Date()))}"></div>
+        `, async () => {
+            const text = document.getElementById('support-student-message-text')?.value.trim();
+            if (!text) {
+                showToast('اكتب نص الرسالة أولًا.');
+                return false;
+            }
+
+            store.sendSupportMessage({
+                email,
+                userName: thread.userName,
+                role: thread.role,
+                sender: 'user',
+                senderName: document.getElementById('support-student-sender-name')?.value.trim() || thread.userName || 'المستخدم',
+                text,
+                createdAt: readDateTimeLocalValue('support-student-message-date')
+            }, { silent: true });
+            store.markSupportThreadRead?.(email, 'admin', { silent: true });
+            store.updateSupportThreadStatus?.(email, 'open', { silent: true });
+            await syncAll();
+            await refreshAll(true);
+        }, 'إرسال باسم الطالب');
+    };
+
+    window.editSupportMessage = (encodedEmail, encodedMessageId) => {
+        if (!guardAdmin()) return;
+        const email = decodeValue(encodedEmail);
+        const messageId = decodeValue(encodedMessageId);
+        const thread = store.getSupportThreadByEmail?.(email);
+        const message = thread?.messages?.find((item) => item.id === messageId);
+        if (!thread || !message) return;
+
+        openModal('تعديل رسالة الدعم', `
+            <div class="form-group"><label>المرسل</label><select class="form-control" id="support-edit-sender"><option value="user"${message.sender === 'user' ? ' selected' : ''}>الطالب</option><option value="admin"${message.sender === 'admin' ? ' selected' : ''}>الدعم الإداري</option><option value="bot"${message.sender === 'bot' ? ' selected' : ''}>المساعد الآلي</option></select></div>
+            <div class="form-group"><label>اسم المرسل</label><input class="form-control" id="support-edit-sender-name" type="text" value="${escapeHtml(message.senderName || '')}"></div>
+            <div class="form-group"><label>نص الرسالة</label><textarea class="form-control" id="support-edit-message-text" rows="5">${escapeHtml(message.text || '')}</textarea></div>
+            <div class="form-group"><label>التاريخ والوقت</label><input class="form-control" id="support-edit-message-date" type="datetime-local" value="${escapeHtml(toDateTimeLocalValue(message.createdAt))}"></div>
+        `, async () => {
+            const text = document.getElementById('support-edit-message-text')?.value.trim();
+            if (!text && !(message.attachments || []).length) {
+                showToast('لا يمكن حفظ رسالة فارغة.');
+                return false;
+            }
+            store.updateSupportMessage?.(email, messageId, {
+                sender: document.getElementById('support-edit-sender')?.value || message.sender,
+                senderName: document.getElementById('support-edit-sender-name')?.value.trim() || message.senderName,
+                text,
+                createdAt: readDateTimeLocalValue('support-edit-message-date', message.createdAt)
+            }, { silent: true });
+            await syncAll();
+            await refreshAll(true);
+        }, 'حفظ الرسالة');
+    };
+
+    window.deleteSupportMessage = async (encodedEmail, encodedMessageId) => {
+        if (!guardAdmin()) return;
+        const email = decodeValue(encodedEmail);
+        const messageId = decodeValue(encodedMessageId);
+        if (!window.confirm('حذف هذه الرسالة من المحادثة؟')) return;
+        store.deleteSupportMessage?.(email, messageId, { silent: true });
+        await syncAll();
+        await refreshAll(true);
+    };
+
     window.toggleSupportThreadStatus = async (encodedEmail, nextStatus) => {
         if (!guardAdmin()) return;
         const email = decodeValue(encodedEmail);
@@ -3200,20 +3310,24 @@
             return '<div class="admin-card"><p>لا توجد رسائل داخل هذه المحادثة بعد.</p></div>';
         }
 
-        return thread.messages.map((message) => `
-            <div class="admin-card" style="padding:0.95rem; gap:0.75rem; ${message.sender === 'admin' ? 'border-color: rgba(37,99,235,0.24); background: linear-gradient(180deg,#eff6ff,#ffffff);' : ''}">
-                <div class="card-header" style="padding-bottom:0.65rem;">
-                    <div class="user-info">
-                        <h4>${escapeHtml(message.sender === 'admin' ? 'الدعم الإداري' : message.sender === 'bot' ? 'المساعد الآلي' : thread.userName || 'المستخدم')}</h4>
-                        <span>${escapeHtml(formatDate(message.createdAt))}</span>
+        return thread.messages.map((message) => {
+            let displayContent = message.text || '';
+            displayContent = displayContent.replace(/^(شكوى:|شكوى)\s*/, '');
+            
+            return `
+                <div class="admin-card" style="padding:0.95rem; gap:0.75rem; ${message.sender === 'admin' ? 'border-color: rgba(37,99,235,0.24); background: linear-gradient(180deg,#eff6ff,#ffffff);' : ''}">
+                    <div class="card-header" style="padding-bottom:0.65rem;">
+                        <div class="user-info">
+                            <h4>${escapeHtml(message.sender === 'admin' ? 'الدعم الإداري' : message.sender === 'bot' ? 'المساعد الآلي' : thread.userName || 'المستخدم')}</h4>
+                            <span>${escapeHtml(formatDate(message.createdAt))}</span>
+                        </div>
                     </div>
-                    <span class="status-pill ${message.sender === 'admin' ? 'pill-active' : ''}">${escapeHtml(message.sender === 'admin' ? 'رد الإدارة' : message.sender === 'bot' ? 'رد تلقائي' : 'رسالة مستخدم')}</span>
+                    <div class="card-body">
+                        <p style="display:block;"><strong>${escapeHtml(displayContent)}</strong></p>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <p style="display:block;"><strong>${escapeHtml(message.text)}</strong></p>
-                </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
     function normalizeAdminSupportAttachment(attachment) {
@@ -3276,7 +3390,18 @@
                     : 'رسالة مستخدم';
             const stateLabel = getAdminSupportMessageState(message);
             const attachmentsHtml = renderAdminSupportAttachments(message.attachments);
-            const textHtml = message.text ? `<p class="admin-support-message-text">${escapeHtml(message.text)}</p>` : '';
+            
+            let displayContent = message.text || '';
+            // تنظيف النص من كلمة "شكوى" المكررة
+            displayContent = displayContent.replace(/^(شكوى:|شكوى)\s*/, '');
+            const textHtml = displayContent ? `<p class="admin-support-message-text">${escapeHtml(displayContent)}</p>` : '';
+            
+            const messageId = message.id || '';
+            // تعديل: يظهر رقم المتابعة فقط للشكاوى الرسمية المكونة من 7 أرقام
+            const isOfficialComplaint = sender === 'user' && messageId && /^\d{7}$/.test(messageId);
+            const complaintIdHtml = isOfficialComplaint 
+                ? `<div style="font-size: 0.75rem; font-weight: bold; color: var(--primary); margin-bottom: 6px; opacity: 0.8;"># متابعة: ${escapeHtml(messageId)}</div>` 
+                : '';
 
             return `
                 <div class="admin-card admin-support-message-card is-${sender}">
@@ -3285,15 +3410,20 @@
                             <h4>${escapeHtml(senderLabel)}</h4>
                             <span>${escapeHtml(formatDate(message.createdAt))}</span>
                         </div>
-                        <span class="status-pill ${sender === 'admin' ? 'pill-active' : ''}">${escapeHtml(typeLabel)}</span>
                     </div>
                     <div class="card-body">
+                        ${complaintIdHtml}
                         ${textHtml}
                         ${attachmentsHtml}
                         <div class="admin-support-message-meta">
                             <span>${escapeHtml(message.senderName || '')}</span>
                             ${stateLabel ? `<span class="admin-support-message-state">${escapeHtml(stateLabel)}</span>` : ''}
+                            ${message.editedAt ? `<span>تم التعديل: ${escapeHtml(formatDate(message.editedAt))}</span>` : ''}
                         </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-action" onclick="editSupportMessage('${encodeValue(thread.email)}', '${encodeValue(messageId)}')"><i class="fas fa-pen"></i> تعديل</button>
+                        <button class="btn-action danger" onclick="deleteSupportMessage('${encodeValue(thread.email)}', '${encodeValue(messageId)}')"><i class="fas fa-trash"></i> حذف</button>
                     </div>
                 </div>
             `;
@@ -3335,6 +3465,7 @@
                 </div>
                 <div class="card-actions">
                     <button class="btn-action success" onclick="replySupportThread('${encodeValue(thread.email)}')"><i class="fas fa-reply"></i> رد</button>
+                    <button class="btn-action" onclick="sendSupportAsStudent('${encodeValue(thread.email)}')"><i class="fas fa-user-pen"></i> إرسال باسم الطالب</button>
                     <button class="btn-action" onclick="markSupportMessagesRead('${encodeValue(thread.email)}')"><i class="fas fa-envelope-open-text"></i> تعليم كمقروء</button>
                     <button class="btn-action ${thread.status === 'closed' ? 'success' : 'danger'}" onclick="toggleSupportThreadStatus('${encodeValue(thread.email)}', '${thread.status === 'closed' ? 'open' : 'closed'}')"><i class="fas ${thread.status === 'closed' ? 'fa-lock-open' : 'fa-lock'}"></i> ${thread.status === 'closed' ? 'إعادة فتح' : 'إغلاق'}</button>
                     <button class="btn-action danger" onclick="removeSupportThread('${encodeValue(thread.email)}')"><i class="fas fa-trash"></i> حذف</button>
@@ -3546,6 +3677,13 @@
 
     renderSupport = function renderSupportSupportDeskFinal() {
         if (!supportInboxListEl) return;
+        
+        // حفظ موضع التمرير الحالي قبل المسح والرندرة
+        const sidebar = document.querySelector('.support-desk-list');
+        const conversation = document.querySelector('.support-desk-body');
+        const sidebarScroll = sidebar ? sidebar.scrollTop : 0;
+        const streamScroll = conversation ? conversation.scrollTop : 0;
+
         if (!isAdmin) {
             supportInboxListEl.innerHTML = renderEmptyState('fa-lock', 'هذه المساحة للإدارة فقط', 'صندوق الدعم الإداري لا يظهر إلا للإدارة العامة.');
             return;
@@ -3590,6 +3728,14 @@
                 </section>
             </div>
         `;
+
+        // استعادة موضع التمرير فور اكتمال تحديث الـ DOM
+        window.requestAnimationFrame(() => {
+            const newSidebar = document.querySelector('.support-desk-list');
+            const newStream = document.querySelector('.support-desk-body');
+            if (newSidebar) newSidebar.scrollTop = sidebarScroll;
+            if (newStream) newStream.scrollTop = streamScroll;
+        });
     };
 
     window.selectSupportThread = (encodedEmail) => {

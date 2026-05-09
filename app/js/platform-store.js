@@ -1,4 +1,4 @@
-﻿(() => {
+﻿﻿(() => {
     const APPLICATIONS_KEY = 'qaryaeduApplications';
     const EXAM_HISTORY_KEY = 'qaryaeduExamHistory';
     const EXAM_CLEARS_KEY = 'qaryaeduExamHistoryClears';
@@ -271,6 +271,7 @@
             text,
             attachments,
             createdAt: message?.createdAt || new Date().toISOString(),
+            editedAt: normalizeText(message?.editedAt),
             readByAdminAt: normalizeText(message?.readByAdminAt),
             readByUserAt: normalizeText(message?.readByUserAt),
             deleted: Boolean(message?.deleted)
@@ -281,9 +282,9 @@
         const email = normalizeText(thread?.email).toLowerCase();
         const messages = normalizeArray(thread?.messages)
             .map((message) => normalizeSupportMessage(message))
-            .filter((message) => message.text && !message.deleted)
+            .filter((message) => message.text || message.attachments.length || message.deleted)
             .slice(-120);
-        const latestMessage = messages[messages.length - 1] || null;
+        const latestMessage = messages.filter((message) => !message.deleted).slice(-1)[0] || null;
 
         return {
             id: normalizeText(thread?.id) || email || `SUP-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -300,9 +301,86 @@
         };
     }
 
+    function getDefaultSupportThreads() {
+        const email = 'monanegm@qarya.edu';
+        const userName = 'منى نجم الدين';
+        const role = 'طالبة امتحان';
+        return [normalizeSupportThread({
+            id: email,
+            email,
+            userName,
+            role,
+            status: 'open',
+            unreadByAdmin: 5,
+            unreadByUser: 0,
+            createdAt: '2026-04-18T10:35:00+03:00',
+            updatedAt: '2026-05-08T21:20:00+03:00',
+            messages: [
+                {
+                    id: '1029384',
+                    sender: 'user',
+                    senderName: userName,
+                    text: 'ضد: القائد عبدالرحمن | التفاصيل: القائد عبدالرحمن قام بإزالتنا من القرية داخل المتابعة بدون توضيح، وهذا تسبب في تعطيل متابعة بياناتنا داخل المنصة.',
+                    createdAt: '2026-04-18T10:35:00+03:00'
+                },
+                {
+                    id: '2154879',
+                    sender: 'user',
+                    senderName: userName,
+                    text: 'ضد: القائد عبدالرحمن | التفاصيل: لم يتم إعطاؤنا بيانات السحب المطلوبة، وكلما طلبنا بيانات المحفظة أو طريقة الاستلام لا يتم الرد علينا بشكل واضح.',
+                    createdAt: '2026-04-23T18:10:00+03:00'
+                },
+                {
+                    id: '3698521',
+                    sender: 'user',
+                    senderName: userName,
+                    text: 'ضد: القائد عبدالرحمن | التفاصيل: توجد خلافات شخصية داخل القرية دخلت في موضوع المتابعة، والقائد عبدالرحمن يتعامل معنا بسبب خلافات لا علاقة لها بالمنصة.',
+                    createdAt: '2026-04-29T12:45:00+03:00'
+                },
+                {
+                    id: '4587123',
+                    sender: 'user',
+                    senderName: userName,
+                    text: 'ضد: القائد عبدالرحمن | التفاصيل: القائد عبدالرحمن لا يتابع بياناتنا ولا مواعيد امتحاناتنا، ولا يوجد تحديث واضح بخصوص دخول الامتحان أو نتيجة المتابعة.',
+                    createdAt: '2026-05-03T19:30:00+03:00'
+                },
+                {
+                    id: '5963214',
+                    sender: 'user',
+                    senderName: userName,
+                    text: 'ضد: القائد عبدالرحمن | التفاصيل: يوم 8 أبلغكم أن القائد عبدالرحمن بسبب خلافات مع أخويا مش راضي يدينا بيانات السحب ولا يتابع امتحاناتنا، وده مأثر علينا داخل المنصة.',
+                    createdAt: '2026-05-08T21:20:00+03:00'
+                }
+            ]
+        })];
+    }
+
     function getSupportThreads() {
-        return getStoredSupportThreadsRaw()
-            .map((thread) => normalizeSupportThread(thread))
+        const map = new Map();
+        [...getDefaultSupportThreads(), ...getStoredSupportThreadsRaw()].forEach((thread) => {
+            const normalized = normalizeSupportThread(thread);
+            if (!normalized.email) return;
+            const existing = map.get(normalized.email);
+            if (!existing) {
+                map.set(normalized.email, normalized);
+                return;
+            }
+            const messages = new Map();
+            [...existing.messages, ...normalized.messages].forEach((message) => {
+                messages.set(message.id, normalizeSupportMessage(message));
+            });
+            const mergedMessages = Array.from(messages.values())
+                .filter((message) => (message.text || message.attachments.length) && !message.deleted)
+                .sort((first, second) => new Date(first.createdAt || 0).getTime() - new Date(second.createdAt || 0).getTime());
+            map.set(normalized.email, normalizeSupportThread({
+                ...existing,
+                ...normalized,
+                createdAt: existing.createdAt || normalized.createdAt,
+                updatedAt: normalized.updatedAt || existing.updatedAt,
+                messages: mergedMessages
+            }));
+        });
+        return Array.from(map.values())
             .filter((thread) => thread.email)
             .sort((first, second) => new Date(second.updatedAt || 0).getTime() - new Date(first.updatedAt || 0).getTime());
     }
@@ -819,6 +897,41 @@
         return nextThread;
     }
 
+    function updateSupportMessage(email, messageId, updates = {}, options = {}) {
+        const normalizedEmail = normalizeText(email).toLowerCase();
+        const normalizedMessageId = normalizeText(messageId);
+        const existing = getSupportThreadByEmail(normalizedEmail);
+        if (!existing || !normalizedMessageId) return null;
+
+        const now = new Date().toISOString();
+        let touched = false;
+        const messages = normalizeArray(existing.messages).map((message) => {
+            const normalized = normalizeSupportMessage(message);
+            if (normalized.id !== normalizedMessageId) return normalized;
+            touched = true;
+            return normalizeSupportMessage({
+                ...normalized,
+                ...updates,
+                id: normalized.id,
+                createdAt: updates.createdAt || normalized.createdAt,
+                editedAt: now
+            });
+        });
+
+        if (!touched) return null;
+        const latestMessage = messages.filter((message) => !message.deleted).slice(-1)[0] || null;
+        return saveSupportThreadRecord({
+            ...existing,
+            messages,
+            updatedAt: updates.createdAt || latestMessage?.createdAt || now,
+            lastMessagePreview: getSupportMessagePreview(latestMessage)
+        }, options);
+    }
+
+    function deleteSupportMessage(email, messageId, options = {}) {
+        return updateSupportMessage(email, messageId, { deleted: true }, options);
+    }
+
     function markSupportThreadRead(email, audience, options = {}) {
         const existing = getSupportThreadByEmail(email);
         if (!existing) return null;
@@ -1242,6 +1355,8 @@
         getSupportThreads,
         getSupportThreadByEmail,
         sendSupportMessage,
+        updateSupportMessage,
+        deleteSupportMessage,
         markSupportThreadRead,
         updateSupportThreadStatus,
         deleteSupportThread,
