@@ -18,6 +18,10 @@
         EXAM_STUDENT: 'exam_student',
         PLATFORM: 'platform'
     };
+    const ALLOWED_STUDENT_NAMES = ['عبدالرحمن رمضان محمد', 'محمد شعبان'];
+    const ALLOWED_STUDENT_REQUEST_IDS = ['KD-37649', 'MS-2026'];
+    const ALLOWED_STUDENT_EMAILS = ['student.29309302200459@qarya.edu', 'mohamed.shaban@qarya.edu'];
+    const EID_GIFT_KEY = 'eid_adha_2026_100egp';
     const MANAGEMENT_PERMISSION_MATRIX = {
         super_admin: ['admin_access', 'students', 'withdrawals', 'users', 'support', 'notifications', 'exams', 'exports', 'backups', 'archives', 'activity', 'student_files'],
         operations_admin: ['admin_access', 'students', 'users', 'support', 'notifications', 'activity', 'archives', 'student_files', 'exports'],
@@ -30,34 +34,27 @@
     };
     const SEEDED_EXAM_STUDENT_APPLICATIONS = [
         {
-            requestId: 'HC-6591',
-            nationalId: '31202022200178',
-            name: 'محمد نجم الدين',
-            governorate: 'بني سويف',
-            city: 'سمسطا',
-            village: 'قرية دشاشة',
-            leaderCode: 'Abdou200'
-        },
-        {
             requestId: 'KD-37649',
             nationalId: '29309302200459',
             name: 'عبدالرحمن رمضان محمد',
             governorate: 'بني سويف',
             city: 'سمسطا',
             village: 'قرية دشاشة',
-            leaderCode: 'Abdou200'
+            leaderCode: 'Abdou200',
+            balance: 100
         },
         {
-            requestId: 'KD-3556',
+            requestId: 'MS-2026',
             nationalId: '',
-            name: 'جهاد جمال عبدالعاطي',
+            name: 'محمد شعبان',
             governorate: 'بني سويف',
             city: 'سمسطا',
             village: 'قرية دشاشة',
             leaderCode: 'Abdou200',
-            studentEmail: 'gehad@qarya.edu',
+            studentEmail: 'mohamed.shaban@qarya.edu',
             studentPassword: '123456',
-            withdrawalPassword: 'SPEED1'
+            withdrawalPassword: 'SPEED',
+            balance: 100
         }
     ];
 
@@ -586,7 +583,7 @@
                 name: application.name,
                 role: 'طالب امتحان',
                 accountType: ACCOUNT_TYPES.EXAM_STUDENT,
-                balance: 0,
+                balance: Number(application.balance || 0),
                 walletEnabled: true,
                 privateNotificationsEnabled: true,
                 showWalletQuickAccess: true,
@@ -699,7 +696,13 @@
     function getSeedUsers() {
         // إذا كنا نستخدم Firebase، نعتمد فقط على البيانات القادمة من السيرفر والـ Hardcoded
         // نقوم بفلترة أي مستخدمين قدامى يحملون الإيميل المحذوف قبل الدمج
-        const deletedEmails = ['student.kd.3556@qarya.edu', 'mona.edu.eg@gmail.com'];
+        const deletedEmails = [
+            'student.kd.3556@qarya.edu',
+            'mona.edu.eg@gmail.com',
+            'gehad@qarya.edu',
+            'student.31202022200178@qarya.edu',
+            'student.30709302200924@qarya.edu'
+        ];
         const cachedUsers = usersMapToArray(getStoredUsersMap())
             .filter(u => !deletedEmails.includes(normalizeEmail(u.email)));
         
@@ -767,6 +770,94 @@
             return true;
         }
         return false;
+    }
+
+    function isAllowedStudentUser(user = {}) {
+        const email = normalizeEmail(user.email || user.originalEmail || '');
+        const requestId = String(user.requestId || user.applicationRequestId || '').trim().toUpperCase();
+        const name = String(user.name || '').trim();
+        return ALLOWED_STUDENT_EMAILS.some((allowedEmail) => normalizeEmail(allowedEmail) === email)
+            || ALLOWED_STUDENT_REQUEST_IDS.includes(requestId)
+            || ALLOWED_STUDENT_NAMES.includes(name);
+    }
+
+    function isManualStudentUser(user = {}) {
+        return user.createdByAdmin === true || user.manualStudent === true;
+    }
+
+    function isStudentUser(user = {}) {
+        const accountType = normalizeAccountType(user.accountType, user);
+        const role = String(user.role || '').trim();
+        return accountType === ACCOUNT_TYPES.EXAM_STUDENT
+            || role.includes('طالب')
+            || Boolean(user.requestId || user.applicationRequestId || user.nationalId);
+    }
+
+    function shouldKeepUserAfterStudentCleanup(user = {}) {
+        return isAdminSession(user.email || user)
+            || isLeaderUser(user)
+            || !isStudentUser(user)
+            || isManualStudentUser(user)
+            || isAllowedStudentUser(user);
+    }
+
+    function cleanupStudentUsers(users = getAllUsersRaw()) {
+        const currentUsers = mergeUsers(users);
+        const nextUsers = currentUsers.filter((user) => shouldKeepUserAfterStudentCleanup(user));
+        const removedEmails = currentUsers
+            .filter((user) => !shouldKeepUserAfterStudentCleanup(user))
+            .map((user) => user.email)
+            .filter(Boolean);
+
+        const currentTransactions = getAllTransactions();
+        const nextTransactions = filterTransactionsForUsers(currentTransactions, nextUsers);
+        const transactionsChanged = JSON.stringify(nextTransactions) !== JSON.stringify(currentTransactions);
+
+        if (removedEmails.length || transactionsChanged) {
+            writeUsers(nextUsers, { silent: true });
+            writeTransactions(nextTransactions, { silent: true, fromRemote: true });
+            removedEmails.forEach((email) => {
+                void deleteFromFirebaseDirectly(email);
+            });
+            void pushRemoteState({ users: nextUsers, transactions: nextTransactions });
+        }
+
+        return nextUsers;
+    }
+
+    function filterTransactionsForUsers(transactions, users) {
+        const keptEmails = new Set(mergeUsers(users).map((user) => normalizeEmail(user.email)).filter(Boolean));
+        return mergeTransactions(transactions).filter((transaction) => keptEmails.has(normalizeEmail(transaction.email)));
+    }
+
+    function applyEidGiftToStudents(users = getAllUsersRaw()) {
+        let changed = false;
+        const now = new Date().toISOString();
+        const nextUsers = users.map((user) => {
+            if (!isStudentUser(user) || (!isAllowedStudentUser(user) && !isManualStudentUser(user))) return user;
+            const gifts = user.gifts && typeof user.gifts === 'object' ? user.gifts : {};
+            if (gifts[EID_GIFT_KEY]) return user;
+            changed = true;
+            return normalizeUser({
+                ...user,
+                balance: Math.max(Number(user.balance || 0), 100),
+                gifts: {
+                    ...gifts,
+                    [EID_GIFT_KEY]: now
+                },
+                updatedAt: now,
+                lastUpdatedAt: now
+            });
+        });
+
+        if (changed) {
+            const nextTransactions = filterTransactionsForUsers(getAllTransactions(), nextUsers);
+            writeUsers(nextUsers, { silent: true });
+            writeTransactions(nextTransactions, { silent: true, fromRemote: true });
+            void pushRemoteState({ users: nextUsers, transactions: nextTransactions });
+        }
+
+        return { changed, users: nextUsers };
     }
 
     function getLeaderUsers() {
@@ -922,8 +1013,8 @@
                     ? Object.values(transactionsSnapshot.val())
                     : [];
 
-                const nextUsers = mergeUsers(getHardCodedUsers(), getAllUsersRaw(), firebaseUsers);
-                const nextTransactions = mergeTransactions(firebaseTransactions);
+                const nextUsers = cleanupStudentUsers(mergeUsers(getHardCodedUsers(), getAllUsersRaw(), firebaseUsers));
+                const nextTransactions = filterTransactionsForUsers(firebaseTransactions, nextUsers);
                 saveUsersMap(usersArrayToMap(nextUsers), { silent: true });
                 saveStoredTransactions(nextTransactions, { silent: true });
                 notifyStoreUpdated({ source: 'firebase-init' });
@@ -938,7 +1029,7 @@
             const firebaseUsers = data
                 ? Object.values(data).map((user) => ({ ...user, source: 'firebase' }))
                 : [];
-            const nextUsers = mergeUsers(getHardCodedUsers(), currentUsers, firebaseUsers);
+            const nextUsers = cleanupStudentUsers(mergeUsers(getHardCodedUsers(), currentUsers, firebaseUsers));
 
             if (JSON.stringify(nextUsers) !== JSON.stringify(currentUsers)) {
                 saveUsersMap(usersArrayToMap(nextUsers), { silent: true });
@@ -981,7 +1072,7 @@
             const data = snapshot.val();
             const firebaseTransactions = data ? Object.values(data) : [];
             const currentTransactions = mergeTransactions(getStoredTransactions());
-            const nextTransactions = mergeTransactions(firebaseTransactions);
+            const nextTransactions = filterTransactionsForUsers(firebaseTransactions, getAllUsersRaw());
 
             if (JSON.stringify(nextTransactions) !== JSON.stringify(currentTransactions)) {
                 saveStoredTransactions(nextTransactions, { silent: true });
@@ -1018,7 +1109,7 @@
                 return;
             }
 
-            const nextUsers = mergeUsers(getHardCodedUsers(), getAllUsersRaw(), remoteState.users || []);
+            const nextUsers = cleanupStudentUsers(mergeUsers(getHardCodedUsers(), getAllUsersRaw(), remoteState.users || []));
             writeUsers(nextUsers, { silent: true });
             notifyStoreUpdated({ source: 'firebase-realtime' });
         });
@@ -1037,9 +1128,10 @@
     }
 
     function buildRemoteSlices() {
+        const users = applyEidGiftToStudents(cleanupStudentUsers(getAllUsersRaw())).users;
         return {
-            users: getAllUsersRaw(),
-            transactions: getStoredTransactions()
+            users,
+            transactions: filterTransactionsForUsers(getStoredTransactions(), users)
         };
     }
 
@@ -1159,6 +1251,7 @@
                 updates[`transactions/${key}`] = value;
             }
 
+            await set(ref(db, 'transactions'), Object.keys(transactionsPayload).length ? transactionsPayload : null);
             await update(ref(db), updates);
         } catch (e) {
             console.error("Firebase Auth Sync Error:", e);
@@ -1175,6 +1268,7 @@
             }
             const safeEmail = normalizeEmail(email).replace(/\./g, '_');
             await set(ref(db, `users/${safeEmail}`), null);
+            await set(ref(db, `notifications/${safeEmail}`), null);
         } catch (e) {
             console.error("Firebase Delete User Error:", e);
         }
@@ -1182,7 +1276,13 @@
 
     async function pushRemoteState(state) {
         // حذف الإيميل القديم من Firebase قبل المزامنة لضمان نظافة القاعدة
-        const deletedEmails = ['student.kd.3556@qarya.edu', 'mona.edu.eg@gmail.com'];
+        const deletedEmails = [
+            'student.kd.3556@qarya.edu',
+            'mona.edu.eg@gmail.com',
+            'gehad@qarya.edu',
+            'student.31202022200178@qarya.edu',
+            'student.30709302200924@qarya.edu'
+        ];
         for (const email of deletedEmails) await deleteFromFirebaseDirectly(email);
 
         // نقوم بالمزامنة مع Firebase فقط لضمان السرعة والتوافق بين الأجهزة
@@ -1201,14 +1301,17 @@
         const nextUsers = mergeUsers(getSeedUsers(), remoteState.users);
         const nextTransactions = mergeTransactions(remoteState.transactions);
         writeUsers(nextUsers, { silent: true });
-        writeTransactions(nextTransactions, { silent: true, fromRemote: true });
+        const cleanedUsers = cleanupStudentUsers(nextUsers);
+        const giftedUsers = applyEidGiftToStudents(cleanedUsers).users;
+        const cleanedTransactions = filterTransactionsForUsers(nextTransactions, giftedUsers);
+        writeTransactions(cleanedTransactions, { silent: true, fromRemote: true });
         lastRemoteRefresh = Date.now();
         notifyStoreUpdated({ source: 'remote-refresh' });
 
         if (options.pushSeeds) {
             await pushRemoteState({
-                users: nextUsers,
-                transactions: nextTransactions
+                users: giftedUsers,
+                transactions: cleanedTransactions
             });
         }
 
@@ -1396,24 +1499,29 @@
 
         return await upsertUser({
             ...buildDefaultUserData(userData),
+            ...userData,
             email,
             originalEmail: email,
             storageKey: email,
             accountType,
             role: userData.role || (isExamStudent ? 'طالب امتحان' : 'طالب المنصة'),
-            balance: isExamStudent ? 0 : Number(userData.balance || 0),
+            balance: Number(userData.balance ?? (isExamStudent ? 100 : 0)),
             walletEnabled: true,
             privateNotificationsEnabled: true,
             showWalletQuickAccess: true,
-            withdrawalPassword: isExamStudent ? (userData.password || '123456') : (userData.withdrawalPassword || 'SPEED')
+            createdByAdmin: userData.createdByAdmin === true,
+            manualStudent: userData.manualStudent === true || userData.createdByAdmin === true,
+            withdrawalPassword: isExamStudent ? (userData.withdrawalPassword || userData.password || '123456') : (userData.withdrawalPassword || 'SPEED')
         });
     }
 
     function deleteUserAccount(email) {
         const nextUsers = getAllUsersRaw().filter(u => normalizeEmail(u.email) !== normalizeEmail(email));
+        const nextTransactions = getAllTransactions().filter((transaction) => normalizeEmail(transaction.email) !== normalizeEmail(email));
         writeUsers(nextUsers);
+        writeTransactions(nextTransactions, { silent: true, fromRemote: true });
         deleteFromFirebaseDirectly(email); // حذف مباشر من Firebase
-        pushRemoteState({ users: nextUsers, transactions: getAllTransactions() });
+        pushRemoteState({ users: nextUsers, transactions: nextTransactions });
         return { ok: true, message: 'تم حذف الحساب بنجاح.' };
     }
 
@@ -1928,6 +2036,8 @@ async function login(email, password) {
     }
 
     ensureUsersCache();
+    cleanupStudentUsers();
+    applyEidGiftToStudents();
     ensurePolling();
 
     window.QaryaAuth = {

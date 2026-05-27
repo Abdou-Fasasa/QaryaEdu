@@ -7,6 +7,10 @@
     const SETTINGS_KEY = 'qaryaeduPlatformSettings';
     const STORE_EVENT = 'qarya:store-updated';
     const REMOTE_POLL_MS = 3000;
+    const ALLOWED_STUDENT_REQUEST_IDS = ['KD-37649', 'MS-2026'];
+    const ALLOWED_STUDENT_EMAILS = ['student.29309302200459@qarya.edu', 'mohamed.shaban@qarya.edu'];
+    const REMOVED_STUDENT_EMAILS = ['monanegm@qarya.edu', 'mona.edu.eg@gmail.com', 'gehad@qarya.edu', 'student.kd.3556@qarya.edu', 'student.31202022200178@qarya.edu', 'student.30709302200924@qarya.edu'];
+    const ALLOWED_STUDENT_NAMES = ['عبدالرحمن رمضان محمد', 'محمد شعبان'];
     const DEFAULT_STATUS_MESSAGES = {
         pending: 'طلبك قيد المراجعة حاليًا وسيتم تحديث الحالة بعد انتهاء المراجعة.',
         accepted: 'تمت الموافقة على طلبك بنجاح ويمكنك متابعة المراحل التالية من المنصة.',
@@ -63,6 +67,60 @@
 
     function normalizeText(value) {
         return String(value || '').trim();
+    }
+
+    function normalizeEmail(value) {
+        return normalizeText(value).toLowerCase();
+    }
+
+    function isManualStudentRecord(record = {}) {
+        return record.createdByAdmin === true || record.manualStudent === true;
+    }
+
+    function isAllowedStudentName(value) {
+        return ALLOWED_STUDENT_NAMES.includes(normalizeText(value));
+    }
+
+    function isAllowedStudentEmail(value) {
+        const email = normalizeEmail(value);
+        return ALLOWED_STUDENT_EMAILS.some((allowedEmail) => normalizeEmail(allowedEmail) === email);
+    }
+
+    function isRemovedStudentEmail(value) {
+        const email = normalizeEmail(value);
+        return REMOVED_STUDENT_EMAILS.some((removedEmail) => normalizeEmail(removedEmail) === email);
+    }
+
+    function isAllowedStudentRequestId(value) {
+        return ALLOWED_STUDENT_REQUEST_IDS.includes(normalizeRequestId(value));
+    }
+
+    function isAllowedApplicationRecord(application = {}) {
+        if (isRemovedStudentEmail(application.studentEmail || application.email)) return false;
+        return isManualStudentRecord(application)
+            || isAllowedStudentRequestId(application.requestId)
+            || isAllowedStudentEmail(application.studentEmail || application.email)
+            || isAllowedStudentName(application.name);
+    }
+
+    function isAllowedExamRecord(record = {}) {
+        return isAllowedStudentRequestId(record.requestId);
+    }
+
+    function isLikelyStudentSupportThread(thread = {}) {
+        const role = normalizeText(thread.role);
+        const email = normalizeEmail(thread.email);
+        return role.includes('طالب')
+            || role.includes('طالبة')
+            || email.startsWith('student.');
+    }
+
+    function isAllowedSupportThread(thread = {}) {
+        if (isRemovedStudentEmail(thread.email)) return false;
+        if (!isLikelyStudentSupportThread(thread)) return true;
+        return isAllowedStudentEmail(thread.email)
+            || isAllowedStudentName(thread.userName)
+            || isManualStudentRecord(thread);
     }
 
     function normalizeNotificationType(type) {
@@ -148,29 +206,41 @@
     }
 
     function getStoredApplications() {
-        return normalizeArray(parseJson(localStorage.getItem(APPLICATIONS_KEY), []));
+        return normalizeArray(parseJson(localStorage.getItem(APPLICATIONS_KEY), []))
+            .map((application) => normalizeApplication(application))
+            .filter((application) => application.requestId && isAllowedApplicationRecord(application));
     }
 
     function saveStoredApplications(applications, options = {}) {
-        localStorage.setItem(APPLICATIONS_KEY, JSON.stringify(normalizeArray(applications)));
+        localStorage.setItem(APPLICATIONS_KEY, JSON.stringify(
+            normalizeArray(applications)
+                .map((application) => normalizeApplication(application))
+                .filter((application) => application.requestId && isAllowedApplicationRecord(application))
+        ));
         if (!options.silent) notifyChanged();
     }
 
     function getStoredExamHistory() {
-        return normalizeArray(parseJson(localStorage.getItem(EXAM_HISTORY_KEY), []));
+        return normalizeArray(parseJson(localStorage.getItem(EXAM_HISTORY_KEY), []))
+            .filter((attempt) => isAllowedExamRecord(attempt));
     }
 
     function saveExamHistory(history, options = {}) {
-        localStorage.setItem(EXAM_HISTORY_KEY, JSON.stringify(normalizeArray(history)));
+        localStorage.setItem(EXAM_HISTORY_KEY, JSON.stringify(
+            normalizeArray(history).filter((attempt) => isAllowedExamRecord(attempt))
+        ));
         if (!options.silent) notifyChanged();
     }
 
     function getStoredExamClearsRaw() {
-        return normalizeArray(parseJson(localStorage.getItem(EXAM_CLEARS_KEY), []));
+        return normalizeArray(parseJson(localStorage.getItem(EXAM_CLEARS_KEY), []))
+            .filter((clearRecord) => isAllowedExamRecord(clearRecord));
     }
 
     function saveExamClears(clears, options = {}) {
-        localStorage.setItem(EXAM_CLEARS_KEY, JSON.stringify(normalizeArray(clears)));
+        localStorage.setItem(EXAM_CLEARS_KEY, JSON.stringify(
+            normalizeArray(clears).filter((clearRecord) => isAllowedExamRecord(clearRecord))
+        ));
         if (!options.silent) notifyChanged();
     }
 
@@ -189,11 +259,18 @@
     }
 
     function getStoredSupportThreadsRaw() {
-        return normalizeArray(parseJson(localStorage.getItem(SUPPORT_THREADS_KEY), []));
+        return normalizeArray(parseJson(localStorage.getItem(SUPPORT_THREADS_KEY), []))
+            .map((thread) => normalizeSupportThread(thread))
+            .filter((thread) => isAllowedSupportThread(thread));
     }
 
     function saveSupportThreads(threads, options = {}) {
-        localStorage.setItem(SUPPORT_THREADS_KEY, JSON.stringify(normalizeArray(threads).slice(0, 80)));
+        localStorage.setItem(SUPPORT_THREADS_KEY, JSON.stringify(
+            normalizeArray(threads)
+                .map((thread) => normalizeSupportThread(thread))
+                .filter((thread) => isAllowedSupportThread(thread))
+                .slice(0, 80)
+        ));
         if (!options.silent) notifyChanged();
     }
 
@@ -302,57 +379,7 @@
     }
 
     function getDefaultSupportThreads() {
-        const email = 'monanegm@qarya.edu';
-        const userName = 'منى نجم الدين';
-        const role = 'طالبة امتحان';
-        return [normalizeSupportThread({
-            id: email,
-            email,
-            userName,
-            role,
-            status: 'open',
-            unreadByAdmin: 5,
-            unreadByUser: 0,
-            createdAt: '2026-04-18T10:35:00+03:00',
-            updatedAt: '2026-05-08T21:20:00+03:00',
-            messages: [
-                {
-                    id: '1029384',
-                    sender: 'user',
-                    senderName: userName,
-                    text: 'ضد: القائد عبدالرحمن | التفاصيل: القائد عبدالرحمن قام بإزالتنا من القرية داخل المتابعة بدون توضيح، وهذا تسبب في تعطيل متابعة بياناتنا داخل المنصة.',
-                    createdAt: '2026-04-18T10:35:00+03:00'
-                },
-                {
-                    id: '2154879',
-                    sender: 'user',
-                    senderName: userName,
-                    text: 'ضد: القائد عبدالرحمن | التفاصيل: لم يتم إعطاؤنا بيانات السحب المطلوبة، وكلما طلبنا بيانات المحفظة أو طريقة الاستلام لا يتم الرد علينا بشكل واضح.',
-                    createdAt: '2026-04-23T18:10:00+03:00'
-                },
-                {
-                    id: '3698521',
-                    sender: 'user',
-                    senderName: userName,
-                    text: 'ضد: القائد عبدالرحمن | التفاصيل: توجد خلافات شخصية داخل القرية دخلت في موضوع المتابعة، والقائد عبدالرحمن يتعامل معنا بسبب خلافات لا علاقة لها بالمنصة.',
-                    createdAt: '2026-04-29T12:45:00+03:00'
-                },
-                {
-                    id: '4587123',
-                    sender: 'user',
-                    senderName: userName,
-                    text: 'ضد: القائد عبدالرحمن | التفاصيل: القائد عبدالرحمن لا يتابع بياناتنا ولا مواعيد امتحاناتنا، ولا يوجد تحديث واضح بخصوص دخول الامتحان أو نتيجة المتابعة.',
-                    createdAt: '2026-05-03T19:30:00+03:00'
-                },
-                {
-                    id: '5963214',
-                    sender: 'user',
-                    senderName: userName,
-                    text: 'ضد: القائد عبدالرحمن | التفاصيل: يوم 8 أبلغكم أن القائد عبدالرحمن بسبب خلافات مع أخويا مش راضي يدينا بيانات السحب ولا يتابع امتحاناتنا، وده مأثر علينا داخل المنصة.',
-                    createdAt: '2026-05-08T21:20:00+03:00'
-                }
-            ]
-        })];
+        return [];
     }
 
     function getSupportThreads() {
@@ -467,11 +494,15 @@
 
     function normalizeRuntimeState(state) {
         return {
-            applications: normalizeArray(state?.applications),
-            examHistory: normalizeArray(state?.examHistory),
-            examClears: normalizeArray(state?.examClears),
+            applications: normalizeArray(state?.applications)
+                .map((application) => normalizeApplication(application))
+                .filter((application) => application.requestId && isAllowedApplicationRecord(application)),
+            examHistory: normalizeArray(state?.examHistory).filter((attempt) => isAllowedExamRecord(attempt)),
+            examClears: normalizeArray(state?.examClears).filter((clearRecord) => isAllowedExamRecord(clearRecord)),
             notifications: normalizeArray(state?.notifications),
-            supportThreads: normalizeArray(state?.supportThreads).map((thread) => normalizeSupportThread(thread)),
+            supportThreads: normalizeArray(state?.supportThreads)
+                .map((thread) => normalizeSupportThread(thread))
+                .filter((thread) => isAllowedSupportThread(thread)),
             settings: normalizeSettings(state?.settings || {})
         };
     }
@@ -524,7 +555,10 @@
             if (window.QaryaFirebaseAuthReady) {
                 await window.QaryaFirebaseAuthReady;
             }
+            state = normalizeRuntimeState(state);
             await set(ref(db, 'state/platform'), state);
+            await set(ref(db, 'applications'), null);
+            await set(ref(db, 'supportThreads'), null);
             
             const updates = {};
             if (Array.isArray(state.applications)) {
@@ -715,7 +749,7 @@
 
         getFixedApplications().forEach((application) => {
             const normalized = normalizeApplication(application);
-            if (!normalized.requestId) return;
+            if (!normalized.requestId || !isAllowedApplicationRecord(normalized)) return;
             map.set(normalized.requestId, {
                 ...normalized,
                 source: 'fixed'
@@ -724,7 +758,7 @@
 
         getStoredApplications().forEach((application) => {
             const normalized = normalizeApplication(application);
-            if (!normalized.requestId) return;
+            if (!normalized.requestId || !isAllowedApplicationRecord(normalized)) return;
             if (normalized._deleted) {
                 map.delete(normalized.requestId);
                 return;
@@ -1005,6 +1039,19 @@
 
     function getDefaultNotifications() {
         return [
+            {
+                id: 'eid-adha-2026-gift',
+                title: 'تهنئة عيد الأضحى',
+                body: 'كل عام وأنتم بخير بمناسبة عيد الأضحى. تمت إضافة 100 EGP لرصيد كل طالب متاح داخل المنصة.',
+                type: 'finance',
+                createdAt: '2026-05-27T09:00:00+03:00',
+                actionUrl: './wallet.html',
+                actionLabel: 'فتح المحفظة',
+                displayMode: 'banner',
+                sticky: false,
+                dismissible: true,
+                systemKey: 'eid-adha-2026'
+            },
             {
                 id: 'default-exam-window',
                 title: 'مواعيد الامتحان الرسمية',

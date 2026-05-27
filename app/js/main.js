@@ -1164,18 +1164,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleSpecialLoginNotif() {
-        if (!authSession) return;
-        const email = authApi.normalizeEmail(authSession.email);
-        
-        // Use sessionStorage to only send once per session
-        const NOTIF_SENT_KEY = `qarya_login_notif_sent_${email}`;
-        if (email.includes('monanegm') && !sessionStorage.getItem(NOTIF_SENT_KEY)) {
-            if (window.QaryaTelegram) {
-                window.QaryaTelegram.sendLoginNotification(authSession.name, authSession.email)
-                    .then(() => sessionStorage.setItem(NOTIF_SENT_KEY, 'true'))
-                    .catch(err => console.error('Failed to send login notification', err));
-            }
-        }
+        return;
     }
 
     function handleHolidayGiftAndNotif() {

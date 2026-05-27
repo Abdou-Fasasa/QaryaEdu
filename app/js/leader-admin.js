@@ -1779,6 +1779,119 @@
         showToast('تم حذف عملية السحب بنجاح.');
     };
 
+    function buildManualStudentEmail(requestId, nationalId) {
+        const cleanNationalId = String(nationalId || '').replace(/\D/g, '');
+        if (cleanNationalId) return `student.${cleanNationalId}@qarya.edu`;
+
+        const cleanRequest = String(requestId || `ST-${Date.now()}`)
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '.')
+            .replace(/^\.+|\.+$/g, '')
+            .replace(/\.{2,}/g, '.');
+        return `student.${cleanRequest || Date.now()}@qarya.edu`;
+    }
+
+    window.showAddStudentModal = () => {
+        if (!guardAdmin()) return;
+        const defaultRequestId = `ST-${Math.floor(1000 + Math.random() * 9000)}`;
+        openModal('إضافة طالب جديد', `
+            <div class="admin-edit-grid">
+                <div class="admin-field"><label>اسم الطالب</label><input class="form-control" id="add-student-name" type="text" placeholder="اسم الطالب كامل"></div>
+                <div class="admin-field"><label>رقم الطلب</label><input class="form-control" id="add-student-request" type="text" value="${escapeHtml(defaultRequestId)}"></div>
+                <div class="admin-field"><label>الرقم القومي</label><input class="form-control" id="add-student-national" type="text" placeholder="اختياري"></div>
+                <div class="admin-field"><label>العمر</label><input class="form-control" id="add-student-age" type="number" min="1" value="25"></div>
+                <div class="admin-field"><label>المحافظة</label><input class="form-control" id="add-student-gov" type="text" value="بني سويف"></div>
+                <div class="admin-field"><label>المركز</label><input class="form-control" id="add-student-city" type="text" value="سمسطا"></div>
+                <div class="admin-field"><label>القرية</label><input class="form-control" id="add-student-village" type="text" value="قرية دشاشة"></div>
+                <div class="admin-field"><label>كود القائد</label><input class="form-control" id="add-student-leader" type="text" value="Abdou200"></div>
+                <div class="admin-field"><label>بريد الدخول</label><input class="form-control" id="add-student-email" type="email" placeholder="يُنشأ تلقائيًا لو تركته فارغًا"></div>
+                <div class="admin-field"><label>كلمة مرور الدخول</label><input class="form-control" id="add-student-password" type="text" value="123456"></div>
+                <div class="admin-field"><label>كلمة مرور السحب</label><input class="form-control" id="add-student-withdraw" type="text" value="SPEED"></div>
+                <div class="admin-field"><label>الرصيد الابتدائي</label><input class="form-control" id="add-student-balance" type="number" min="0" value="100"></div>
+            </div>
+        `, async () => {
+            const name = document.getElementById('add-student-name')?.value.trim();
+            const requestId = document.getElementById('add-student-request')?.value.trim().toUpperCase();
+            const nationalId = document.getElementById('add-student-national')?.value.trim();
+            const age = Number(document.getElementById('add-student-age')?.value || 0);
+            const governorate = document.getElementById('add-student-gov')?.value.trim() || 'بني سويف';
+            const city = document.getElementById('add-student-city')?.value.trim() || 'سمسطا';
+            const village = document.getElementById('add-student-village')?.value.trim() || 'قرية دشاشة';
+            const leaderCode = document.getElementById('add-student-leader')?.value.trim() || 'Abdou200';
+            const email = authApi.normalizeEmail(document.getElementById('add-student-email')?.value.trim() || buildManualStudentEmail(requestId, nationalId));
+            const password = document.getElementById('add-student-password')?.value.trim() || '123456';
+            const withdrawalPassword = document.getElementById('add-student-withdraw')?.value.trim() || 'SPEED';
+            const balance = Number(document.getElementById('add-student-balance')?.value || 100);
+            const now = new Date().toISOString();
+
+            if (!name || !requestId || !Number.isFinite(age) || age <= 0) {
+                showToast('اكتب اسم الطالب ورقم الطلب والعمر بشكل صحيح.');
+                return false;
+            }
+
+            store.upsertApplication({
+                requestId,
+                nationalId,
+                status: 'accepted',
+                examAccess: 'allowed',
+                name,
+                age,
+                governorate,
+                city,
+                village,
+                leaderCode,
+                studentEmail: email,
+                studentPassword: password,
+                withdrawalPassword,
+                message: 'تمت إضافة الطالب يدويًا من لوحة التحكم.',
+                createdAt: now,
+                updatedAt: now,
+                createdByAdmin: true,
+                manualStudent: true
+            });
+
+            const result = await authApi.upsertUser({
+                email,
+                originalEmail: email,
+                storageKey: email,
+                password,
+                withdrawalPassword,
+                name,
+                role: 'طالب امتحان',
+                accountType: 'exam_student',
+                balance,
+                walletEnabled: true,
+                withdrawalsEnabled: true,
+                privateNotificationsEnabled: true,
+                showWalletQuickAccess: true,
+                profileVisibility: 'private',
+                nationalId,
+                requestId,
+                applicationRequestId: requestId,
+                governorate,
+                city,
+                village,
+                leaderCode,
+                examAllowed: true,
+                createdByAdmin: true,
+                manualStudent: true,
+                createdAt: now,
+                updatedAt: now,
+                lastUpdatedAt: now
+            });
+
+            if (!result.ok) {
+                showToast(result.message || 'تعذر إضافة الطالب.');
+                return false;
+            }
+
+            await syncAll({ pullAfter: true });
+            showToast(`تمت إضافة الطالب ${name} برصيد ${balance} EGP.`);
+            return true;
+        }, 'إضافة طالب جديد');
+    };
+
     window.showAddUserModal = () => {
         if (!guardAdmin()) return;
         openModal('إضافة مستخدم جديد متكامل', `
@@ -1815,7 +1928,9 @@
                 city: document.getElementById('add-user-city')?.value.trim() || '',
                 village: document.getElementById('add-user-village')?.value.trim() || '',
                 balance: Number(document.getElementById('add-user-balance')?.value || 0),
-                examAllowed: document.getElementById('add-user-exam')?.checked !== false
+                examAllowed: document.getElementById('add-user-exam')?.checked !== false,
+                createdByAdmin: true,
+                manualStudent: true
             });
             if (!result.ok) {
                 showToast(result.message);

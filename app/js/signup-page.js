@@ -230,18 +230,8 @@
 
             try {
                 const firebase = await getFirebaseToolkit();
-                
-                const credential = await firebase.signInWithPopup(
-                    firebase.auth,
-                    firebase.googleProvider || new firebase.GoogleAuthProvider()
-                ).catch(err => {
-                    if (err?.code === 'auth/popup-blocked' || err?.message?.includes('Cross-Origin-Opener-Policy')) {
-                        return firebase.signInWithRedirect(firebase.auth, firebase.googleProvider || new firebase.GoogleAuthProvider());
-                    }
-                    throw err;
-                });
-
-                if (!credential) return;
+                const provider = firebase.googleProvider || new firebase.GoogleAuthProvider();
+                const credential = await firebase.signInWithPopup(firebase.auth, provider);
 
                 const googleUser = credential.user;
 

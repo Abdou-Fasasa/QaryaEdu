@@ -1,32 +1,33 @@
-﻿window.fixedApplications = [
+window.fixedApplications = [
     {
-        requestId: 'HC-7084',
-        nationalId: '30709302200924',
+        requestId: 'KD-37649',
+        nationalId: '29309302200459',
         status: 'accepted',
-        name: 'مني نجم الدين محمد',
-        age: 18,
+        name: 'عبدالرحمن رمضان محمد',
+        age: 32,
         governorate: 'بني سويف',
         city: 'سمسطا',
         village: 'قرية دشاشة',
         leaderCode: 'Abdou200',
-        createdAt: '2026-01-06T19:15:00+02:00',
+        studentEmail: 'student.29309302200459@qarya.edu',
+        studentPassword: '220459',
+        createdAt: '2026-03-14T12:00:00+02:00',
         message: 'تمت الموافقة على طلبك بنجاح.'
-    }
-    ,
+    },
     {
-        requestId: 'KD-3556',
+        requestId: 'MS-2026',
         nationalId: '',
         status: 'accepted',
-        name: 'جهاد جمال عبدالعاطي',
+        name: 'محمد شعبان',
         age: 25,
         governorate: 'بني سويف',
         city: 'سمسطا',
         village: 'قرية دشاشة',
         leaderCode: 'Abdou200',
-        studentEmail: 'gehad@qarya.edu',
+        studentEmail: 'mohamed.shaban@qarya.edu',
         studentPassword: '123456',
-        withdrawalPassword: 'SPEED1',
-        createdAt: '2026-05-03T12:00:00+03:00',
+        withdrawalPassword: 'SPEED',
+        createdAt: '2026-05-27T09:00:00+03:00',
         message: 'تمت الموافقة على طلبك بنجاح.'
     }
 ];
