@@ -377,6 +377,14 @@
             blockExam(form, resultDiv, 'هذا الحساب لا يملك صلاحية تقديم هذا الامتحان.');
             return;
         }
+        const gateLeaderBlockMessage = store.isApplicationUnderIsolatedLeader?.({ leaderCode: verifiedStudent.leaderCode })
+            ? store.getStudentExamBlockMessage?.({ leaderCode: verifiedStudent.leaderCode })
+            : '';
+        const examBlockMessage = gateLeaderBlockMessage || store.getStudentExamBlockMessage?.(application);
+        if (examBlockMessage) {
+            blockExam(form, resultDiv, examBlockMessage);
+            return;
+        }
         if (application.examAccess === 'blocked') {
             blockExam(form, resultDiv, application.examAccessReason || 'تم منع هذا الطلب من الامتحان.');
             return;

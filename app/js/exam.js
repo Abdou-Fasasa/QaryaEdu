@@ -202,6 +202,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             showMessage(`اختر كود قائد صحيح من: ${LEADER_CODES.join(' - ')}.`);
             return;
         }
+        if (store?.isApplicationUnderIsolatedLeader?.({ leaderCode })) {
+            showMessage(store.getStudentExamBlockMessage?.({ leaderCode }) || 'هذا الطلب غير مسموح له بدخول الامتحان حاليًا.');
+            return;
+        }
         if (!application) {
             showMessage('رقم الطلب غير موجود داخل بيانات المنصة الحالية.');
             return;
@@ -212,6 +216,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         if (Number(application.age || 0) !== age) {
             showMessage('العمر المدخل لا يطابق العمر المسجل لهذا الطلب.');
+            return;
+        }
+        const examBlockMessage = store?.getStudentExamBlockMessage?.(application);
+        if (examBlockMessage) {
+            showMessage(examBlockMessage);
             return;
         }
         if (application.examAccess === 'blocked') {

@@ -11,6 +11,8 @@
     const ALLOWED_STUDENT_EMAILS = ['student.29309302200459@qarya.edu', 'mohamed.shaban@qarya.edu'];
     const REMOVED_STUDENT_EMAILS = ['monanegm@qarya.edu', 'mona.edu.eg@gmail.com', 'gehad@qarya.edu', 'student.kd.3556@qarya.edu', 'student.31202022200178@qarya.edu', 'student.30709302200924@qarya.edu'];
     const ALLOWED_STUDENT_NAMES = ['عبدالرحمن رمضان محمد', 'محمد شعبان'];
+    const ISOLATED_LEADER_CODES = ['Abdou200'];
+    const ISOLATED_LEADER_EXAM_MESSAGE = 'هذا القائد معزول الان عن العمل بسبب لديه امتحانات جامعية';
     const DEFAULT_STATUS_MESSAGES = {
         pending: 'طلبك قيد المراجعة حاليًا وسيتم تحديث الحالة بعد انتهاء المراجعة.',
         accepted: 'تمت الموافقة على طلبك بنجاح ويمكنك متابعة المراحل التالية من المنصة.',
@@ -101,6 +103,11 @@
             || isAllowedStudentRequestId(application.requestId)
             || isAllowedStudentEmail(application.studentEmail || application.email)
             || isAllowedStudentName(application.name);
+    }
+
+    function isApplicationUnderIsolatedLeader(application = {}) {
+        const leaderCode = normalizeText(application.leaderCode);
+        return ISOLATED_LEADER_CODES.includes(leaderCode);
     }
 
     function isAllowedExamRecord(record = {}) {
@@ -842,9 +849,17 @@
 
     function canStudentTakeExam(application) {
         if (!application || application._deleted) return false;
+        if (isApplicationUnderIsolatedLeader(application)) return false;
         if (application.examAccess === 'blocked') return false;
         if (application.examAccess === 'allowed') return true;
         return normalizeStatus(application.status) === 'accepted';
+    }
+
+    function getStudentExamBlockMessage(application) {
+        if (!application || application._deleted) return 'هذا الطلب غير مسموح له بدخول الامتحان حاليًا.';
+        if (isApplicationUnderIsolatedLeader(application)) return ISOLATED_LEADER_EXAM_MESSAGE;
+        if (application.examAccess === 'blocked') return application.examAccessReason || 'هذا الطلب ممنوع حاليًا من دخول الامتحان.';
+        return canStudentTakeExam(application) ? '' : 'هذا الطلب غير مسموح له بدخول الامتحان حاليًا.';
     }
 
     function addNotification(note) {
@@ -1342,11 +1357,12 @@
     function buildApplicationTimeline(application) {
         const latestAttempt = getLatestExamAttempt(application?.requestId);
         const status = normalizeStatus(application?.status);
+        const examBlockMessage = getStudentExamBlockMessage(application);
         return [
             { key: 'submitted', title: 'تم إرسال الطلب', state: 'done', date: application?.createdAt || '', text: 'تم تسجيل البيانات وحفظ الطلب داخل المنصة.' },
             { key: 'review', title: 'قيد المراجعة', state: status === 'pending' ? 'current' : 'done', date: application?.updatedAt || application?.createdAt || '', text: 'تتم الآن مراجعة البيانات والتحقق من مطابقة الطلب.' },
             { key: 'decision', title: status === 'accepted' ? 'تمت الموافقة على الطلب' : status === 'rejected' ? 'تم رفض الطلب' : 'بانتظار القرار النهائي', state: status === 'pending' ? 'pending' : status === 'accepted' ? 'done is-success' : 'done is-danger', date: status === 'pending' ? '' : (application?.updatedAt || application?.createdAt || ''), text: status === 'accepted' ? 'الطلب أصبح معتمدًا ويمكن متابعة المراحل التالية.' : status === 'rejected' ? 'تم حفظ قرار الرفض الحالي داخل سجل الطلب.' : 'سيظهر القرار النهائي هنا بعد انتهاء المراجعة.' },
-            { key: 'exam', title: latestAttempt ? 'تم تسجيل أداء الامتحان' : (canStudentTakeExam(application) ? 'الطلب جاهز للامتحان' : 'بوابة الامتحان غير متاحة بعد'), state: latestAttempt ? 'done' : (canStudentTakeExam(application) ? 'current' : 'pending'), date: latestAttempt?.date || '', text: latestAttempt ? `آخر نتيجة مسجلة ${latestAttempt.percentage || 0}% بتاريخ ${latestAttempt.date ? new Date(latestAttempt.date).toLocaleString('ar-EG') : ''}.` : canStudentTakeExam(application) ? 'يمكن للطالب دخول بوابة الامتحان وفق الضبط الحالي.' : 'لم يتم السماح لهذا الطلب بدخول الامتحان بعد.' }
+            { key: 'exam', title: latestAttempt ? 'تم تسجيل أداء الامتحان' : (canStudentTakeExam(application) ? 'الطلب جاهز للامتحان' : 'بوابة الامتحان غير متاحة بعد'), state: latestAttempt ? 'done' : (canStudentTakeExam(application) ? 'current' : 'pending'), date: latestAttempt?.date || '', text: latestAttempt ? `آخر نتيجة مسجلة ${latestAttempt.percentage || 0}% بتاريخ ${latestAttempt.date ? new Date(latestAttempt.date).toLocaleString('ar-EG') : ''}.` : canStudentTakeExam(application) ? 'يمكن للطالب دخول بوابة الامتحان وفق الضبط الحالي.' : (examBlockMessage || 'لم يتم السماح لهذا الطلب بدخول الامتحان بعد.') }
         ];
     }
 
@@ -1395,6 +1411,8 @@
         getStatusLabel,
         getExamAccessLabel,
         canStudentTakeExam,
+        getStudentExamBlockMessage,
+        isApplicationUnderIsolatedLeader,
         getNotifications,
         addNotification,
         updateNotification,
