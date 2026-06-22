@@ -202,10 +202,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             showMessage(`اختر كود قائد صحيح من: ${LEADER_CODES.join(' - ')}.`);
             return;
         }
-        if (store?.isApplicationUnderIsolatedLeader?.({ leaderCode })) {
-            showMessage(store.getStudentExamBlockMessage?.({ leaderCode }) || 'هذا الطلب غير مسموح له بدخول الامتحان حاليًا.');
-            return;
-        }
         if (!application) {
             showMessage('رقم الطلب غير موجود داخل بيانات المنصة الحالية.');
             return;

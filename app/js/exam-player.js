@@ -4,6 +4,8 @@
     const CAMERA_POSITION_KEY = 'qaryaeduProctorBubblePosition';
     const WAIT_TIME_SECONDS = 15 * 60;
     const GATE_TTL_MS = 30 * 60 * 1000;
+    const PASS_PERCENTAGE = 50;
+    const PASS_REWARD_AMOUNT = 100;
 
     let cameraStream = null;
     let submitTimerId = null;
@@ -174,8 +176,57 @@
             sum + (answer.isCorrect ? Number(questions[index]?.points || 1) : 0)
         ), 0);
         const percentage = totalPoints > 0 ? Math.round((studentScore / totalPoints) * 100) : 0;
-        const passed = percentage >= 60;
+        const passed = percentage >= PASS_PERCENTAGE;
         return { totalPoints, studentScore, percentage, passed };
+    }
+
+    function resolveStudentRewardUser(authApi, application, verifiedStudent) {
+        const directEmail = authApi?.normalizeEmail?.(application.studentEmail || verifiedStudent.studentEmail || '');
+        if (directEmail) return authApi.getUserByEmail?.(directEmail) || { email: directEmail };
+
+        const byNationalId = application.nationalId || verifiedStudent.nationalId
+            ? authApi?.getUserByNationalId?.(application.nationalId || verifiedStudent.nationalId)
+            : null;
+        if (byNationalId?.email) return byNationalId;
+
+        const requestId = String(application.requestId || verifiedStudent.requestId || '').trim().toUpperCase();
+        return authApi?.getAllUsers?.().find((user) => (
+            String(user.requestId || user.applicationRequestId || '').trim().toUpperCase() === requestId
+        )) || null;
+    }
+
+    async function grantPassReward(authApi, application, verifiedStudent, examAttempt) {
+        if (!authApi?.updateUserPersistentData) {
+            return { ok: false, message: 'واجهة المحفظة غير جاهزة.' };
+        }
+
+        const user = resolveStudentRewardUser(authApi, application, verifiedStudent);
+        if (!user?.email) {
+            return { ok: false, message: 'لم يتم العثور على حساب الطالب لإضافة المكافأة.' };
+        }
+
+        const current = authApi.getUserByEmail?.(user.email) || user;
+        const nextBalance = Number(current.balance || 0) + PASS_REWARD_AMOUNT;
+        const result = await authApi.updateUserPersistentData(user.email, {
+            balance: nextBalance,
+            lastExamRewardAt: examAttempt.date,
+            lastExamRewardRequestId: examAttempt.requestId,
+            lastExamRewardDateKey: examAttempt.examDateKey
+        });
+
+        if (result?.ok === false) return result;
+
+        authApi.pushPrivateNotification?.(user.email, {
+            id: `exam-pass-reward-${examAttempt.requestId}-${examAttempt.examDateKey}`,
+            title: 'مكافأة نجاح الامتحان',
+            body: `تمت إضافة ${PASS_REWARD_AMOUNT} EGP إلى محفظتك بعد اجتياز الامتحان بنسبة ${examAttempt.percentage}%.`,
+            type: 'finance',
+            displayMode: 'banner',
+            actionUrl: './wallet.html',
+            actionLabel: 'فتح المحفظة'
+        });
+        await authApi.syncNow?.();
+        return { ok: true, amount: PASS_REWARD_AMOUNT, email: user.email, nextBalance };
     }
 
     function stopSubmitTimer() {
@@ -377,10 +428,7 @@
             blockExam(form, resultDiv, 'هذا الحساب لا يملك صلاحية تقديم هذا الامتحان.');
             return;
         }
-        const gateLeaderBlockMessage = store.isApplicationUnderIsolatedLeader?.({ leaderCode: verifiedStudent.leaderCode })
-            ? store.getStudentExamBlockMessage?.({ leaderCode: verifiedStudent.leaderCode })
-            : '';
-        const examBlockMessage = gateLeaderBlockMessage || store.getStudentExamBlockMessage?.(application);
+        const examBlockMessage = store.getStudentExamBlockMessage?.(application);
         if (examBlockMessage) {
             blockExam(form, resultDiv, examBlockMessage);
             return;
@@ -469,6 +517,7 @@
             const answers = collectAnswers(form, selectedQuestions);
             const { totalPoints, studentScore, percentage, passed } = evaluateAnswers(answers, selectedQuestions);
             const attemptDate = new Date();
+            let rewardResult = { ok: false };
             const examAttempt = {
                 requestId: verifiedStudent.requestId,
                 name: application.name || verifiedStudent.name,
@@ -482,8 +531,19 @@
                 passed,
                 date: attemptDate.toISOString(),
                 examDateKey: getEgyptDateKey(attemptDate),
-                approved: true
+                approved: true,
+                passThreshold: PASS_PERCENTAGE,
+                rewardAmount: 0,
+                rewardGrantedAt: ''
             };
+
+            if (passed) {
+                rewardResult = await grantPassReward(authApi, application, verifiedStudent, examAttempt);
+                if (rewardResult.ok) {
+                    examAttempt.rewardAmount = PASS_REWARD_AMOUNT;
+                    examAttempt.rewardGrantedAt = new Date().toISOString();
+                }
+            }
 
             const history = store.getExamHistory ? store.getExamHistory() : [];
             store.saveExamHistory([examAttempt, ...history]);
@@ -514,10 +574,15 @@
 
             resultDiv.style.display = 'block';
             resultDiv.className = `result ${passed ? 'pass' : 'fail'}`;
+            const rewardText = passed
+                ? (rewardResult.ok
+                    ? `تم حفظ النتيجة وإضافة ${PASS_REWARD_AMOUNT} EGP إلى المحفظة.`
+                    : 'تم حفظ النتيجة، لكن تعذر إضافة مكافأة المحفظة تلقائيًا.')
+                : 'تم حفظ المحاولة داخل المنصة.';
             resultDiv.innerHTML = `
                 <strong>${passed ? 'تم اجتياز الامتحان' : 'تم إرسال الامتحان'}</strong>
                 <p>النتيجة: ${studentScore} من ${totalPoints} (${percentage}%).</p>
-                <p>${passed ? 'تم حفظ النتيجة بنجاح داخل المنصة.' : 'تم حفظ المحاولة داخل المنصة.'}</p>
+                <p>${rewardText}</p>
             `;
 
             clearExamRuntime(verifiedStudent.requestId, examLevel);

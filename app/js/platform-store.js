@@ -11,8 +11,6 @@
     const ALLOWED_STUDENT_EMAILS = ['student.29309302200459@qarya.edu', 'mohamed.shaban@qarya.edu'];
     const REMOVED_STUDENT_EMAILS = ['monanegm@qarya.edu', 'mona.edu.eg@gmail.com', 'gehad@qarya.edu', 'student.kd.3556@qarya.edu', 'student.31202022200178@qarya.edu', 'student.30709302200924@qarya.edu'];
     const ALLOWED_STUDENT_NAMES = ['عبدالرحمن رمضان محمد', 'محمد شعبان'];
-    const ISOLATED_LEADER_CODES = ['Abdou200'];
-    const ISOLATED_LEADER_EXAM_MESSAGE = 'هذا القائد معزول الان عن العمل بسبب لديه امتحانات جامعية';
     const DEFAULT_STATUS_MESSAGES = {
         pending: 'طلبك قيد المراجعة حاليًا وسيتم تحديث الحالة بعد انتهاء المراجعة.',
         accepted: 'تمت الموافقة على طلبك بنجاح ويمكنك متابعة المراحل التالية من المنصة.',
@@ -105,13 +103,14 @@
             || isAllowedStudentName(application.name);
     }
 
-    function isApplicationUnderIsolatedLeader(application = {}) {
-        const leaderCode = normalizeText(application.leaderCode);
-        return ISOLATED_LEADER_CODES.includes(leaderCode);
-    }
-
-    function isAllowedExamRecord(record = {}) {
-        return isAllowedStudentRequestId(record.requestId);
+    function isAllowedExamRecord(record = {}, applications = getStoredApplications()) {
+        const requestId = normalizeRequestId(record.requestId);
+        if (!requestId) return false;
+        if (isAllowedStudentRequestId(requestId)) return true;
+        return normalizeArray(applications).some((application) => (
+            normalizeRequestId(application?.requestId) === requestId
+            && isAllowedApplicationRecord(application)
+        ));
     }
 
     function isLikelyStudentSupportThread(thread = {}) {
@@ -500,12 +499,13 @@
     }
 
     function normalizeRuntimeState(state) {
+        const applications = normalizeArray(state?.applications)
+            .map((application) => normalizeApplication(application))
+            .filter((application) => application.requestId && isAllowedApplicationRecord(application));
         return {
-            applications: normalizeArray(state?.applications)
-                .map((application) => normalizeApplication(application))
-                .filter((application) => application.requestId && isAllowedApplicationRecord(application)),
-            examHistory: normalizeArray(state?.examHistory).filter((attempt) => isAllowedExamRecord(attempt)),
-            examClears: normalizeArray(state?.examClears).filter((clearRecord) => isAllowedExamRecord(clearRecord)),
+            applications,
+            examHistory: normalizeArray(state?.examHistory).filter((attempt) => isAllowedExamRecord(attempt, applications)),
+            examClears: normalizeArray(state?.examClears).filter((clearRecord) => isAllowedExamRecord(clearRecord, applications)),
             notifications: normalizeArray(state?.notifications),
             supportThreads: normalizeArray(state?.supportThreads)
                 .map((thread) => normalizeSupportThread(thread))
@@ -849,7 +849,6 @@
 
     function canStudentTakeExam(application) {
         if (!application || application._deleted) return false;
-        if (isApplicationUnderIsolatedLeader(application)) return false;
         if (application.examAccess === 'blocked') return false;
         if (application.examAccess === 'allowed') return true;
         return normalizeStatus(application.status) === 'accepted';
@@ -857,7 +856,6 @@
 
     function getStudentExamBlockMessage(application) {
         if (!application || application._deleted) return 'هذا الطلب غير مسموح له بدخول الامتحان حاليًا.';
-        if (isApplicationUnderIsolatedLeader(application)) return ISOLATED_LEADER_EXAM_MESSAGE;
         if (application.examAccess === 'blocked') return application.examAccessReason || 'هذا الطلب ممنوع حاليًا من دخول الامتحان.';
         return canStudentTakeExam(application) ? '' : 'هذا الطلب غير مسموح له بدخول الامتحان حاليًا.';
     }
@@ -1412,7 +1410,6 @@
         getExamAccessLabel,
         canStudentTakeExam,
         getStudentExamBlockMessage,
-        isApplicationUnderIsolatedLeader,
         getNotifications,
         addNotification,
         updateNotification,
