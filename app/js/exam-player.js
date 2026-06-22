@@ -6,6 +6,20 @@
     const GATE_TTL_MS = 30 * 60 * 1000;
     const PASS_PERCENTAGE = 50;
     const PASS_REWARD_AMOUNT = 100;
+    const FALLBACK_QUESTION_SEED = [
+        ['اللغة العربية', 'ما الحرف الأول في كلمة "مدرسة"؟', ['م', 'س', 'ة', 'د'], 'م'],
+        ['اللغة العربية', 'ما ضد كلمة "كبير"؟', ['صغير', 'طويل', 'سريع', 'قريب'], 'صغير'],
+        ['اللغة العربية', 'ما جمع كلمة "كتاب"؟', ['كتب', 'كاتب', 'كتابة', 'مكتوب'], 'كتب'],
+        ['الرياضيات', 'كم يساوي 2 + 3؟', ['5', '4', '6', '7'], '5'],
+        ['الرياضيات', 'كم يساوي 10 - 4؟', ['6', '5', '7', '4'], '6'],
+        ['الرياضيات', 'كم عدد أضلاع المربع؟', ['4', '3', '5', '6'], '4'],
+        ['العلوم', 'ما مصدر الضوء والحرارة نهارًا؟', ['الشمس', 'القمر', 'الكتاب', 'القلم'], 'الشمس'],
+        ['العلوم', 'ماذا نشرب عند العطش؟', ['الماء', 'الرمل', 'الهواء', 'الخشب'], 'الماء'],
+        ['العلوم', 'بماذا نسمع الأصوات؟', ['الأذن', 'العين', 'اليد', 'الأنف'], 'الأذن'],
+        ['المعلومات العامة', 'ما عاصمة مصر؟', ['القاهرة', 'أسوان', 'الأقصر', 'طنطا'], 'القاهرة'],
+        ['المعلومات العامة', 'كم يومًا في الأسبوع؟', ['7', '5', '6', '8'], '7'],
+        ['المعلومات العامة', 'ما الشيء الذي نكتب به؟', ['القلم', 'الكوب', 'الكرسي', 'المفتاح'], 'القلم']
+    ];
 
     let cameraStream = null;
     let submitTimerId = null;
@@ -133,6 +147,26 @@
             resultDiv.className = 'result fail';
             resultDiv.innerHTML = `<strong>تم إيقاف الدخول</strong><p>${message}</p>`;
         }
+    }
+
+    function buildFallbackQuestions() {
+        return FALLBACK_QUESTION_SEED.map((item, index) => ({
+            id: `fallback-q-${index + 1}`,
+            type: 'mcq',
+            section: item[0],
+            q: item[1],
+            options: item[2],
+            answer: item[3],
+            points: 2
+        }));
+    }
+
+    function getExamQuestions(examLevel) {
+        const questionKey = examLevel === 'senior' ? 'seniorQuestions' : 'juniorQuestions';
+        const loadedQuestions = Array.isArray(window.QaryaQuestions?.[questionKey])
+            ? window.QaryaQuestions[questionKey]
+            : [];
+        return loadedQuestions.length ? loadedQuestions : buildFallbackQuestions();
     }
 
     function renderQuestions(container, questions) {
@@ -398,6 +432,8 @@
             return;
         }
 
+        submitButton.hidden = true;
+
         if (store.refreshFromRemote) {
             await store.refreshFromRemote({ force: true });
         }
@@ -412,8 +448,7 @@
             return;
         }
 
-        const questionKey = examLevel === 'senior' ? 'seniorQuestions' : 'juniorQuestions';
-        const selectedQuestions = Array.isArray(window.QaryaQuestions?.[questionKey]) ? window.QaryaQuestions[questionKey] : [];
+        const selectedQuestions = getExamQuestions(examLevel);
         if (!selectedQuestions.length) {
             blockExam(form, resultDiv, 'لم يتم تحميل أسئلة الامتحان بشكل صحيح.');
             return;
@@ -467,6 +502,11 @@
         }
 
         renderQuestions(questionsContainer, selectedQuestions);
+        if (!questionsContainer.children.length) {
+            blockExam(form, resultDiv, 'لم تظهر أسئلة الامتحان. أعد تحميل الصفحة وحاول مرة أخرى.');
+            return;
+        }
+        submitButton.hidden = false;
         initProctorBubble();
 
         studentNameInput.value = application.name || verifiedStudent.name || '';
