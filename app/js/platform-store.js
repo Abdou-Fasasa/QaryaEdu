@@ -97,7 +97,9 @@
 
     function isAllowedApplicationRecord(application = {}) {
         if (isRemovedStudentEmail(application.studentEmail || application.email)) return false;
-        return isManualStudentRecord(application)
+        if (application._deleted) return true;
+        return Boolean(normalizeRequestId(application.requestId))
+            || isManualStudentRecord(application)
             || isAllowedStudentRequestId(application.requestId)
             || isAllowedStudentEmail(application.studentEmail || application.email)
             || isAllowedStudentName(application.name);

@@ -1,4 +1,4 @@
-(() => {
+﻿(() => {
     const authApi = window.QaryaAuth;
     const authGuard = window.QaryaAuthGuard;
 
@@ -9,7 +9,7 @@
         'register.html': 'صفحة التسجيل',
         'status.html': 'صفحة حالة الطلب',
         'exam-status.html': 'بوابة الامتحان',
-        'verification.html': 'صفحة التحقق من الأداء',
+        'verification.html': 'صفحة سجل الامتحانات',
         'services.html': 'مركز الخدمات',
         'guide.html': 'دليل الاستخدام',
         'receipt.html': 'إيصال الطلب',

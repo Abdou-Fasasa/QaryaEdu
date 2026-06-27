@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>التحقق من أداء الامتحان | قرية متعلمة</title>
+    <title>سجل الامتحانات | قرية متعلمة</title>
     <link rel="stylesheet" href="../styles.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="../js/auth.js"></script>
@@ -17,7 +17,7 @@
                     <span class="brand-mark">ق</span>
                     <span class="brand-text">
                         <span class="logo">قرية متعلمة</span>
-                        <small>التحقق من أداء الامتحان</small>
+                        <small>سجل الامتحانات</small>
                     </span>
                 </a>
 
@@ -32,7 +32,7 @@
                     <a href="./register.html" class="nav-link">التسجيل</a>
                     <a href="./exam-status.html" class="nav-link">الامتحان</a>
                     <a href="./status.html" class="nav-link">حالة الطلب</a>
-                    <a href="./verification.html" class="nav-link active">التحقق من الأداء</a>
+                    <a href="./verification.html" class="nav-link active">سجل الامتحانات</a>
                     <a href="./villages.html" class="nav-link">القرى</a>
                 </nav>
             </div>
@@ -62,7 +62,7 @@
                     <i class="fas fa-magnifying-glass"></i> <span>حالة الطلب</span>
                 </a>
                 <a href="./verification.html" class="sidebar-link active">
-                    <i class="fas fa-file-circle-check"></i> <span>التحقق من الأداء</span>
+                    <i class="fas fa-square-poll-vertical"></i> <span>سجل الامتحانات</span>
                 </a>
                 <a href="./villages.html" class="sidebar-link">
                     <i class="fas fa-map-location-dot"></i> <span>دليل القرى</span>
@@ -83,19 +83,19 @@
             <section class="page-hero">
                 <div class="container page-hero-grid">
                     <div class="page-copy">
-                        <span class="page-badge"><i class="fas fa-file-circle-check"></i> سجل الأداء الأسبوعي</span>
-                        <h1 class="page-title">التحقق من نتيجة الامتحان للأسبوع الحالي</h1>
-                        <p class="page-text">أدخل رقم الطلب لعرض حالة الأداء في دورة الامتحان الحالية فقط. يتم تفريغ أيام الأداء تلقائيًا مع بداية كل أسبوع جديد.</p>
+                        <span class="page-badge"><i class="fas fa-square-poll-vertical"></i> سجل الامتحانات</span>
+                        <h1 class="page-title">كل امتحانات الطالب في مكان واحد</h1>
+                        <p class="page-text">يعرض السجل كل محاولة امتحان محفوظة مع التاريخ والوقت والنتيجة من 100% وحالة النجاح أو المكافأة.</p>
                         <div class="page-actions">
-                            <a href="./exam-calendar.html" class="btn-secondary">جدول الامتحانات</a>
-                            <a href="./announcements.html" class="btn-ghost">لوحة الإعلانات</a>
+                            <a href="./exam-status.html" class="btn-secondary">بوابة الامتحان</a>
+                            <a href="./status.html" class="btn-ghost">حالة الطلب</a>
                         </div>
                     </div>
                     <div class="page-visual">
                         <img src="https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1200&q=80" alt="مراجعة أداء الامتحانات داخل المنصة" />
                         <div class="visual-note">
-                            <strong>دورة هذا الأسبوع</strong>
-                            <span id="week-window">--</span>
+                            <strong>سجل الطالب</strong>
+                            <span id="history-window">آخر نتيجة وكل المحاولات السابقة</span>
                         </div>
                     </div>
                 </div>
@@ -115,7 +115,7 @@
                                 </div>
                             </div>
                         </form>
-                        <p class="verification-note">النتائج المعروضة هنا تخص الأسبوع الحالي فقط، ويتم بدء سجل جديد تلقائيًا كل أسبوع.</p>
+                        <p class="verification-note">لو الطالب داخل بحسابه يتم فتح سجله تلقائيًا. ويمكن للإدارة البحث بأي رقم طلب.</p>
                     </div>
 
                     <div id="results-container" class="verification-result-card" style="display: none;">
@@ -124,11 +124,12 @@
                             <table class="results-table">
                                 <thead>
                                     <tr>
-                                        <th>اليوم</th>
+                                        <th>الامتحان</th>
                                         <th>التاريخ</th>
                                         <th>الساعة</th>
-                                        <th>النتيجة</th>
+                                        <th>النتيجة من 100%</th>
                                         <th>الحالة</th>
+                                        <th>المكافأة</th>
                                     </tr>
                                 </thead>
                                 <tbody id="results-body"></tbody>
@@ -138,8 +139,8 @@
 
                     <div id="no-result" class="empty-state" style="display: none;">
                         <i class="fas fa-search"></i>
-                        <h3>لا توجد نتيجة مطابقة</h3>
-                        <p>تأكد من كتابة رقم الطلب كما هو داخل المنصة، ثم أعد المحاولة مرة أخرى.</p>
+                        <h3>لا يوجد سجل امتحانات مطابق</h3>
+                        <p>تأكد من كتابة رقم الطلب كما هو داخل المنصة، أو ادخل بحساب الطالب المرتبط بالطلب.</p>
                     </div>
                 </div>
             </section>
@@ -149,12 +150,12 @@
             <div class="container footer-grid">
                 <div>
                     <p class="footer-brand">قرية متعلمة</p>
-                    <p class="footer-copy">صفحة تحقق أسبوعية تعرض الأداء الحالي فقط وتبدأ من جديد تلقائيًا مع كل أسبوع.</p>
+                    <p class="footer-copy">صفحة سجل امتحانات تعرض كل المحاولات المحفوظة داخل المنصة.</p>
                 </div>
                 <div class="footer-links">
                     <a href="../index.html">الرئيسية</a>
-                    <a href="./exam-calendar.html">جدول الامتحانات</a>
-                    <a href="./announcements.html">الإعلانات</a>
+                    <a href="./exam-status.html">بوابة الامتحان</a>
+                    <a href="./status.html">حالة الطلب</a>
                     <a href="./guide.html">الدليل</a>
                 </div>
             </div>
@@ -162,9 +163,9 @@
     </div>
 
     <script src="../js/main.js"></script>
+    <script src="../js/fixed-applications-db.js"></script>
     <script src="../js/exam-results-db.js"></script>
-    <script src="../js/exam-week.js"></script>
+    <script src="../js/platform-store.js"></script>
     <script src="../js/verification.js"></script>
 </body>
 </html>
-

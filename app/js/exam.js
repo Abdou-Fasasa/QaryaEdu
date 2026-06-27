@@ -170,7 +170,49 @@ document.addEventListener('DOMContentLoaded', async () => {
         const applicationEmail = authApi.normalizeEmail?.(application.studentEmail);
         const sameEmail = Boolean(applicationEmail && sessionEmail === applicationEmail);
         const sameNationalId = Boolean(sessionUser?.nationalId && String(sessionUser.nationalId) === String(application.nationalId));
-        return sameEmail || sameNationalId;
+        const sessionRequestId = String(sessionUser?.requestId || sessionUser?.applicationRequestId || '').trim().toUpperCase();
+        const applicationRequestId = String(application.requestId || '').trim().toUpperCase();
+        const sameRequestId = Boolean(sessionRequestId && sessionRequestId === applicationRequestId);
+        return sameEmail || sameNationalId || sameRequestId;
+    }
+
+    function getSessionUser() {
+        const session = authApi?.getSession?.();
+        if (!session?.email) return session || null;
+        return authApi.getUserByEmail?.(session.email) || session;
+    }
+
+    function buildProvisionalApplication(requestId, leaderCode, age) {
+        const sessionUser = getSessionUser() || {};
+        const now = new Date().toISOString();
+        return {
+            requestId,
+            nationalId: sessionUser.nationalId || '',
+            status: 'accepted',
+            name: sessionUser.name || `طالب ${requestId}`,
+            age,
+            governorate: sessionUser.governorate || '',
+            city: sessionUser.city || '',
+            village: sessionUser.village || '',
+            leaderCode,
+            studentEmail: sessionUser.email || '',
+            studentPassword: sessionUser.password || '',
+            createdAt: now,
+            updatedAt: now,
+            message: 'تم السماح بدخول الامتحان برقم الطلب.',
+            examAccess: 'default',
+            createdByAdmin: true,
+            manualStudent: true
+        };
+    }
+
+    function resolveApplicationForExam(requestId, leaderCode, age) {
+        const existing = store?.getApplicationByRequestId?.(requestId);
+        if (existing) return existing;
+
+        const provisional = buildProvisionalApplication(requestId, leaderCode, age);
+        store?.upsertApplication?.(provisional);
+        return store?.getApplicationByRequestId?.(requestId) || provisional;
     }
 
     updateDeviceGuardNote();
@@ -196,16 +238,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         const leaderCode = String(leaderCodeInput?.value || '').trim();
         const requestId = String(requestIdInput?.value || '').trim().toUpperCase();
         const age = Number(ageInput?.value || 0);
-        const application = store?.getApplicationByRequestId?.(requestId);
 
         if (!LEADER_CODES.includes(leaderCode)) {
             showMessage(`اختر كود قائد صحيح من: ${LEADER_CODES.join(' - ')}.`);
             return;
         }
-        if (!application) {
-            showMessage('رقم الطلب غير موجود داخل بيانات المنصة الحالية.');
+        if (!requestId) {
+            showMessage('أدخل رقم الطلب أولًا.');
             return;
         }
+
+        const application = resolveApplicationForExam(requestId, leaderCode, age);
         if (!sessionMatchesApplication(application)) {
             showMessage('هذا الحساب لا يملك صلاحية دخول هذا الطلب.');
             return;

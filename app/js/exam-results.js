@@ -126,7 +126,7 @@
                 </div>
                 <div class="dashboard-card-actions top-gap">
                     ${summary.application ? `<a href="./status.html?requestId=${encodeURIComponent(summary.application.requestId)}&nationalId=${encodeURIComponent(summary.application.nationalId || '')}" class="btn-ghost">حالة الطلب</a>` : ''}
-                    <a href="./verification.html?requestId=${encodeURIComponent(summary.requestId)}" class="btn-ghost">التحقق من الأداء</a>
+                    <a href="./verification.html?requestId=${encodeURIComponent(summary.requestId)}" class="btn-ghost">سجل الامتحانات</a>
                 </div>
             </section>
         `;

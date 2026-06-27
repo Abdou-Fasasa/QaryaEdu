@@ -781,6 +781,17 @@
             || ALLOWED_STUDENT_NAMES.includes(name);
     }
 
+    function isRemovedStudentUser(user = {}) {
+        const email = normalizeEmail(user.email || user.originalEmail || '');
+        return [
+            'student.kd.3556@qarya.edu',
+            'mona.edu.eg@gmail.com',
+            'gehad@qarya.edu',
+            'student.31202022200178@qarya.edu',
+            'student.30709302200924@qarya.edu'
+        ].includes(email);
+    }
+
     function isManualStudentUser(user = {}) {
         return user.createdByAdmin === true || user.manualStudent === true;
     }
@@ -794,10 +805,12 @@
     }
 
     function shouldKeepUserAfterStudentCleanup(user = {}) {
+        if (isRemovedStudentUser(user)) return false;
         return isAdminSession(user.email || user)
             || isLeaderUser(user)
             || !isStudentUser(user)
             || isManualStudentUser(user)
+            || isStudentUser(user)
             || isAllowedStudentUser(user);
     }
 

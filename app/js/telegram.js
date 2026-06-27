@@ -116,7 +116,7 @@
             `الحالة: ${payload.passed ? 'ناجح' : 'راسب'}`,
             `مكافأة النجاح: ${rewardLabel}`,
             `وقت التسليم: ${payload.date ? new Date(payload.date).toLocaleString('ar-EG') : new Date().toLocaleString('ar-EG')}`,
-            `صفحة التحقق: pages/verification.html?requestId=${payload.requestId}`
+            `سجل الامتحانات: pages/verification.html?requestId=${payload.requestId}`
         ].join('\n');
     }
 

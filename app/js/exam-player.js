@@ -111,7 +111,10 @@
         const applicationEmail = authApi.normalizeEmail?.(application.studentEmail);
         const sameEmail = Boolean(applicationEmail && sessionEmail === applicationEmail);
         const sameNationalId = Boolean(sessionUser?.nationalId && String(sessionUser.nationalId) === String(application.nationalId));
-        return sameEmail || sameNationalId;
+        const sessionRequestId = String(sessionUser?.requestId || sessionUser?.applicationRequestId || '').trim().toUpperCase();
+        const applicationRequestId = String(application.requestId || '').trim().toUpperCase();
+        const sameRequestId = Boolean(sessionRequestId && sessionRequestId === applicationRequestId);
+        return sameEmail || sameNationalId || sameRequestId;
     }
 
     function getEgyptDateKey(value = Date.now()) {
@@ -167,6 +170,43 @@
             ? window.QaryaQuestions[questionKey]
             : [];
         return loadedQuestions.length ? loadedQuestions : buildFallbackQuestions();
+    }
+
+    function buildVerifiedApplication(authApi, verifiedStudent, examLevel) {
+        const session = authApi?.getSession?.();
+        const sessionUser = session?.email ? (authApi.getUserByEmail?.(session.email) || session) : {};
+        const now = new Date().toISOString();
+        const requestId = String(verifiedStudent.requestId || sessionUser.requestId || sessionUser.applicationRequestId || '').trim().toUpperCase();
+
+        return {
+            requestId,
+            nationalId: verifiedStudent.nationalId || sessionUser.nationalId || '',
+            status: 'accepted',
+            name: verifiedStudent.name || sessionUser.name || `طالب ${requestId}`,
+            age: Number(verifiedStudent.age || sessionUser.age || (examLevel === 'senior' ? 18 : 0)),
+            governorate: sessionUser.governorate || '',
+            city: sessionUser.city || '',
+            village: sessionUser.village || '',
+            leaderCode: verifiedStudent.leaderCode || sessionUser.leaderCode || '',
+            studentEmail: verifiedStudent.studentEmail || sessionUser.email || '',
+            studentPassword: sessionUser.password || '',
+            createdAt: now,
+            updatedAt: now,
+            message: 'تم السماح بدخول الامتحان برقم الطلب.',
+            examAccess: 'default',
+            createdByAdmin: true,
+            manualStudent: true
+        };
+    }
+
+    function resolveApplicationForExam(store, authApi, verifiedStudent, examLevel) {
+        const existing = store?.getApplicationByRequestId?.(verifiedStudent.requestId);
+        if (existing) return existing;
+
+        const provisional = buildVerifiedApplication(authApi, verifiedStudent, examLevel);
+        if (!provisional.requestId) return null;
+        store?.upsertApplication?.(provisional);
+        return store?.getApplicationByRequestId?.(provisional.requestId) || provisional;
     }
 
     function renderQuestions(container, questions) {
@@ -465,9 +505,9 @@
             return;
         }
 
-        const application = store.getApplicationByRequestId?.(verifiedStudent.requestId);
+        const application = resolveApplicationForExam(store, authApi, verifiedStudent, examLevel);
         if (!application) {
-            blockExam(form, resultDiv, 'الطلب غير موجود داخل بيانات المنصة الحالية.');
+            blockExam(form, resultDiv, 'تعذر تجهيز بيانات الطالب للامتحان. ادخل من بوابة الامتحان مرة أخرى.');
             return;
         }
         if (!sessionMatchesApplication(authApi, application)) {

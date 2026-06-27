@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+﻿document.addEventListener('DOMContentLoaded', () => {
     const authApi = window.QaryaAuth || null;
     const store = window.QaryaPlatformStore || null;
     const authSession = authApi ? authApi.getSession() : null;
@@ -1086,7 +1086,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const serviceLinks = [
             { href: `${prefix}exam-status.html`, icon: 'fa-pen-to-square', label: 'الامتحان' },
             { href: `${prefix}status.html`, icon: 'fa-magnifying-glass', label: 'حالة الطلب' },
-            { href: `${prefix}verification.html`, icon: 'fa-file-circle-check', label: 'التحقق من الأداء' },
+            { href: `${prefix}verification.html`, icon: 'fa-square-poll-vertical', label: 'سجل الامتحانات' },
             { href: `${prefix}complaints.html`, icon: 'fa-comment-dots', label: 'تقديم شكوى' }
         ];
         const removableFiles = new Set(['exam-status.html', 'status.html', 'verification.html', 'complaints.html']);
@@ -2057,14 +2057,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const prefix = getPrefix();
         const links = isExamOnlySession() ? [
             { href: `${prefix}exam-status.html`, icon: 'fa-pen-to-square', label: 'الامتحان' },
-            { href: `${prefix}exam-results.html`, icon: 'fa-square-poll-vertical', label: 'سجل الامتحانات' },
+            { href: `${prefix}verification.html`, icon: 'fa-square-poll-vertical', label: 'سجل الامتحانات' },
             { href: `${prefix}status.html`, icon: 'fa-magnifying-glass', label: 'حالة الطلب' },
             { href: `${prefix}notifications.html`, icon: 'fa-bell', label: 'الإشعارات' },
             { href: `${prefix}support.html`, icon: 'fa-headset', label: 'الدعم' },
             { href: `${prefix}guide.html`, icon: 'fa-book-open', label: 'الدليل' }
         ] : [
             { href: `${prefix}receipt.html`, icon: 'fa-receipt', label: 'إيصال الطلب' },
-            { href: `${prefix}exam-results.html`, icon: 'fa-square-poll-vertical', label: 'سجل الامتحانات' },
+            { href: `${prefix}verification.html`, icon: 'fa-square-poll-vertical', label: 'سجل الامتحانات' },
             { href: `${prefix}notifications.html`, icon: 'fa-bell', label: 'الإشعارات' },
             { href: `${prefix}complaints.html`, icon: 'fa-comment-dots', label: 'الشكاوى' },
             { href: `${prefix}support.html`, icon: 'fa-headset', label: 'الدعم' },

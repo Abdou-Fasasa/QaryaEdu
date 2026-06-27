@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="message-box">${message}</div>
                 <div class="dashboard-card-actions wrap-actions top-gap">
                     <a href="./receipt.html?requestId=${encodeURIComponent(application.requestId)}" class="btn-ghost">الإيصال</a>
-                    <a href="./exam-results.html?requestId=${encodeURIComponent(application.requestId)}" class="btn-ghost">نتائج الامتحان</a>
+                    <a href="./verification.html?requestId=${encodeURIComponent(application.requestId)}" class="btn-ghost">سجل الامتحانات</a>
                 </div>
             </div>
             <section class="content-card top-gap" data-reveal>

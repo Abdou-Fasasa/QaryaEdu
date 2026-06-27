@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 action: 'فتح الامتحان'
             },
             {
-                href: application?.requestId ? `./exam-results.html?requestId=${encodeURIComponent(application.requestId)}` : './exam-results.html',
+                href: application?.requestId ? `./verification.html?requestId=${encodeURIComponent(application.requestId)}` : './verification.html',
                 icon: 'fa-square-poll-vertical',
                 title: 'سجل الامتحانات',
                 description: application ? 'عرض كل امتحان والتاريخ والنتيجة من 100%.' : 'يظهر السجل بعد ربط طلب الطالب بالحساب.',

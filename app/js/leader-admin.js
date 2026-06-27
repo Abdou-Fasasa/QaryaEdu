@@ -868,7 +868,7 @@
                     <p>البريد: ${escapeHtml(attempt.studentEmail || 'غير متوفر')} - القائد: ${escapeHtml(attempt.leaderCode || 'غير متوفر')}</p>
                     <p>العنوان: ${escapeHtml(locationText)} - مكافأة النجاح: ${escapeHtml(rewardText)}</p>
                     <div class="dashboard-card-actions top-gap">
-                        <a class="btn-action" href="./exam-results.html?requestId=${encodeValue(attempt.requestId)}"><i class="fas fa-square-poll-vertical"></i> سجل الطالب</a>
+                        <a class="btn-action" href="./verification.html?requestId=${encodeValue(attempt.requestId)}"><i class="fas fa-square-poll-vertical"></i> سجل الطالب</a>
                     </div>
                 </article>
             `;
@@ -3391,7 +3391,7 @@
                     <p>البريد: ${escapeHtml(attempt.studentEmail || 'غير متوفر')} - القائد: ${escapeHtml(attempt.leaderCode || 'غير متوفر')}</p>
                     <p>العنوان: ${escapeHtml(locationText)} - مكافأة النجاح: ${escapeHtml(rewardText)}</p>
                     <div class="dashboard-card-actions top-gap">
-                        <a class="btn-action" href="./exam-results.html?requestId=${encodeValue(attempt.requestId)}"><i class="fas fa-square-poll-vertical"></i> سجل الطالب</a>
+                        <a class="btn-action" href="./verification.html?requestId=${encodeValue(attempt.requestId)}"><i class="fas fa-square-poll-vertical"></i> سجل الطالب</a>
                     </div>
                 </article>
             `;
