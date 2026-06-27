@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             return { label: 'لا توجد نتيجة', detail: 'لم يتم ربط طلب امتحان بالحساب.' };
         }
 
-        const attempts = store.getExamHistoryByRequestId?.(application.requestId) || [];
+        const attempts = store.getAllExamAttemptsByRequestId?.(application.requestId) || store.getExamHistoryByRequestId?.(application.requestId) || [];
         const latest = attempts[0] || null;
         if (!latest) {
             return { label: 'لم يبدأ بعد', detail: 'لا توجد محاولة امتحان مسجلة على هذا الطلب.' };
@@ -162,6 +162,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 title: 'الامتحان',
                 description: application?.examAccess === 'blocked' ? 'الامتحان موقوف على هذا الطلب حالياً.' : 'متابعة البوابة والدخول في الوقت المتاح.',
                 action: 'فتح الامتحان'
+            },
+            {
+                href: application?.requestId ? `./exam-results.html?requestId=${encodeURIComponent(application.requestId)}` : './exam-results.html',
+                icon: 'fa-square-poll-vertical',
+                title: 'سجل الامتحانات',
+                description: application ? 'عرض كل امتحان والتاريخ والنتيجة من 100%.' : 'يظهر السجل بعد ربط طلب الطالب بالحساب.',
+                action: 'فتح السجل'
             },
             {
                 href: './settings.html',

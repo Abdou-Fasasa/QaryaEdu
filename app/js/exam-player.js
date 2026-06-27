@@ -2,23 +2,23 @@
     const EXAM_GATE_KEY = 'qaryaeduExamGatePass';
     const DEVICE_LOCK_KEY = 'qaryaeduExamDeviceLock';
     const CAMERA_POSITION_KEY = 'qaryaeduProctorBubblePosition';
-    const WAIT_TIME_SECONDS = 15 * 60;
+    const WAIT_TIME_SECONDS = 0;
     const GATE_TTL_MS = 30 * 60 * 1000;
     const PASS_PERCENTAGE = 50;
     const PASS_REWARD_AMOUNT = 100;
     const FALLBACK_QUESTION_SEED = [
-        ['اللغة العربية', 'ما الحرف الأول في كلمة "مدرسة"؟', ['م', 'س', 'ة', 'د'], 'م'],
-        ['اللغة العربية', 'ما ضد كلمة "كبير"؟', ['صغير', 'طويل', 'سريع', 'قريب'], 'صغير'],
-        ['اللغة العربية', 'ما جمع كلمة "كتاب"؟', ['كتب', 'كاتب', 'كتابة', 'مكتوب'], 'كتب'],
-        ['الرياضيات', 'كم يساوي 2 + 3؟', ['5', '4', '6', '7'], '5'],
-        ['الرياضيات', 'كم يساوي 10 - 4؟', ['6', '5', '7', '4'], '6'],
-        ['الرياضيات', 'كم عدد أضلاع المربع؟', ['4', '3', '5', '6'], '4'],
-        ['العلوم', 'ما مصدر الضوء والحرارة نهارًا؟', ['الشمس', 'القمر', 'الكتاب', 'القلم'], 'الشمس'],
-        ['العلوم', 'ماذا نشرب عند العطش؟', ['الماء', 'الرمل', 'الهواء', 'الخشب'], 'الماء'],
-        ['العلوم', 'بماذا نسمع الأصوات؟', ['الأذن', 'العين', 'اليد', 'الأنف'], 'الأذن'],
-        ['المعلومات العامة', 'ما عاصمة مصر؟', ['القاهرة', 'أسوان', 'الأقصر', 'طنطا'], 'القاهرة'],
-        ['المعلومات العامة', 'كم يومًا في الأسبوع؟', ['7', '5', '6', '8'], '7'],
-        ['المعلومات العامة', 'ما الشيء الذي نكتب به؟', ['القلم', 'الكوب', 'الكرسي', 'المفتاح'], 'القلم']
+        ['اللغة العربية', 'أي كلمة تبدأ بحرف الباء؟', ['قلم', 'باب', 'شمس', 'ورد'], 'باب'],
+        ['اللغة العربية', 'ما مفرد كلمة "أشجار"؟', ['زهرة', 'أوراق', 'شجرة', 'حديقة'], 'شجرة'],
+        ['اللغة العربية', 'أكمل الجملة: القراءة ... العقل.', ['تغلق', 'تنير', 'تكسر', 'تخفي'], 'تنير'],
+        ['الرياضيات', 'كم يساوي 4 + 5؟', ['7', '8', '9', '10'], '9'],
+        ['الرياضيات', 'كم يساوي 12 - 7؟', ['6', '5', '4', '3'], '5'],
+        ['الرياضيات', 'كم يساوي 15 ÷ 3؟', ['3', '4', '6', '5'], '5'],
+        ['العلوم', 'أي جزء في النبات يصنع الغذاء غالبًا؟', ['الجذر', 'الساق', 'الورقة', 'البذرة'], 'الورقة'],
+        ['العلوم', 'أي حاسة نستخدمها للشم؟', ['العين', 'الأذن', 'الأنف', 'اليد'], 'الأنف'],
+        ['العلوم', 'يتحول الماء إلى بخار عند:', ['التبريد', 'التسخين', 'الظلام', 'الضغط فقط'], 'التسخين'],
+        ['المعلومات العامة', 'ما لون إشارة المرور التي تعني توقف؟', ['أخضر', 'أصفر', 'أحمر', 'أزرق'], 'أحمر'],
+        ['المعلومات العامة', 'كم عدد شهور السنة؟', ['10', '11', '12', '13'], '12'],
+        ['المعلومات العامة', 'ما العملة الرسمية في مصر؟', ['الدينار', 'الجنيه المصري', 'الريال', 'الدولار'], 'الجنيه المصري']
     ];
 
     let cameraStream = null;
@@ -271,6 +271,17 @@
     }
 
     function startSubmitTimer(startedAt, submitTimer, submitButton, timerBanner) {
+        if (WAIT_TIME_SECONDS <= 0) {
+            submitButton.disabled = false;
+            submitButton.title = '';
+            if (submitTimer) submitTimer.textContent = '00:00';
+            if (timerBanner) {
+                timerBanner.classList.add('timer-ready');
+                timerBanner.innerHTML = '<i class="fas fa-check-circle"></i> الإرسال متاح الآن بعد الإجابة على الأسئلة.';
+            }
+            return;
+        }
+
         const tick = () => {
             const canSubmitAt = startedAt + (WAIT_TIME_SECONDS * 1000);
             const remainingSeconds = Math.max(0, Math.ceil((canSubmitAt - Date.now()) / 1000));
@@ -293,7 +304,7 @@
         };
 
         submitButton.disabled = true;
-        submitButton.title = 'لا يمكن الإرسال قبل مرور 15 دقيقة كاملة.';
+        submitButton.title = 'لا يمكن الإرسال قبل انتهاء المؤقت المحدد.';
         tick();
         submitTimerId = window.setInterval(tick, 1000);
     }
@@ -562,7 +573,13 @@
                 requestId: verifiedStudent.requestId,
                 name: application.name || verifiedStudent.name,
                 nationalId: application.nationalId || verifiedStudent.nationalId || '',
+                studentEmail: application.studentEmail || verifiedStudent.studentEmail || '',
                 leaderCode: verifiedStudent.leaderCode || application.leaderCode || '',
+                governorate: application.governorate || '',
+                city: application.city || '',
+                village: application.village || '',
+                age: application.age || '',
+                gender: application.gender || '',
                 examLevel,
                 day: examDayInput?.value || '',
                 score: studentScore,
@@ -574,7 +591,10 @@
                 approved: true,
                 passThreshold: PASS_PERCENTAGE,
                 rewardAmount: 0,
-                rewardGrantedAt: ''
+                rewardGrantedAt: '',
+                rewardStatus: passed ? 'pending' : 'not_applicable',
+                rewardEmail: '',
+                walletBalanceAfter: null
             };
 
             if (passed) {
@@ -582,6 +602,11 @@
                 if (rewardResult.ok) {
                     examAttempt.rewardAmount = PASS_REWARD_AMOUNT;
                     examAttempt.rewardGrantedAt = new Date().toISOString();
+                    examAttempt.rewardStatus = 'granted';
+                    examAttempt.rewardEmail = rewardResult.email || '';
+                    examAttempt.walletBalanceAfter = rewardResult.nextBalance ?? null;
+                } else {
+                    examAttempt.rewardStatus = 'failed';
                 }
             }
 
@@ -621,7 +646,8 @@
                 : 'تم حفظ المحاولة داخل المنصة.';
             resultDiv.innerHTML = `
                 <strong>${passed ? 'تم اجتياز الامتحان' : 'تم إرسال الامتحان'}</strong>
-                <p>النتيجة: ${studentScore} من ${totalPoints} (${percentage}%).</p>
+                <p>النتيجة النهائية: ${percentage}% من 100%.</p>
+                <p>درجتك: ${studentScore} من ${totalPoints}.</p>
                 <p>${rewardText}</p>
             `;
 

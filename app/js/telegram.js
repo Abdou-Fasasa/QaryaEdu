@@ -90,17 +90,32 @@
     }
 
     function formatExamSummary(payload) {
+        const score = payload.studentScore ?? payload.score ?? 0;
+        const total = payload.totalPoints ?? payload.total ?? 100;
+        const location = [payload.governorate, payload.city, payload.village].filter(Boolean).join(' / ') || 'غير متوفر';
+        const rewardLabel = payload.passed
+            ? (Number(payload.rewardAmount || 0) > 0
+                ? `${payload.rewardAmount} EGP تمت إضافتها للمحفظة`
+                : 'ناجح، مكافأة المحفظة لم تؤكد بعد')
+            : 'لا توجد مكافأة لأن النتيجة أقل من 50%';
+
         return [
             'تسليم امتحان جديد',
             `الاسم: ${payload.name}`,
             `رقم الطلب: ${payload.requestId}`,
+            `البريد الإلكتروني: ${payload.studentEmail || 'غير متوفر'}`,
             `الرقم القومي: ${payload.nationalId || 'غير متوفر'}`,
             `كود القائد: ${payload.leaderCode}`,
+            `السن: ${payload.age || 'غير متوفر'}`,
+            `النوع: ${payload.gender || 'غير متوفر'}`,
+            `العنوان: ${location}`,
             `نوع الامتحان: ${payload.examLevel === 'senior' ? 'كبار' : 'طلاب'}`,
             `يوم الامتحان: ${payload.day}`,
-            `النتيجة: ${payload.studentScore} من ${payload.totalPoints}`,
+            `النتيجة: ${score} من ${total}`,
             `النسبة: ${payload.percentage}%`,
             `الحالة: ${payload.passed ? 'ناجح' : 'راسب'}`,
+            `مكافأة النجاح: ${rewardLabel}`,
+            `وقت التسليم: ${payload.date ? new Date(payload.date).toLocaleString('ar-EG') : new Date().toLocaleString('ar-EG')}`,
             `صفحة التحقق: pages/verification.html?requestId=${payload.requestId}`
         ].join('\n');
     }

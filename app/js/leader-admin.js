@@ -849,6 +849,30 @@
 
         const settings = store.getPlatformSettings();
         const attempts = store.getExamHistory().slice(0, 8);
+        const attemptsHtml = attempts.length ? attempts.map((attempt) => {
+            const rewardText = Number(attempt.rewardAmount || 0) > 0
+                ? `${formatMoney(attempt.rewardAmount)} تمت إضافتها`
+                : (attempt.passed ? 'ناجح بدون تأكيد مكافأة' : 'لا توجد مكافأة');
+            const locationText = [attempt.governorate, attempt.city, attempt.village].filter(Boolean).join(' / ') || 'غير متوفر';
+
+            return `
+                <article class="result-history-card">
+                    <div class="dashboard-list-head">
+                        <div>
+                            <strong>${escapeHtml(attempt.name || attempt.requestId)}</strong>
+                            <span>${escapeHtml(formatDate(attempt.date))}</span>
+                        </div>
+                        <strong class="score-chip">${escapeHtml(String(attempt.percentage || 0))}%</strong>
+                    </div>
+                    <p>رقم الطلب: ${escapeHtml(attempt.requestId)} - الدرجة: ${escapeHtml(String(attempt.score || 0))} من ${escapeHtml(String(attempt.total || 100))} - ${attempt.passed ? 'ناجح' : 'أقل من 50%'}</p>
+                    <p>البريد: ${escapeHtml(attempt.studentEmail || 'غير متوفر')} - القائد: ${escapeHtml(attempt.leaderCode || 'غير متوفر')}</p>
+                    <p>العنوان: ${escapeHtml(locationText)} - مكافأة النجاح: ${escapeHtml(rewardText)}</p>
+                    <div class="dashboard-card-actions top-gap">
+                        <a class="btn-action" href="./exam-results.html?requestId=${encodeValue(attempt.requestId)}"><i class="fas fa-square-poll-vertical"></i> سجل الطالب</a>
+                    </div>
+                </article>
+            `;
+        }).join('') : '<p>لا توجد محاولات مسجلة بعد.</p>';
         const now = examWindowApi?.getEgyptNow?.() || new Date();
         const windowState = examWindowApi?.getExamWindowState?.(now, settings) || { open: false, statusText: 'غير متاح', showCountdown: false };
         const modeLabel = settings.examMode === 'open'
@@ -903,7 +927,7 @@
             <div class="admin-card" style="margin-top: 1.25rem;">
                 <div class="card-header"><div class="user-info"><h4>آخر محاولات الامتحان</h4><span>أحدث عمليات التسليم المسجلة.</span></div></div>
                 <div class="card-body">
-                    ${attempts.length ? attempts.map((attempt) => `<p><span>${escapeHtml(attempt.name || attempt.requestId)}</span><strong>${escapeHtml(attempt.requestId)} - ${escapeHtml(String(attempt.percentage || 0))}% - ${escapeHtml(formatDate(attempt.date))}</strong></p>`).join('') : '<p>لا توجد محاولات مسجلة بعد.</p>'}
+                    <div class="results-history-list">${attemptsHtml}</div>
                 </div>
             </div>
         `;
@@ -3348,6 +3372,30 @@
 
         const settings = store.getPlatformSettings();
         const attempts = store.getExamHistory().slice(0, 8);
+        const attemptsHtml = attempts.length ? attempts.map((attempt) => {
+            const rewardText = Number(attempt.rewardAmount || 0) > 0
+                ? `${formatMoney(attempt.rewardAmount)} تمت إضافتها`
+                : (attempt.passed ? 'ناجح بدون تأكيد مكافأة' : 'لا توجد مكافأة');
+            const locationText = [attempt.governorate, attempt.city, attempt.village].filter(Boolean).join(' / ') || 'غير متوفر';
+
+            return `
+                <article class="result-history-card">
+                    <div class="dashboard-list-head">
+                        <div>
+                            <strong>${escapeHtml(attempt.name || attempt.requestId)}</strong>
+                            <span>${escapeHtml(formatDate(attempt.date))}</span>
+                        </div>
+                        <strong class="score-chip">${escapeHtml(String(attempt.percentage || 0))}%</strong>
+                    </div>
+                    <p>رقم الطلب: ${escapeHtml(attempt.requestId)} - الدرجة: ${escapeHtml(String(attempt.score || 0))} من ${escapeHtml(String(attempt.total || 100))} - ${attempt.passed ? 'ناجح' : 'أقل من 50%'}</p>
+                    <p>البريد: ${escapeHtml(attempt.studentEmail || 'غير متوفر')} - القائد: ${escapeHtml(attempt.leaderCode || 'غير متوفر')}</p>
+                    <p>العنوان: ${escapeHtml(locationText)} - مكافأة النجاح: ${escapeHtml(rewardText)}</p>
+                    <div class="dashboard-card-actions top-gap">
+                        <a class="btn-action" href="./exam-results.html?requestId=${encodeValue(attempt.requestId)}"><i class="fas fa-square-poll-vertical"></i> سجل الطالب</a>
+                    </div>
+                </article>
+            `;
+        }).join('') : '<p>لا توجد محاولات مسجلة بعد.</p>';
         const now = examWindowApi?.getEgyptNow?.() || new Date();
         const windowState = examWindowApi?.getExamWindowState?.(now, settings) || { open: false, statusText: 'غير متاح', showCountdown: false };
         const modeLabel = settings.examMode === 'open'
@@ -3414,7 +3462,7 @@
             <div class="admin-card" style="margin-top: 1.25rem;">
                 <div class="card-header"><div class="user-info"><h4>آخر محاولات الامتحان</h4><span>أحدث عمليات التسليم المسجلة.</span></div></div>
                 <div class="card-body">
-                    ${attempts.length ? attempts.map((attempt) => `<p><span>${escapeHtml(attempt.name || attempt.requestId)}</span><strong>${escapeHtml(attempt.requestId)} - ${escapeHtml(String(attempt.percentage || 0))}% - ${escapeHtml(formatDate(attempt.date))}</strong></p>`).join('') : '<p>لا توجد محاولات مسجلة بعد.</p>'}
+                    <div class="results-history-list">${attemptsHtml}</div>
                 </div>
             </div>
         `;
