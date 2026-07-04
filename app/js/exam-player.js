@@ -7,18 +7,18 @@
     const PASS_PERCENTAGE = 50;
     const PASS_REWARD_AMOUNT = 100;
     const FALLBACK_QUESTION_SEED = [
-        ['اللغة العربية', 'أي كلمة تبدأ بحرف الباء؟', ['قلم', 'باب', 'شمس', 'ورد'], 'باب'],
-        ['اللغة العربية', 'ما مفرد كلمة "أشجار"؟', ['زهرة', 'أوراق', 'شجرة', 'حديقة'], 'شجرة'],
-        ['اللغة العربية', 'أكمل الجملة: القراءة ... العقل.', ['تغلق', 'تنير', 'تكسر', 'تخفي'], 'تنير'],
-        ['الرياضيات', 'كم يساوي 4 + 5؟', ['7', '8', '9', '10'], '9'],
-        ['الرياضيات', 'كم يساوي 12 - 7؟', ['6', '5', '4', '3'], '5'],
-        ['الرياضيات', 'كم يساوي 15 ÷ 3؟', ['3', '4', '6', '5'], '5'],
-        ['العلوم', 'أي جزء في النبات يصنع الغذاء غالبًا؟', ['الجذر', 'الساق', 'الورقة', 'البذرة'], 'الورقة'],
-        ['العلوم', 'أي حاسة نستخدمها للشم؟', ['العين', 'الأذن', 'الأنف', 'اليد'], 'الأنف'],
-        ['العلوم', 'يتحول الماء إلى بخار عند:', ['التبريد', 'التسخين', 'الظلام', 'الضغط فقط'], 'التسخين'],
-        ['المعلومات العامة', 'ما لون إشارة المرور التي تعني توقف؟', ['أخضر', 'أصفر', 'أحمر', 'أزرق'], 'أحمر'],
-        ['المعلومات العامة', 'كم عدد شهور السنة؟', ['10', '11', '12', '13'], '12'],
-        ['المعلومات العامة', 'ما العملة الرسمية في مصر؟', ['الدينار', 'الجنيه المصري', 'الريال', 'الدولار'], 'الجنيه المصري']
+        ['اللغة العربية', 'ما إعراب كلمة "العلمُ" في جملة: العلمُ نور؟', ['مفعول به', 'خبر مرفوع', 'مبتدأ مرفوع', 'فاعل مرفوع'], 'مبتدأ مرفوع'],
+        ['اللغة العربية', 'أي الجمل الآتية تحتوي على استعارة؟', ['الوقت كالسيف', 'ابتسم الصباح', 'السماء زرقاء', 'حضر الطالب مبكرًا'], 'ابتسم الصباح'],
+        ['اللغة العربية', 'ما نوع الهمزة في كلمة "استخرج"؟', ['همزة قطع', 'همزة وصل', 'همزة متوسطة', 'همزة متطرفة'], 'همزة وصل'],
+        ['الرياضيات', 'إذا كان 3س + 7 = 25، فما قيمة س؟', ['5', '6', '7', '8'], '6'],
+        ['الرياضيات', 'ما ناتج 17 × 19؟', ['323', '333', '313', '293'], '323'],
+        ['الرياضيات', 'ما قيمة 3/4 من العدد 96؟', ['64', '68', '72', '76'], '72'],
+        ['العلوم', 'ما الغاز الذي يمتصه النبات في عملية البناء الضوئي؟', ['الأكسجين', 'ثاني أكسيد الكربون', 'النيتروجين', 'الهيدروجين'], 'ثاني أكسيد الكربون'],
+        ['العلوم', 'أي عضو يضخ الدم إلى جميع أجزاء الجسم؟', ['الرئة', 'الكبد', 'القلب', 'الكلى'], 'القلب'],
+        ['العلوم', 'ما وحدة قياس شدة التيار الكهربائي؟', ['الفولت', 'الأوم', 'الواط', 'الأمبير'], 'الأمبير'],
+        ['المعلومات العامة', 'كم عدد أيام السنة الكبيسة؟', ['365', '366', '364', '367'], '366'],
+        ['المعلومات العامة', 'ما الدولة التي تقع فيها مدينة مراكش؟', ['تونس', 'المغرب', 'الجزائر', 'ليبيا'], 'المغرب'],
+        ['المعلومات العامة', 'ما اسم الجهاز الذي يقيس الزلازل؟', ['البارومتر', 'الترمومتر', 'السيزموجراف', 'الهيدرومتر'], 'السيزموجراف']
     ];
 
     let cameraStream = null;
@@ -285,7 +285,8 @@
             balance: nextBalance,
             lastExamRewardAt: examAttempt.date,
             lastExamRewardRequestId: examAttempt.requestId,
-            lastExamRewardDateKey: examAttempt.examDateKey
+            lastExamRewardDateKey: examAttempt.examDateKey,
+            lastExamRewardPercentage: examAttempt.percentage
         });
 
         if (result?.ok === false) return result;
@@ -301,6 +302,32 @@
         });
         await authApi.syncNow?.();
         return { ok: true, amount: PASS_REWARD_AMOUNT, email: user.email, nextBalance };
+    }
+
+    async function saveUserExamSnapshot(authApi, application, verifiedStudent, examAttempt) {
+        if (!authApi?.updateUserPersistentData) return { ok: false };
+
+        const user = resolveStudentRewardUser(authApi, application, verifiedStudent);
+        if (!user?.email) return { ok: false };
+
+        const current = authApi.getUserByEmail?.(user.email) || user;
+        const existingAttempts = Array.isArray(current.examAttempts) ? current.examAttempts : [];
+        const attemptKey = `${examAttempt.requestId}-${examAttempt.examDateKey || examAttempt.date}`;
+        const nextAttempts = [
+            examAttempt,
+            ...existingAttempts.filter((attempt) => (
+                `${attempt?.requestId || ''}-${attempt?.examDateKey || attempt?.date || ''}` !== attemptKey
+            ))
+        ].slice(0, 80);
+
+        return await authApi.updateUserPersistentData(user.email, {
+            examAttempts: nextAttempts,
+            lastExamAttempt: examAttempt,
+            lastExamAttemptAt: examAttempt.date,
+            lastExamAttemptRequestId: examAttempt.requestId,
+            lastExamAttemptPercentage: examAttempt.percentage,
+            lastExamAttemptPassed: examAttempt.passed
+        });
     }
 
     function stopSubmitTimer() {
@@ -648,6 +675,12 @@
                 } else {
                     examAttempt.rewardStatus = 'failed';
                 }
+            }
+
+            try {
+                await saveUserExamSnapshot(authApi, application, verifiedStudent, examAttempt);
+            } catch (error) {
+                console.error('Failed to save user exam snapshot:', error);
             }
 
             const history = store.getExamHistory ? store.getExamHistory() : [];

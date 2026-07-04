@@ -29,6 +29,7 @@
     const DAILY_WAIT_HOURS = 24;
     const MIN_WITHDRAWAL = 100;
     const WALLET_REFRESH_INTERVAL_MS = 20000;
+    const WAITING_DECREMENT_MS = 2 * 60 * 1000;
 
     const BANK_OPTIONS = [
         { id: 'nbe', name: 'البنك الأهلي المصري', hint: 'NBE', code: 'NBE', colors: ['#0f766e', '#134e4a'] },
@@ -203,8 +204,8 @@
             ? null
             : Number(transaction.waitingManualCount);
         if (Number.isFinite(manualCount) && manualCount >= 0) return manualCount;
-        const elapsedHours = Math.max(0, Math.floor((Date.now() - new Date(startedAt).getTime()) / (1000 * 60 * 60)));
-        return Math.max(0, initial - elapsedHours);
+        const elapsedSteps = Math.max(0, Math.floor((Date.now() - new Date(startedAt).getTime()) / WAITING_DECREMENT_MS));
+        return Math.max(0, initial - elapsedSteps);
     }
 
     function appendTransaction(transaction) {

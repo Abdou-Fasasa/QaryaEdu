@@ -1261,8 +1261,98 @@
         return nextSettings;
     }
 
+    function normalizeUserExamAttempt(user, attempt = {}) {
+        const requestId = normalizeRequestId(
+            attempt.requestId
+            || attempt.applicationRequestId
+            || user?.lastExamAttemptRequestId
+            || user?.lastExamRewardRequestId
+            || user?.requestId
+            || user?.applicationRequestId
+        );
+        const date = attempt.date || user?.lastExamAttemptAt || user?.lastExamRewardAt || '';
+        if (!requestId || !date) return null;
+
+        const application = getApplicationByRequestId(requestId);
+        const percentage = Number(attempt.percentage ?? user?.lastExamAttemptPercentage ?? user?.lastExamRewardPercentage ?? 50);
+        const total = Number(attempt.total || 100);
+        const score = Number(attempt.score ?? Math.round((Math.max(0, Math.min(100, percentage)) / 100) * total));
+        const passed = typeof attempt.passed === 'boolean'
+            ? attempt.passed
+            : (typeof user?.lastExamAttemptPassed === 'boolean' ? user.lastExamAttemptPassed : true);
+        const rewardAmount = Number(attempt.rewardAmount || (user?.lastExamRewardAt ? 100 : 0));
+
+        return {
+            requestId,
+            name: normalizeText(attempt.name) || application?.name || user?.name || 'طالب المنصة',
+            nationalId: normalizeText(attempt.nationalId) || application?.nationalId || user?.nationalId || '',
+            studentEmail: normalizeEmail(attempt.studentEmail || application?.studentEmail || user?.email || ''),
+            leaderCode: normalizeText(attempt.leaderCode) || application?.leaderCode || user?.leaderCode || '',
+            governorate: normalizeText(attempt.governorate) || application?.governorate || user?.governorate || '',
+            city: normalizeText(attempt.city) || application?.city || user?.city || '',
+            village: normalizeText(attempt.village) || application?.village || user?.village || '',
+            age: attempt.age || application?.age || user?.age || '',
+            gender: normalizeText(attempt.gender) || application?.gender || user?.gender || '',
+            examLevel: normalizeText(attempt.examLevel) || (Number(application?.age || user?.age || 0) >= 18 ? 'senior' : 'junior'),
+            day: normalizeText(attempt.day),
+            score,
+            total,
+            percentage: Number.isFinite(percentage) ? percentage : 50,
+            passed,
+            date,
+            examDateKey: normalizeText(attempt.examDateKey) || getEgyptDateKey(date),
+            approved: attempt.approved !== false,
+            passThreshold: Number(attempt.passThreshold || 50),
+            rewardAmount,
+            rewardGrantedAt: attempt.rewardGrantedAt || user?.lastExamRewardAt || '',
+            rewardStatus: normalizeText(attempt.rewardStatus) || (rewardAmount > 0 ? 'granted' : 'recovered'),
+            rewardEmail: normalizeEmail(attempt.rewardEmail || user?.email || ''),
+            walletBalanceAfter: attempt.walletBalanceAfter ?? null,
+            source: attempt.source || (attempt.requestId ? 'user-account' : 'wallet-reward')
+        };
+    }
+
+    function getUserExamAttempts() {
+        const authApi = getAuthApi();
+        const users = typeof authApi?.getAllUsers === 'function' ? authApi.getAllUsers() : [];
+        return normalizeArray(users).flatMap((user) => {
+            const attempts = normalizeArray(user?.examAttempts)
+                .map((attempt) => normalizeUserExamAttempt(user, attempt))
+                .filter(Boolean);
+
+            if (!attempts.length && (user?.lastExamRewardAt || user?.lastExamAttemptAt)) {
+                const recovered = normalizeUserExamAttempt(user, {});
+                if (recovered) attempts.push(recovered);
+            }
+
+            return attempts;
+        }).filter((attempt) => isAllowedExamRecord(attempt));
+    }
+
+    function mergeExamAttemptLists(...lists) {
+        const map = new Map();
+        lists.flat().forEach((attempt) => {
+            const normalizedRequestId = normalizeRequestId(attempt?.requestId);
+            if (!normalizedRequestId) return;
+            const key = [
+                normalizedRequestId,
+                attempt?.examDateKey || getEgyptDateKey(attempt?.date),
+                attempt?.date || '',
+                attempt?.percentage ?? ''
+            ].join('::');
+            if (!map.has(key)) {
+                map.set(key, { ...attempt, requestId: normalizedRequestId });
+            }
+        });
+        return Array.from(map.values())
+            .sort((first, second) => new Date(second.date || 0).getTime() - new Date(first.date || 0).getTime());
+    }
+
     function getExamHistory() {
-        return filterExamHistory(getStoredExamHistory()).slice().sort((first, second) => new Date(second.date || 0).getTime() - new Date(first.date || 0).getTime());
+        return mergeExamAttemptLists(
+            filterExamHistory(getStoredExamHistory()),
+            filterExamHistory(getUserExamAttempts())
+        );
     }
 
     function getExamHistoryByRequestId(requestId) {

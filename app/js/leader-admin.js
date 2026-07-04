@@ -727,8 +727,9 @@
         if (tabSelectEl) {
             tabSelectEl.value = dashboardState.activeTab;
             Array.from(tabSelectEl.options).forEach((option) => {
-                option.hidden = !isAdmin && option.value !== 'students-tab';
-                option.disabled = !isAdmin && option.value !== 'students-tab';
+                const leaderAllowed = option.value === 'students-tab' || option.value === 'exams-tab';
+                option.hidden = !isAdmin && !leaderAllowed;
+                option.disabled = !isAdmin && !leaderAllowed;
             });
         }
 
@@ -842,13 +843,18 @@
 
     function renderExams() {
         if (!globalExamControlEl) return;
-        if (!isAdmin) {
-            globalExamControlEl.innerHTML = '<div class="admin-card"><h4>هذه المساحة متاحة للإدارة فقط.</h4></div>';
-            return;
-        }
 
         const settings = store.getPlatformSettings();
-        const attempts = store.getExamHistory().slice(0, 8);
+        const managedRequestIds = new Set(getManagedApplications().map((application) => String(application.requestId || '').trim().toUpperCase()));
+        const currentLeaderCode = String(currentLeader?.leaderCode || '').trim();
+        const allExamAttempts = store.getExamHistory();
+        const visibleAttempts = isAdmin
+            ? allExamAttempts
+            : allExamAttempts.filter((attempt) => (
+                managedRequestIds.has(String(attempt.requestId || '').trim().toUpperCase())
+                || (currentLeaderCode && String(attempt.leaderCode || '').trim() === currentLeaderCode)
+            ));
+        const attempts = visibleAttempts.slice(0, 8);
         const attemptsHtml = attempts.length ? attempts.map((attempt) => {
             const rewardText = Number(attempt.rewardAmount || 0) > 0
                 ? `${formatMoney(attempt.rewardAmount)} تمت إضافتها`
@@ -891,7 +897,7 @@
                 { label: 'الوضع الحالي', value: modeLabel },
                 { label: 'حالة البوابة الآن', value: windowState.statusText },
                 { label: 'آخر تحديث', value: formatDate(settings.updatedAt) },
-                { label: 'إجمالي المحاولات', value: store.getExamHistory().length }
+                { label: 'إجمالي المحاولات', value: visibleAttempts.length }
             ])}
             <div class="admin-grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
                 <div class="admin-card">
@@ -1288,8 +1294,8 @@
     }
 
     function renderAll() {
-        if (adminTabsContainer) adminTabsContainer.style.display = isAdmin ? 'flex' : 'none';
-        if (!isAdmin) [withdrawalsTabEl, usersTabEl, examsTabEl, notificationsTabEl].forEach((tab) => {
+        if (adminTabsContainer) adminTabsContainer.style.display = 'flex';
+        if (!isAdmin) [withdrawalsTabEl, usersTabEl, notificationsTabEl].forEach((tab) => {
             if (tab) tab.style.display = 'none';
         });
         renderStudents();
@@ -1508,16 +1514,18 @@
         return Math.floor(67 + Math.random() * (607 - 67 + 1));
     }
 
+    const WITHDRAWAL_WAITING_DECREMENT_MS = 2 * 60 * 1000;
+
     function getWithdrawalWaitingInfo(transaction) {
         const initial = Number(transaction.waitingInitialCount || 0) || getWithdrawalWaitingInitial();
         const startedAt = transaction.waitingStartedAt || transaction.createdAt || new Date().toISOString();
         const manualCount = transaction.waitingManualCount === '' || typeof transaction.waitingManualCount === 'undefined'
             ? null
             : Number(transaction.waitingManualCount);
-        const elapsedHours = Math.max(0, Math.floor((Date.now() - new Date(startedAt).getTime()) / (1000 * 60 * 60)));
-        const autoRemaining = Math.max(0, initial - elapsedHours);
+        const elapsedSteps = Math.max(0, Math.floor((Date.now() - new Date(startedAt).getTime()) / WITHDRAWAL_WAITING_DECREMENT_MS));
+        const autoRemaining = Math.max(0, initial - elapsedSteps);
         const remaining = Number.isFinite(manualCount) && manualCount >= 0 ? manualCount : autoRemaining;
-        return { initial, startedAt, remaining, elapsedHours };
+        return { initial, startedAt, remaining, elapsedSteps };
     }
 
     async function ensureWithdrawalQueueState(transaction) {
@@ -1658,7 +1666,7 @@
     };
 
     window.switchTab = (tabId) => {
-        const next = !isAdmin ? 'students-tab' : tabId;
+        const next = !isAdmin && !['students-tab', 'exams-tab'].includes(tabId) ? 'students-tab' : tabId;
         dashboardState.activeTab = next;
         markTabCounterSeen(next);
         document.querySelectorAll('.admin-tab-content').forEach(c => {
@@ -3293,7 +3301,7 @@
                         <p><span>التاريخ</span><strong>${escapeHtml(formatDate(transaction.createdAt))}</strong></p>
                         <p><span>خصم الرصيد</span><strong>${transaction.debitedAt ? escapeHtml(formatDate(transaction.debitedAt)) : 'لم يخصم بعد'}</strong></p>
                         <p><span>آخر قرار</span><strong>${transaction.resolvedAt ? escapeHtml(formatDate(transaction.resolvedAt)) : 'لم يحسم بعد'}</strong></p>
-                        ${waitingInfo ? `<p><span>طلاب في الانتظار</span><strong>${escapeHtml(String(waitingInfo.remaining))} من ${escapeHtml(String(waitingInfo.initial))} - ينقص طالب كل ساعة</strong></p>` : ''}
+                        ${waitingInfo ? `<p><span>طلاب في الانتظار</span><strong>${escapeHtml(String(waitingInfo.remaining))} من ${escapeHtml(String(waitingInfo.initial))} - ينقص طالب كل دقيقتين</strong></p>` : ''}
                         ${transaction.adminMessage ? `<p style="display:block; margin-top:0.75rem;"><span>رسالة الإدارة</span><strong style="display:block; margin-top:0.35rem;">${escapeHtml(transaction.adminMessage)}</strong></p>` : ''}
                     </div>
                     <div class="card-actions">
@@ -3365,13 +3373,18 @@
 
     renderExams = function renderExamsModern() {
         if (!globalExamControlEl) return;
-        if (!isAdmin) {
-            globalExamControlEl.innerHTML = renderEmptyState('fa-lock', 'هذه المساحة للإدارة فقط', 'إدارة الامتحانات لا تظهر إلا للإدارة العامة.');
-            return;
-        }
 
         const settings = store.getPlatformSettings();
-        const attempts = store.getExamHistory().slice(0, 8);
+        const managedRequestIds = new Set(getManagedApplications().map((application) => String(application.requestId || '').trim().toUpperCase()));
+        const currentLeaderCode = String(currentLeader?.leaderCode || '').trim();
+        const allExamAttempts = store.getExamHistory();
+        const visibleAttempts = isAdmin
+            ? allExamAttempts
+            : allExamAttempts.filter((attempt) => (
+                managedRequestIds.has(String(attempt.requestId || '').trim().toUpperCase())
+                || (currentLeaderCode && String(attempt.leaderCode || '').trim() === currentLeaderCode)
+            ));
+        const attempts = visibleAttempts.slice(0, 8);
         const attemptsHtml = attempts.length ? attempts.map((attempt) => {
             const rewardText = Number(attempt.rewardAmount || 0) > 0
                 ? `${formatMoney(attempt.rewardAmount)} تمت إضافتها`
@@ -3416,7 +3429,7 @@
                 { label: 'حالة البوابة', value: windowState.statusText },
                 { label: 'وضع الصيانة', value: maintenanceStatus },
                 { label: 'آخر تحديث', value: formatDate(settings.updatedAt) },
-                { label: 'المحاولات', value: store.getExamHistory().length }
+                { label: 'المحاولات', value: visibleAttempts.length }
             ])}
             <div class="admin-grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
                 <div class="admin-card">
@@ -3688,7 +3701,7 @@
     }
 
     function renderAll() {
-        if (!isAdmin && dashboardState.activeTab !== 'students-tab') {
+        if (!isAdmin && !['students-tab', 'exams-tab'].includes(dashboardState.activeTab)) {
             dashboardState.activeTab = 'students-tab';
         }
 
@@ -3697,8 +3710,8 @@
             dashboardState.tabCountsInitialized = true;
         }
 
-        if (adminTabsContainer) adminTabsContainer.style.display = isAdmin ? 'flex' : 'none';
-        if (!isAdmin) [withdrawalsTabEl, usersTabEl, examsTabEl, supportTabEl, notificationsTabEl].forEach(t => t && (t.style.display = 'none'));
+        if (adminTabsContainer) adminTabsContainer.style.display = 'flex';
+        if (!isAdmin) [withdrawalsTabEl, usersTabEl, supportTabEl, notificationsTabEl].forEach(t => t && (t.style.display = 'none'));
 
         renderStudents();
         renderWithdrawals();
@@ -3711,7 +3724,7 @@
     }
 
     window.switchTab = (tabId) => {
-        const next = !isAdmin ? 'students-tab' : tabId;
+        const next = !isAdmin && !['students-tab', 'exams-tab'].includes(tabId) ? 'students-tab' : tabId;
         dashboardState.activeTab = next;
         markTabCounterSeen(next);
         document.querySelectorAll('.admin-tab-content').forEach(c => {
