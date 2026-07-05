@@ -22,6 +22,8 @@
     const serviceDropdowns = [];
     const SUPPORT_GUEST_KEY = 'qaryaeduSupportGuestProfile';
     const DISMISSED_NOTIFICATIONS_KEY = 'qaryaeduDismissedNotifications';
+    const SERVER_SYNC_TOAST_SEEN_KEY = 'qaryaeduServerSyncToastSeen';
+    const SERVER_SYNC_TOAST_DISMISSED_KEY = 'qaryaeduServerSyncToastDismissed';
     const SUPPORT_FAQ = [
         { question: 'متى يفتح الامتحان؟', answer: 'بوابة الامتحان تعمل حسب الضبط الحالي للمنصة. في الوضع العادي تفتح حسب الجدول الرسمي، ويمكن للإدارة أيضًا فتحها أو إيقافها يدويًا.' },
         { question: 'كيف أتابع حالة الطلب؟', answer: 'من قسم خدمات الطالب اختر حالة الطلب، ثم اكتب رقم الطلب والرقم القومي لعرض آخر تحديث مسجل على طلبك.' },
@@ -55,6 +57,7 @@
     const runtimeSeenNotifications = new Map();
     let runtimeNotificationsSeeded = false;
     let managedNotificationSurfaceSignature = '';
+    let serverSyncToastVisible = false;
 
     function escapeHtml(value) {
         return String(value || '')
@@ -67,6 +70,34 @@
 
     function getStoreApi() {
         return window.QaryaPlatformStore || store || null;
+    }
+
+    function getLocalFlag(key) {
+        try {
+            return localStorage.getItem(key) === 'true';
+        } catch (error) {
+            return false;
+        }
+    }
+
+    function setLocalFlag(key) {
+        try {
+            localStorage.setItem(key, 'true');
+        } catch (error) {}
+    }
+
+    function maybeShowServerSyncToast(source) {
+        if (source !== 'firebase-sync') return;
+        if (!authApi || !authApi.isAdminSession(authApi.getSession())) return;
+        if (serverSyncToastVisible) return;
+        if (getLocalFlag(SERVER_SYNC_TOAST_SEEN_KEY) || getLocalFlag(SERVER_SYNC_TOAST_DISMISSED_KEY)) return;
+
+        serverSyncToastVisible = true;
+        setLocalFlag(SERVER_SYNC_TOAST_SEEN_KEY);
+        showLiveNotification('تنبيه المنصة', 'تم تحديث البيانات من السيرفر لحظياً', () => {
+            serverSyncToastVisible = false;
+            setLocalFlag(SERVER_SYNC_TOAST_DISMISSED_KEY);
+        }, { iconClass: 'fa-cloud-arrow-down' });
     }
 
     function getPlatformStorePath() {
@@ -808,10 +839,7 @@
             return;
         }
 
-        // إظهار إشعار بسيط للأدمن عند التحديث اللحظي من السيرفر
-        if (e.detail?.source === 'firebase-sync' && authApi && authApi.isAdminSession(authApi.getSession())) {
-            showToast('تم تحديث البيانات من السيرفر لحظياً', 'info');
-        }
+        maybeShowServerSyncToast(e.detail?.source);
 
         if (typeof renderSidebar === 'function') renderSidebar();
         injectAuthSummary();
