@@ -369,7 +369,70 @@
     }
 
     function showToast(message) {
-        window.alert(message);
+        const text = String(message || '').trim();
+        if (!text) return;
+
+        let container = document.getElementById('admin-toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'admin-toast-container';
+            container.style.cssText = [
+                'position:fixed',
+                'z-index:99999',
+                'left:18px',
+                'bottom:18px',
+                'display:flex',
+                'flex-direction:column',
+                'gap:10px',
+                'max-width:min(420px, calc(100vw - 36px))',
+                'pointer-events:none'
+            ].join(';');
+            document.body.appendChild(container);
+        }
+
+        const toast = document.createElement('div');
+        toast.setAttribute('role', 'status');
+        toast.style.cssText = [
+            'pointer-events:auto',
+            'display:flex',
+            'align-items:flex-start',
+            'gap:10px',
+            'padding:12px 14px',
+            'border-radius:12px',
+            'background:#111827',
+            'color:#fff',
+            'box-shadow:0 16px 40px rgba(15,23,42,.22)',
+            'font-size:14px',
+            'line-height:1.6',
+            'direction:rtl'
+        ].join(';');
+
+        const body = document.createElement('span');
+        body.textContent = text;
+        body.style.flex = '1';
+
+        const close = document.createElement('button');
+        close.type = 'button';
+        close.setAttribute('aria-label', 'Close notification');
+        close.innerHTML = '&times;';
+        close.style.cssText = [
+            'border:0',
+            'background:transparent',
+            'color:#fff',
+            'font-size:20px',
+            'line-height:1',
+            'cursor:pointer',
+            'padding:0 2px'
+        ].join(';');
+
+        const removeToast = () => {
+            toast.style.opacity = '0';
+            window.setTimeout(() => toast.remove(), 180);
+        };
+        close.addEventListener('click', removeToast);
+        toast.append(body, close);
+        container.appendChild(toast);
+        window.setTimeout(removeToast, 4200);
     }
 
     function guardAdmin() {
@@ -1541,6 +1604,50 @@
             });
         }
         if (info.remaining > 0) return transaction;
+
+        const user = authApi.getUserByEmail(transaction.email);
+        const amountValue = Number(transaction.amount || 0);
+        const balanceValue = Number(user?.balance || 0);
+        const amount = Number.isFinite(amountValue) ? amountValue : 0;
+        const currentBalance = Number.isFinite(balanceValue) ? balanceValue : 0;
+        const hasEnoughBalance = Boolean(user)
+            && Number.isFinite(amountValue)
+            && Number.isFinite(balanceValue)
+            && amountValue <= balanceValue;
+
+        if (!hasEnoughBalance) {
+            const blockedAmount = Number(transaction.autoCompleteBlockedAmount || 0);
+            const blockedBalance = Number(transaction.autoCompleteBlockedBalance || 0);
+            const alreadyBlocked = transaction.autoCompleteBlockedReason === 'insufficient_balance'
+                && blockedAmount === amount
+                && blockedBalance === currentBalance;
+
+            if (!alreadyBlocked) {
+                const now = new Date().toISOString();
+                authApi.updateTransaction(transaction.email, transaction.txId, {
+                    waitingManualCount: 0,
+                    autoCompleteBlockedReason: 'insufficient_balance',
+                    autoCompleteBlockedAt: now,
+                    autoCompleteBlockedAmount: amount,
+                    autoCompleteBlockedBalance: currentBalance,
+                    adminMessage: transaction.adminMessage || 'تعذر التنفيذ التلقائي لأن رصيد المستخدم أقل من مبلغ السحب. يمكن تعديل الرصيد أو رفض الطلب أو تنفيذه يدويًا بعد المراجعة.',
+                    updatedAt: now
+                });
+            }
+
+            return authApi.getTransaction(transaction.email, transaction.txId) || transaction;
+        }
+
+        if (transaction.autoCompleteBlockedReason) {
+            authApi.updateTransaction(transaction.email, transaction.txId, {
+                autoCompleteBlockedReason: '',
+                autoCompleteBlockedAt: '',
+                autoCompleteBlockedAmount: '',
+                autoCompleteBlockedBalance: '',
+                updatedAt: new Date().toISOString()
+            });
+        }
+
         await window.setWithdrawalStatus(
             encodeValue(transaction.email),
             encodeValue(transaction.txId),
