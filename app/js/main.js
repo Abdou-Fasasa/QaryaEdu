@@ -94,10 +94,13 @@
 
         serverSyncToastVisible = true;
         setLocalFlag(SERVER_SYNC_TOAST_SEEN_KEY);
-        showLiveNotification('تنبيه المنصة', 'تم تحديث البيانات من السيرفر لحظياً', () => {
+        const toast = showLiveNotification('تنبيه المنصة', 'تم تحديث البيانات من السيرفر لحظياً', () => {
             serverSyncToastVisible = false;
             setLocalFlag(SERVER_SYNC_TOAST_DISMISSED_KEY);
-        }, { iconClass: 'fa-cloud-arrow-down' });
+        }, { iconClass: 'fa-cloud-arrow-down', dismissKey: 'server-sync-toast' });
+        if (!toast) {
+            serverSyncToastVisible = false;
+        }
     }
 
     function getPlatformStorePath() {
@@ -421,6 +424,34 @@
         saveDismissedNotificationsMap(next);
     }
 
+    function getLiveNotificationDismissKey(title, text, options = {}) {
+        const liveSession = getLiveSession();
+        const recipient = normalizeGuestEmail(liveSession?.email || authSession?.email || 'guest');
+        const explicitKey = String(options.dismissKey || '').trim();
+        if (explicitKey) {
+            return `live:${recipient}:${explicitKey}`;
+        }
+        return [
+            'live',
+            recipient,
+            String(title || '').trim(),
+            String(text || '').trim(),
+            String(options.actionUrl || '').trim(),
+            String(options.actionLabel || '').trim()
+        ].join(':');
+    }
+
+    function isLiveNotificationDismissed(key) {
+        return Boolean(getDismissedNotificationsMap()[key]);
+    }
+
+    function dismissLiveNotificationKey(key) {
+        if (!key) return;
+        const next = getDismissedNotificationsMap();
+        next[key] = new Date().toISOString();
+        saveDismissedNotificationsMap(next);
+    }
+
     function resolvePlatformUrl(url) {
         const value = String(url || '').trim();
         if (!value) return '';
@@ -539,10 +570,15 @@
                 return;
             }
 
-            showLiveNotification(note.title, note.body, null, {
+            showLiveNotification(note.title, note.body, () => {
+                dismissNotificationLocally(note);
+                managedNotificationSurfaceSignature = '';
+                renderManagedNotificationSurfaces();
+            }, {
                 actionUrl: note.actionUrl,
                 actionLabel: note.actionLabel || 'فتح التفاصيل',
-                iconClass: note.type === 'support' ? 'fa-comment-dots' : 'fa-bell'
+                iconClass: note.type === 'support' ? 'fa-comment-dots' : 'fa-bell',
+                dismissKey: getNotificationDismissKey(note)
             });
         });
 
@@ -550,10 +586,15 @@
             visibleNotes.forEach((note) => {
                 const key = getRuntimeNotificationKey(note);
                 if (!runtimeSeenNotifications.has(key)) {
-                    showLiveNotification(note.title, note.body, null, {
+                    showLiveNotification(note.title, note.body, () => {
+                        dismissNotificationLocally(note);
+                        managedNotificationSurfaceSignature = '';
+                        renderManagedNotificationSurfaces();
+                    }, {
                         actionUrl: note.actionUrl,
                         actionLabel: note.actionLabel || 'فتح التفاصيل',
-                        iconClass: note.type === 'support' ? 'fa-comment-dots' : 'fa-bell'
+                        iconClass: note.type === 'support' ? 'fa-comment-dots' : 'fa-bell',
+                        dismissKey: getNotificationDismissKey(note)
                     });
                 }
             });
@@ -1252,7 +1293,7 @@
                                 if (!n.read) {
                                     showLiveNotification(n.title, n.text, () => {
                                         set(ref(db, `notifications/${encodedEmail}/${id}/read`), true);
-                                    });
+                                    }, { dismissKey: `cloud-private:${encodedEmail}:${id}:${n.timestamp || n.updatedAt || n.text || ''}` });
                                 }
                             });
                         }
@@ -1267,7 +1308,7 @@
                         if (!localStorage.getItem(KEY)) {
                             showLiveNotification(gn.title, gn.text, () => {
                                 localStorage.setItem(KEY, 'true');
-                            });
+                            }, { dismissKey: `cloud-global:${gn.timestamp || gn.title || ''}` });
                         }
                     }
                 });
@@ -1276,8 +1317,18 @@
     }
 
     function showLiveNotification(title, text, onClose, options = {}) {
+        const persistDismiss = options.persistDismiss !== false;
+        const dismissKey = persistDismiss ? getLiveNotificationDismissKey(title, text, options) : '';
+        if (persistDismiss && isLiveNotificationDismissed(dismissKey)) {
+            return null;
+        }
+        if (persistDismiss && Array.from(document.querySelectorAll('.floating-notification')).some((item) => item.dataset.liveNotificationKey === dismissKey)) {
+            return null;
+        }
+
         const notif = document.createElement('div');
         notif.className = 'floating-notification';
+        if (dismissKey) notif.dataset.liveNotificationKey = dismissKey;
         notif.style.zIndex = '9999';
         notif.innerHTML = `
             <div class="floating-notification-content">
@@ -1298,12 +1349,16 @@
         
         const closeNotif = () => {
             notif.remove();
+            if (persistDismiss) {
+                dismissLiveNotificationKey(dismissKey);
+            }
             if (onClose) onClose();
         };
 
         notif.querySelector('.floating-notification-close')?.addEventListener('click', closeNotif);
         notif.querySelector('.floating-notification-close-btn')?.addEventListener('click', closeNotif);
         document.body.appendChild(notif);
+        return notif;
     }
 
     function showToast(message) {
@@ -2134,25 +2189,17 @@
 
         setTimeout(() => {
             const prefix = getPrefix();
-            const notification = document.createElement('div');
-            notification.className = 'floating-notification';
-            notification.innerHTML = `
-                <div class="floating-notification-content">
-                    <div class="floating-notification-icon">
-                        <i class="fas fa-comment-dots"></i>
-                    </div>
-                    <div class="floating-notification-text">
-                        <strong>تقديم شكوى لقرية متعلمة؟</strong>
-                        <p>نحن نهتم بصوتك. سيتم إرسال الشكوى دون الإفصاح عن مرسلها للجهة المشتكى عليها.</p>
-                        <div class="floating-notification-actions">
-                            <a href="${prefix}complaints.html" class="btn-primary btn-xs">تقديم شكوى</a>
-                            <button class="btn-ghost btn-xs" onclick="this.closest('.floating-notification').remove()">إغلاق</button>
-                        </div>
-                    </div>
-                </div>
-                <button class="floating-notification-close" onclick="this.closest('.floating-notification').remove()">&times;</button>
-            `;
-            document.body.appendChild(notification);
+            showLiveNotification(
+                'تقديم شكوى لقرية متعلمة؟',
+                'نحن نهتم بصوتك. سيتم إرسال الشكوى دون الإفصاح عن مرسلها للجهة المشتكى عليها.',
+                null,
+                {
+                    actionUrl: `${prefix}complaints.html`,
+                    actionLabel: 'تقديم شكوى',
+                    iconClass: 'fa-comment-dots',
+                    dismissKey: `complaint-reminder:${normalizeGuestEmail(authSession.email)}`
+                }
+            );
             sessionStorage.setItem(COMPLAINT_NOTIF_KEY, 'true');
         }, 2000);
     }
@@ -2169,26 +2216,17 @@
 
         setTimeout(() => {
             const prefix = getPrefix();
-            const notification = document.createElement('div');
-            notification.className = 'floating-notification';
-            notification.style.bottom = '12rem'; // Show above complaint notif if both appear
-            notification.innerHTML = `
-                <div class="floating-notification-content">
-                    <div class="floating-notification-icon" style="background: var(--success-soft); color: var(--success);">
-                        <i class="fas fa-wallet"></i>
-                    </div>
-                    <div class="floating-notification-text">
-                        <strong>رصيدك المتاح: ${formatBalance(userData.balance)}</strong>
-                        <p>لديك رصيد متاح في محفظتك، يمكنك سحبه الآن عبر وسائل السحب المختلفة.</p>
-                        <div class="floating-notification-actions">
-                            <a href="${prefix}wallet.html" class="btn-primary btn-xs">اذهب للمحفظة</a>
-                            <button class="btn-ghost btn-xs" onclick="this.closest('.floating-notification').remove()">إغلاق</button>
-                        </div>
-                    </div>
-                </div>
-                <button class="floating-notification-close" onclick="this.closest('.floating-notification').remove()">&times;</button>
-            `;
-            document.body.appendChild(notification);
+            showLiveNotification(
+                `رصيدك المتاح: ${formatBalance(userData.balance)}`,
+                'لديك رصيد متاح في محفظتك، يمكنك سحبه الآن عبر وسائل السحب المختلفة.',
+                null,
+                {
+                    actionUrl: `${prefix}wallet.html`,
+                    actionLabel: 'اذهب للمحفظة',
+                    iconClass: 'fa-wallet',
+                    dismissKey: `wallet-balance:${normalizeGuestEmail(authSession.email)}:${Number(userData.balance || 0)}`
+                }
+            );
             sessionStorage.setItem(BALANCE_NOTIF_KEY, 'true');
         }, 3000);
     }

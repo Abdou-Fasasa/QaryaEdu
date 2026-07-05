@@ -104,7 +104,72 @@
     }
 
     function alertToast(message) {
-        window.alert(message);
+        const text = String(message || '').trim();
+        if (!text) return;
+        const toastKey = `qaryaAdminProToastDismissed:${authApi.normalizeEmail?.(session.email) || session.email || 'admin'}:${text}`;
+        try {
+            if (localStorage.getItem(toastKey) === 'true') return;
+        } catch (error) {}
+
+        let container = document.getElementById('admin-pro-toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'admin-pro-toast-container';
+            container.style.cssText = [
+                'position:fixed',
+                'z-index:99999',
+                'left:18px',
+                'bottom:18px',
+                'display:flex',
+                'flex-direction:column',
+                'gap:10px',
+                'max-width:min(420px, calc(100vw - 36px))',
+                'pointer-events:none'
+            ].join(';');
+            document.body.appendChild(container);
+        }
+
+        const toast = document.createElement('div');
+        toast.setAttribute('role', 'status');
+        toast.style.cssText = [
+            'pointer-events:auto',
+            'display:flex',
+            'align-items:flex-start',
+            'gap:10px',
+            'padding:12px 14px',
+            'border-radius:12px',
+            'background:#111827',
+            'color:#fff',
+            'box-shadow:0 16px 40px rgba(15,23,42,.22)',
+            'font-size:14px',
+            'line-height:1.6',
+            'direction:rtl'
+        ].join(';');
+
+        const body = document.createElement('span');
+        body.textContent = text;
+        body.style.flex = '1';
+
+        const close = document.createElement('button');
+        close.type = 'button';
+        close.setAttribute('aria-label', 'Close notification');
+        close.innerHTML = '&times;';
+        close.style.cssText = 'border:0;background:transparent;color:#fff;font-size:20px;line-height:1;cursor:pointer;padding:0 2px';
+
+        const removeToast = () => {
+            toast.style.opacity = '0';
+            window.setTimeout(() => toast.remove(), 180);
+        };
+        close.addEventListener('click', () => {
+            try {
+                localStorage.setItem(toastKey, 'true');
+            } catch (error) {}
+            removeToast();
+        });
+
+        toast.append(body, close);
+        container.appendChild(toast);
+        window.setTimeout(removeToast, 4200);
     }
 
     function isSuperAdmin() {

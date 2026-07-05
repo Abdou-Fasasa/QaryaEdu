@@ -371,6 +371,10 @@
     function showToast(message) {
         const text = String(message || '').trim();
         if (!text) return;
+        const toastKey = `qaryaAdminToastDismissed:${authApi.normalizeEmail?.(session.email) || session.email || 'admin'}:${text}`;
+        try {
+            if (localStorage.getItem(toastKey) === 'true') return;
+        } catch (error) {}
 
         let container = document.getElementById('admin-toast-container');
         if (!container) {
@@ -429,7 +433,12 @@
             toast.style.opacity = '0';
             window.setTimeout(() => toast.remove(), 180);
         };
-        close.addEventListener('click', removeToast);
+        close.addEventListener('click', () => {
+            try {
+                localStorage.setItem(toastKey, 'true');
+            } catch (error) {}
+            removeToast();
+        });
         toast.append(body, close);
         container.appendChild(toast);
         window.setTimeout(removeToast, 4200);
