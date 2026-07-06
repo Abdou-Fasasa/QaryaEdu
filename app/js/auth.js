@@ -1496,6 +1496,13 @@
                 
                 await update(ref(db), updates);
             }
+
+            // Broadcast to other tabs
+            if (typeof BroadcastChannel === 'function') {
+                const channel = new BroadcastChannel('qaryaedu-admin-update');
+                channel.postMessage({ type: 'user-updated', email: result.user.email });
+                channel.close();
+            }
         }
         return result;
     }
@@ -1577,6 +1584,13 @@
             const safeTxId = String(normalized.txId).trim().replace(/[.#$[\]/]/g, '_');
             const path = `transactions/${safeEmail}__${safeTxId}`;
             void update(ref(db, path), normalized);
+        }
+
+        // Broadcast to other tabs
+        if (typeof BroadcastChannel === 'function') {
+            const channel = new BroadcastChannel('qaryaedu-admin-update');
+            channel.postMessage({ type: 'transactions-updated' });
+            channel.close();
         }
 
         void syncNow();
