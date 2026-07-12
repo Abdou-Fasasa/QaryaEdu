@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قرية متعلمة - إشعار هام</title>
+    
+    <!-- خطوط جوجل (Cairo) -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- مكتبة الأيقونات FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* إعدادات عامة */
+        :root {
+            --primary-dark: #143533; /* الأخضر الداكن */
+            --primary-light: #ffffff;
+            --accent-green: #107e6d; /* لون الأزرار والأيقونات */
+            --box-bg-dark: #234644; /* لون المربعات في القسم المظلم */
+            --bg-body: #e4efe9; /* لون خلفية الصفحة */
+            --text-gray: #6b7280;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e4efe9, #f2f7f5);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: var(--primary-dark);
+        }
+
+        /* الحاوية الرئيسية (القسمين) */
+        .main-container {
+            display: flex;
+            gap: 20px;
+            max-width: 1100px;
+            width: 100%;
+            align-items: stretch;
+        }
+
+        /* الكروت المشتركة */
+        .card {
+            border-radius: 24px;
+            padding: 40px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+        }
+
+        /* القسم الأيمن (الضوئي - التفاعل) */
+        .light-card {
+            background-color: var(--primary-light);
+            justify-content: center;
+        }
+
+        /* الشعار والتسمية */
+        .logo-header {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            margin-bottom: 50px;
+            gap: 15px;
+        }
+
+        .logo-text {
+            text-align: right;
+        }
+
+        .logo-text h2 {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+            line-height: 1.2;
+        }
+
+        .logo-text p {
+            font-size: 0.8rem;
+            color: var(--text-gray);
+        }
+
+        .logo-icon {
+            background-color: var(--accent-green);
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        /* نصوص القسم الأيمن */
+        .light-card h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: var(--primary-dark);
+            text-align: center;
+        }
+
+        .light-card .subtitle {
+            text-align: center;
+            color: var(--text-gray);
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+        }
+
+        /* زر الإشعارات */
+        .notify-btn {
+            background-color: var(--accent-green);
+            color: white;
+            border: none;
+            padding: 16px;
+            width: 100%;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 8px 20px rgba(16, 126, 109, 0.2);
+        }
+
+        .notify-btn:hover {
+            background-color: #0d6b5c;
+            transform: translateY(-2px);
+        }
+
+        .notify-btn i {
+            font-size: 1.3rem;
+        }
+
+        /* رسالة الأمان المالي */
+        .financial-safety {
+            background-color: #f8faf9;
+            border: 1px solid #e2e8e6;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--primary-dark);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .financial-safety i {
+            color: var(--accent-green);
+            font-size: 1.2rem;
+        }
+
+        .instruction {
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-gray);
+            margin-top: 15px;
+        }
+
+        /* القسم الأيسر (الداكن - المعلومات) */
+        .dark-card {
+            background-color: var(--primary-dark);
+            color: white;
+            flex: 1.2;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .badge {
+            background-color: rgba(255,255,255,0.1);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            margin-bottom: 25px;
+            align-self: flex-start;
+        }
+
+        .dark-card h2.main-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            line-height: 1.3;
+            margin-bottom: 15px;
+        }
+
+        .dark-card p.main-desc {
+            font-size: 1rem;
+            line-height: 1.8;
+            color: #b0c4c2;
+            margin-bottom: 40px;
+        }
+
+        /* شبكة المميزات */
+        .features-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .feature-box {
+            background-color: var(--box-bg-dark);
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.3s;
+        }
+
+        .feature-box:hover {
+            background-color: #2a5250;
+        }
+
+        .feature-box i {
+            font-size: 1.5rem;
+            color: #79d7c6;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .feature-box h4 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .feature-box p {
+            font-size: 0.8rem;
+            color: #9cb5b3;
+            line-height: 1.5;
+        }
+
+        /* رسالة النجاح */
+        .success-msg {
+            display: none;
+            background-color: #d1fae5;
+            color: #065f46;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 700;
+            margin-top: 20px;
+            border: 1px solid #a7f3d0;
+        }
+
+        /* التجاوب مع الهواتف الذكية */
+        @media (max-width: 900px) {
+            .main-container {
+                flex-direction: column;
+            }
+            .dark-card h2.main-title {
+                font-size: 1.8rem;
+            }
+            .light-card h1 {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            .card {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        
+        <!-- القسم الأيمن (التفاعل) -->
+        <div class="card light-card">
+            
+            <div class="logo-header">
+                <div class="logo-text">
+                    <h2>قرية متعلمة</h2>
+                    <p>بوابة الدخول الرسمية</p>
+                </div>
+                <div class="logo-icon">ق</div>
+            </div>
+
+            <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center;">
+                <h1>إشعار هام</h1>
+                <p class="subtitle">نظام مغلق مؤقتاً للتحديث</p>
+
+                <!-- زر الإشعارات -->
+                <button class="notify-btn" id="notifyBtn" onclick="enableNotifications()">
+                    <i class="fa-solid fa-bell"></i> تفعيل الإشعارات
+                </button>
+                
+                <!-- رسالة النجاح -->
+                <div class="success-msg" id="successMsg">
+                    <i class="fa-solid fa-circle-check"></i> تم تفعيل الإشعارات بنجاح!
+                </div>
+
+                <div class="financial-safety">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>جميع العمليات المالية محفوظة وآمنة لحين الفتح مرة أخرى.</span>
+                </div>
+
+                <p class="instruction">يجب تفعيل الإشعارات ليصلكم التنبيه فور عودتنا للعمل.</p>
+            </div>
+        </div>
+
+        <!-- القسم الأيسر (المعلومات) -->
+        <div class="card dark-card">
+            <div class="badge">
+                <i class="fa-solid fa-bolt"></i> بوابة الإشعارات الذكية
+            </div>
+            
+            <h2 class="main-title">قرية متعلمة في توقف مؤقت</h2>
+            <p class="main-desc">مرحباً بطلابنا ومتابعين قرية متعلمة، يرجى العلم أن البرنامج مغلق الآن بشكل مؤقت. سيتم إرسال إشعار إليكم بعد معاودة البرنامج للعمل لتكملة مسيرتكم.</p>
+            
+            <div class="features-grid">
+                <div class="feature-box">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                    <h4>توقف مؤقت</h4>
+                    <p>البرنامج متوقف حالياً وسيعود للعمل في أقرب وقت.</p>
+                </div>
+                
+                <div class="feature-box">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    <h4>إشعار بالعودة</h4>
+                    <p>سنرسل إشعاراً فورياً بمجرد إعادة تشغيل النظام.</p>
+                </div>
+                
+                <div class="feature-box">
+                    <i class="fa-solid fa-wallet"></i>
+                    <h4>حفظ الأموال</h4>
+                    <p>جميع العمليات والأرصدة المالية محفوظة بالكامل.</p>
+                </div>
+                
+                <div class="feature-box">
+                    <i class="fa-solid fa-bell-concierge"></i>
+                    <h4>تفعيل التنبيه</h4>
+                    <p>خطوة واحدة تفصلك عن معرفة موعد الإطلاق.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- كود الجافاسكريبت -->
+    <script>
+        function enableNotifications() {
+            const btn = document.getElementById('notifyBtn');
+            const msg = document.getElementById('successMsg');
+
+            // طلب السماح بالإشعارات من المتصفح بدون طلب اسم او مدخلات
+            if ("Notification" in window) {
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted" || permission === "default") {
+                        // إخفاء الزر وإظهار رسالة التأكيد
+                        btn.style.display = 'none';
+                        msg.style.display = 'block';
+                    } else {
+                        alert("يرجى تفعيل الإشعارات من إعدادات المتصفح في الأعلى ليصلك التنبيه.");
+                    }
+                });
+            } else {
+                // إذا كان المتصفح لا يدعم
+                btn.style.display = 'none';
+                msg.style.display = 'block';
+            }
+        }
+    </script>
+
+</body>
+</html>
