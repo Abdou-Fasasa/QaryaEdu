@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin-allow-popups" />
+  <meta http-equiv="Cross-Origin-Embedder-Policy" content="unsafe-none" />
+  <meta name="description" content="إنشاء حساب جديد في منصة قرية متعلمة عبر البريد الإلكتروني أو Google أو رقم الهاتف." />
+  <title>إنشاء حساب | قرية متعلمة</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script type="module" src="./js/firebase-init.js"></script>
+  <script src="./js/auth.js"></script>
+  <script src="./js/auth-guard.js"></script>
+</head>
+<body class="auth-page">
+  <main class="auth-shell">
+    <div class="auth-vision-layout">
+      <section class="auth-vision-showcase auth-vision-showcase-signup" aria-label="تعريف بإنشاء الحساب">
+        <span class="auth-vision-kicker"><i class="fas fa-user-shield"></i> إنشاء حساب المنصة</span>
+        <h1 class="auth-vision-title">أنشئ حسابك في منصة قرية متعلمة</h1>
+        <p class="auth-vision-text">اختر الوسيلة المناسبة لك لإنشاء حساب جديد والبدء في استخدام كافة خدمات المنصة التعليمية.</p>
+
+        <div class="auth-vision-grid">
+          <article class="auth-vision-card">
+            <strong>بريد إلكتروني</strong>
+            <span>إنشاء حساب مباشر بالبريد وكلمة المرور للدخول السريع.</span>
+          </article>
+          <article class="auth-vision-card">
+            <strong>رقم الهاتف</strong>
+            <span>التحقق عبر رسالة SMS لربط حسابك برقم هاتفك بشكل آمن.</span>
+          </article>
+          <article class="auth-vision-card">
+            <strong>حساب Google</strong>
+            <span>متابعة سريعة وآمنة عبر حساب Google الخاص بك مباشرة.</span>
+          </article>
+          <article class="auth-vision-card">
+            <strong>مزامنة مباشرة</strong>
+            <span>أي حساب جديد يُحفَظ في قاعدة المنصة ليظهر بنفس البيانات على كل جهاز.</span>
+          </article>
+        </div>
+
+        <section class="auth-money-alert auth-provider-alert" aria-label="طريقة إنشاء الحساب">
+          <div class="auth-money-head">
+            <span class="auth-money-badge"><i class="fas fa-sparkles"></i> خيارات التسجيل</span>
+            <span class="auth-money-status">Multi-Provider Auth</span>
+          </div>
+          <div class="auth-money-main">
+            <div class="auth-money-icon">
+              <i class="fas fa-user-plus"></i>
+            </div>
+            <div class="auth-money-copy">
+              <h2 class="auth-money-title">ابدأ رحلتك التعليمية الآن</h2>
+              <p class="auth-money-message">
+                اختر الطريقة التي تفضلها لإنشاء حسابك، وسيتم تجهيز لوحة التحكم الخاصة بك فوراً.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <div class="auth-vision-lane">
+          <article class="auth-lane-card">
+            <span class="auth-lane-label">مزامنة</span>
+            <strong>ربط مباشر بقاعدة المنصة</strong>
+            <p>الحساب لا يبقى محليًا فقط، بل يُحفظ داخل بيانات المنصة ليظهر على الأجهزة الأخرى أيضًا.</p>
+          </article>
+          <article class="auth-lane-card">
+            <span class="auth-lane-label">حماية</span>
+            <strong>جلسة آمنة بعد التفعيل</strong>
+            <p>بعد اكتمال إنشاء الحساب يبدأ الدخول الفوري وتنتقل مباشرة إلى الصفحة المناسبة دون خطوات إضافية.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="auth-vision-panel" aria-labelledby="signup-title">
+        <div class="auth-panel-top">
+          <a class="auth-panel-brand" href="./index.html" aria-label="العودة إلى الصفحة الرئيسية">
+            <span class="brand-mark">ق</span>
+            <span class="brand-text">
+              <span class="logo">قرية متعلمة</span>
+              <small>صفحة إنشاء الحساب</small>
+            </span>
+          </a>
+        </div>
+
+        <div class="auth-panel-heading">
+          <h2 class="auth-panel-title" id="signup-title">إنشاء حساب جديد</h2>
+          <p class="auth-panel-subtitle" id="signup-subtitle">اختر الوسيلة التي تفضلها لإنشاء حسابك والبدء فوراً.</p>
+        </div>
+
+        <div id="signup-message" class="auth-form-message" hidden></div>
+
+        <!-- نموذج البريد الإلكتروني -->
+        <div id="email-signup-section">
+          <form id="email-signup-form" class="auth-form" novalidate>
+            <div class="auth-form-grid auth-form-grid-split">
+              <div class="auth-field">
+                <label for="signup-name">الاسم الكامل</label>
+                <div class="auth-input-wrap">
+                  <input id="signup-name" class="auth-input" type="text" autocomplete="name" placeholder="اكتب الاسم الكامل" required />
+                </div>
+              </div>
+              <div class="auth-field">
+                <label for="signup-email">البريد الإلكتروني</label>
+                <div class="auth-input-wrap">
+                  <input id="signup-email" class="auth-input" type="email" inputmode="email" autocomplete="email" placeholder="name@example.com" required />
+                </div>
+              </div>
+              <div class="auth-field">
+                <label for="signup-password">كلمة المرور</label>
+                <div class="auth-input-wrap">
+                  <input id="signup-password" class="auth-input" type="password" autocomplete="new-password" placeholder="6 أحرف أو أكثر" required />
+                </div>
+              </div>
+              <div class="auth-field">
+                <label for="signup-confirm-password">تأكيد كلمة المرور</label>
+                <div class="auth-input-wrap">
+                  <input id="signup-confirm-password" class="auth-input" type="password" autocomplete="new-password" placeholder="أعد كتابة كلمة المرور" required />
+                </div>
+              </div>
+            </div>
+            <button id="email-signup-submit" class="auth-submit" type="submit">
+              <span>إنشاء الحساب بالبريد</span>
+              <i class="fas fa-user-plus"></i>
+            </button>
+          </form>
+
+          <div class="auth-divider">
+            <span>أو المتابعة عبر</span>
+          </div>
+
+          <button type="button" class="auth-provider-btn auth-provider-btn-google" id="google-signup-btn">
+            <i class="fab fa-google"></i>
+            <span>المتابعة عبر Google</span>
+          </button>
+        </div>
+
+        <div class="auth-helper">
+          <strong>تنبيه</strong>
+          <p id="signup-next-target">بعد التحقق من رقم الهاتف سيتم إنشاء حسابك وفتح المنصة مباشرة.</p>
+          <small>تأكد من كتابة رقم الهاتف بشكل صحيح لتتمكن من استقبال رسالة الكود.</small>
+        </div>
+
+        <div class="auth-link-row">
+          <span>لديك حساب بالفعل؟</span>
+          <a href="./login.html" data-auth-switch="login">تسجيل الدخول</a>
+        </div>
+
+        <div class="auth-panel-foot">
+          <strong>المزايا بعد إنشاء الحساب:</strong>
+          <div class="auth-panel-foot-grid">
+            <span><i class="fas fa-bolt"></i> دخول أسرع</span>
+            <span><i class="fas fa-database"></i> مزامنة مع قاعدة البيانات</span>
+            <span><i class="fas fa-bell"></i> استقبال الإشعارات</span>
+            <span><i class="fas fa-mobile-screen"></i> دعم كل الشاشات</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="./js/signup-page.js"></script>
+</body>
+</html>

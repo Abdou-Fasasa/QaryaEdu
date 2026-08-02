@@ -1,0 +1,14 @@
+{
+  "applications": [],
+  "examHistory": [],
+  "examClears": [],
+  "notifications": [],
+  "supportThreads": [],
+  "users": [],
+  "transactions": [],
+  "settings": {
+    "examMode": "default",
+    "examModeMessage": "",
+    "updatedAt": ""
+  }
+}
