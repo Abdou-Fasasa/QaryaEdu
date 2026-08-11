@@ -27,6 +27,8 @@
     let syncInFlight = null;
     let remotePollStarted = false;
     let lastKnownSignature = '';
+    let lastDispatchAt = 0;
+    let pendingDispatchTimer = null;
     let platformFirebaseSubscribed = false;
     let platformReadyHooked = false;
 
@@ -436,6 +438,19 @@
     }
 
     function dispatchStoreUpdated() {
+        const now = Date.now();
+        if (pendingDispatchTimer) {
+            window.clearTimeout(pendingDispatchTimer);
+        }
+        if (now - lastDispatchAt < 180) {
+            pendingDispatchTimer = window.setTimeout(() => {
+                pendingDispatchTimer = null;
+                lastDispatchAt = Date.now();
+                window.dispatchEvent(new CustomEvent(STORE_EVENT));
+            }, 80);
+            return;
+        }
+        lastDispatchAt = now;
         window.dispatchEvent(new CustomEvent(STORE_EVENT));
     }
 

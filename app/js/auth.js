@@ -82,6 +82,8 @@
     let syncPromise = null;
     let syncQueued = false;
     let lastRemoteRefresh = 0;
+    let lastStoreDispatchAt = 0;
+    let pendingStoreDispatchTimer = null;
     let pollStarted = false;
     let firebaseSyncSubscribed = false;
     let firebaseStateSubscribed = false;
@@ -1113,6 +1115,19 @@
     }
 
     function notifyStoreUpdated(detail = {}) {
+        const now = Date.now();
+        if (pendingStoreDispatchTimer) {
+            window.clearTimeout(pendingStoreDispatchTimer);
+        }
+        if (now - lastStoreDispatchAt < 180) {
+            pendingStoreDispatchTimer = window.setTimeout(() => {
+                pendingStoreDispatchTimer = null;
+                lastStoreDispatchAt = Date.now();
+                window.dispatchEvent(new CustomEvent(AUTH_STORE_EVENT, { detail }));
+            }, 80);
+            return;
+        }
+        lastStoreDispatchAt = now;
         window.dispatchEvent(new CustomEvent(AUTH_STORE_EVENT, { detail }));
     }
 

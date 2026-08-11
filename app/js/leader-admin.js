@@ -70,14 +70,23 @@
     };
 
     let renderFrameId = 0;
+    let renderLock = false;
     let refreshInFlight = null;
+    let userActionInFlight = false;
     const inputDebounceTimers = new WeakMap();
 
     function scheduleRenderAll() {
+        if (renderLock) return;
         if (renderFrameId) return;
         renderFrameId = window.requestAnimationFrame(() => {
             renderFrameId = 0;
-            renderAll();
+            if (renderLock) return;
+            renderLock = true;
+            try {
+                renderAll();
+            } finally {
+                renderLock = false;
+            }
         });
     }
 
@@ -467,8 +476,9 @@
                 console.error('Dashboard background refresh failed:', error);
             } finally {
                 // Keep the dashboard usable even if an external service is slow
-                // or temporarily unavailable.
-                renderAll();
+                // or temporarily unavailable. Use a guarded render trigger instead of
+                // calling the full render cycle immediately from within refresh.
+                scheduleRenderAll();
             }
         })();
 
@@ -2268,40 +2278,60 @@
         });
     };
 
+    async function runUserAction(task) {
+        if (userActionInFlight) return;
+        userActionInFlight = true;
+        try {
+            await task();
+        } finally {
+            userActionInFlight = false;
+        }
+    }
+
     window.toggleUserStatus = async (encodedEmail) => {
         if (!guardAdmin()) return;
-        const email = decodeValue(encodedEmail);
-        const user = authApi.getUserByEmail(email);
-        if (!user) return;
-        const nextSuspended = !user.isSuspended;
-        authApi.updateUserPersistentData(email, { isSuspended: nextSuspended });
-        await notifyUserAccountChange(email, {
-            title: nextSuspended ? 'إيقاف الحساب' : 'تنشيط الحساب',
-            body: nextSuspended
-                ? 'تم إيقاف حسابك مؤقتًا من الإدارة. إذا كنت تحتاج مراجعة الحالة تابع الإشعارات.'
-                : 'تمت إعادة تنشيط حسابك ويمكنك متابعة استخدام المنصة الآن.'
+        await runUserAction(async () => {
+            const email = decodeValue(encodedEmail);
+            const user = authApi.getUserByEmail(email);
+            if (!user) return;
+            const nextSuspended = !user.isSuspended;
+            authApi.updateUserPersistentData(email, { isSuspended: nextSuspended });
+            scheduleRenderAll();
+            await notifyUserAccountChange(email, {
+                title: nextSuspended ? 'إيقاف الحساب' : 'تنشيط الحساب',
+                body: nextSuspended
+                    ? 'تم إيقاف حسابك مؤقتًا من الإدارة. إذا كنت تحتاج مراجعة الحالة تابع الإشعارات.'
+                    : 'تمت إعادة تنشيط حسابك ويمكنك متابعة استخدام المنصة الآن.'
+            });
+            await Promise.allSettled([
+                syncAll(),
+                refreshAll(true)
+            ]);
+            showToast(`تم ${nextSuspended ? 'إيقاف' : 'تنشيط'} حساب المستخدم بنجاح.`);
         });
-        await syncAll();
-        await refreshAll(true);
-        showToast(`تم ${nextSuspended ? 'إيقاف' : 'تنشيط'} حساب المستخدم بنجاح.`);
     };
 
     window.toggleUserExam = async (encodedEmail) => {
         if (!guardAdmin()) return;
-        const email = decodeValue(encodedEmail);
-        const user = authApi.getUserByEmail(email);
-        if (!user) return;
-        const nextExamAllowed = user.examAllowed === false;
-        authApi.updateUserPersistentData(email, { examAllowed: nextExamAllowed });
-        await notifyUserAccountChange(email, {
-            title: nextExamAllowed ? 'السماح بالامتحان' : 'منع الامتحان',
-            body: nextExamAllowed
-                ? 'تم السماح لك بدخول الامتحان من الإدارة.'
-                : 'تم إيقاف صلاحية دخول الامتحان على حسابك من الإدارة.'
+        await runUserAction(async () => {
+            const email = decodeValue(encodedEmail);
+            const user = authApi.getUserByEmail(email);
+            if (!user) return;
+            const nextExamAllowed = user.examAllowed === false;
+            authApi.updateUserPersistentData(email, { examAllowed: nextExamAllowed });
+            scheduleRenderAll();
+            await notifyUserAccountChange(email, {
+                title: nextExamAllowed ? 'السماح بالامتحان' : 'منع الامتحان',
+                body: nextExamAllowed
+                    ? 'تم السماح لك بدخول الامتحان من الإدارة.'
+                    : 'تم إيقاف صلاحية دخول الامتحان على حسابك من الإدارة.'
+            });
+            await Promise.allSettled([
+                syncAll(),
+                refreshAll(true)
+            ]);
+            showToast(`تم ${nextExamAllowed ? 'السماح بدخول' : 'منع'} الامتحان للمستخدم بنجاح.`);
         });
-        await syncAll();
-        await refreshAll(true);
-        showToast(`تم ${nextExamAllowed ? 'السماح بدخول' : 'منع'} الامتحان للمستخدم بنجاح.`);
     };
 
     window.removeUser = async (encodedEmail) => {
@@ -2869,42 +2899,50 @@
 
     window.toggleUserWithdrawal = async (encodedEmail) => {
         if (!guardAdmin()) return;
-        const email = decodeValue(encodedEmail);
-        const user = authApi.getUserByEmail(email);
-        if (!user) return;
-        const nextWithdrawalState = user.withdrawalsEnabled === false;
-        const defaultLockMessage = user.withdrawalLockMessage || 'تم إيقاف خدمة السحب على حسابك مؤقتًا بقرار من الإدارة.';
+        await runUserAction(async () => {
+            const email = decodeValue(encodedEmail);
+            const user = authApi.getUserByEmail(email);
+            if (!user) return;
+            const nextWithdrawalState = user.withdrawalsEnabled === false;
+            const defaultLockMessage = user.withdrawalLockMessage || 'تم إيقاف خدمة السحب على حسابك مؤقتًا بقرار من الإدارة.';
 
-        if (!nextWithdrawalState) {
-            openModal('قفل السحب وكتابة رسالة للمستخدم', `
-                <div class="form-group"><label>المستخدم</label><input class="form-control" type="text" value="${escapeHtml(user.name || user.email)}" disabled></div>
-                <div class="form-group"><label>رسالة تظهر للمستخدم داخل صفحة السحب</label><textarea class="form-control" id="withdrawal-lock-message" rows="5">${escapeHtml(defaultLockMessage)}</textarea></div>
-            `, async () => {
-                const lockMessage = document.getElementById('withdrawal-lock-message')?.value.trim() || defaultLockMessage;
-                authApi.updateUserPersistentData(email, {
-                    withdrawalsEnabled: false,
-                    withdrawalLockMessage: lockMessage
-                });
-                await notifyUserAccountChange(email, {
-                    title: 'إغلاق السحب على الحساب',
-                    body: lockMessage
-                });
-                await syncAll();
-                await refreshAll(true);
-            }, 'قفل السحب وإرسال الرسالة');
-            return;
-        }
+            if (!nextWithdrawalState) {
+                openModal('قفل السحب وكتابة رسالة للمستخدم', `
+                    <div class="form-group"><label>المستخدم</label><input class="form-control" type="text" value="${escapeHtml(user.name || user.email)}" disabled></div>
+                    <div class="form-group"><label>رسالة تظهر للمستخدم داخل صفحة السحب</label><textarea class="form-control" id="withdrawal-lock-message" rows="5">${escapeHtml(defaultLockMessage)}</textarea></div>
+                `, async () => {
+                    const lockMessage = document.getElementById('withdrawal-lock-message')?.value.trim() || defaultLockMessage;
+                    authApi.updateUserPersistentData(email, {
+                        withdrawalsEnabled: false,
+                        withdrawalLockMessage: lockMessage
+                    });
+                    scheduleRenderAll();
+                    await notifyUserAccountChange(email, {
+                        title: 'إغلاق السحب على الحساب',
+                        body: lockMessage
+                    });
+                    await Promise.allSettled([
+                        syncAll(),
+                        refreshAll(true)
+                    ]);
+                }, 'قفل السحب وإرسال الرسالة');
+                return;
+            }
 
-        authApi.updateUserPersistentData(email, {
-            withdrawalsEnabled: true,
-            withdrawalLockMessage: ''
+            authApi.updateUserPersistentData(email, {
+                withdrawalsEnabled: true,
+                withdrawalLockMessage: ''
+            });
+            scheduleRenderAll();
+            await notifyUserAccountChange(email, {
+                title: 'فتح السحب على الحساب',
+                body: 'تم فتح خدمة السحب على حسابك من الإدارة.'
+            });
+            await Promise.allSettled([
+                syncAll(),
+                refreshAll(true)
+            ]);
         });
-        await notifyUserAccountChange(email, {
-            title: 'فتح السحب على الحساب',
-            body: 'تم فتح خدمة السحب على حسابك من الإدارة.'
-        });
-        await syncAll();
-        await refreshAll(true);
     };
 
     window.setWithdrawalStatus = async (encodedEmail, encodedTxId, status, adminMessage = '') => {
@@ -4138,8 +4176,13 @@
         scheduleRenderAll();
     };
 
-    window.addEventListener(store.storeEventName || 'qarya:store-updated', scheduleRenderAll);
-    window.addEventListener(authApi.storeEventName || 'qarya_auth_store_updated', scheduleRenderAll);
+    const handleStoreRefresh = () => {
+        if (document.hidden) return;
+        scheduleRenderAll();
+    };
+
+    window.addEventListener(store.storeEventName || 'qarya:store-updated', handleStoreRefresh);
+    window.addEventListener(authApi.storeEventName || 'qarya_auth_store_updated', handleStoreRefresh);
     window.addEventListener('focus', () => {
         if (!document.hidden) {
             void refreshAll(true);
