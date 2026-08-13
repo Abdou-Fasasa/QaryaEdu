@@ -153,7 +153,7 @@
             studentPassword: accountFields.password.value.trim()
         });
 
-        await store.syncNow?.();
+        void store.syncNow?.();
         await loadRecord();
         showMessage('pass', 'تم حفظ بيانات الطلب بنجاح.');
     });
@@ -203,10 +203,8 @@
             studentPassword: accountFields.password.value.trim()
         });
 
-        await Promise.all([
-            authApi.syncNow?.(),
-            store.syncNow?.()
-        ]);
+        void authApi.syncNow?.();
+        void store.syncNow?.();
 
         // Real-time broadcast for other tabs (wallet, dashboards)
         if (typeof BroadcastChannel === 'function') {

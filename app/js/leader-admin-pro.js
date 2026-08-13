@@ -246,20 +246,24 @@
         return getManagementRoleDisplay(user);
     }
 
-    async function syncEverything() {
-        await Promise.all([
+    function syncEverything() {
+        const work = Promise.allSettled([
             store.syncNow?.(),
             authApi.syncNow?.(),
             advancedStore.syncNow?.()
         ]);
+        void work.catch((error) => console.error('Advanced dashboard background sync failed:', error));
+        return Promise.resolve(true);
     }
 
-    async function refreshEverything(force = false) {
-        await Promise.all([
+    function refreshEverything(force = false) {
+        const work = Promise.allSettled([
             store.refreshFromRemote?.({ force }),
             authApi.refreshFromRemote?.({ force }),
             advancedStore.refreshFromRemote?.({ force })
         ]);
+        void work.catch((error) => console.error('Advanced dashboard background refresh failed:', error));
+        return Promise.resolve(true);
     }
 
     function ensureStyles() {

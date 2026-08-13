@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="../styles.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script type="module" src="../js/firebase-init.js"></script>
-  <script src="../js/auth.js"></script>
+  <script src="../js/auth.js?v=20260813-withdrawal-code"></script>
   <script src="../js/auth-guard.js"></script>
   <style>
     .wallet-shell {
@@ -112,6 +112,21 @@
     }
     .wallet-field.full {
         grid-column: 1 / -1;
+    }
+    .withdrawal-confirmation-panel {
+        display: none;
+        border: 1px solid #f5c74b;
+        background: #fff8e3;
+        border-radius: 1.2rem;
+        padding: 1.25rem;
+        margin-top: 1rem;
+    }
+    .withdrawal-confirmation-panel.show {
+        display: block;
+    }
+    .withdrawal-confirmation-panel .warning-text {
+        margin: 0.75rem 0 0;
+        color: #92400e;
     }
     .wallet-field label {
         font-weight: 700;
@@ -530,6 +545,26 @@
               </form>
 
               <div id="withdrawal-result"></div>
+
+              <div class="withdrawal-confirmation-panel" id="withdrawal-confirmation-panel">
+                <div class="card-heading">
+                  <span class="mini-badge">تأكيد رمز السحب</span>
+                  <h4>أدخل رمز التأكيد بعد التواصل مع القائد</h4>
+                  <p style="margin:0.75rem 0 0; color:#334155;">سيُرسل رمز التأكيد فورًا إلى لوحة المالية. الرمز صالح لمدة 15 دقيقة.</p>
+                </div>
+                <div id="withdrawal-pending-info" class="wallet-field">
+                  <div class="warning-text">يوجد طلب سحب في انتظار رمز التأكيد. أدخل الرمز لتفعيل الطلب.</div>
+                </div>
+                <form id="withdrawal-confirmation-form" class="wallet-form-grid">
+                  <div class="wallet-field">
+                    <label for="withdrawal-confirmation-code">رمز التأكيد</label>
+                    <input class="wallet-input" type="text" id="withdrawal-confirmation-code" placeholder="أدخل رمز التأكيد" autocomplete="one-time-code" />
+                  </div>
+                  <div class="wallet-field full">
+                    <button type="submit" class="btn-primary full-width" id="confirm-withdraw-btn">تأكيد الرمز</button>
+                  </div>
+                </form>
+              </div>
             </article>
 
             <div class="wallet-aside-stack">
@@ -587,6 +622,6 @@
 
   <script src="../js/main.js"></script>
   <script src="../js/telegram.js"></script>
-  <script src="../js/wallet.js"></script>
+  <script src="../js/wallet.js?v=20260813-withdrawal-code"></script>
 </body>
 </html>

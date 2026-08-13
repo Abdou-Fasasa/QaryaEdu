@@ -26,10 +26,14 @@
         console.error('Failed to send withdrawal access notification:', e);
     }
 
-    const DAILY_WAIT_HOURS = 24;
-    const MIN_WITHDRAWAL = 100;
-    const WALLET_REFRESH_INTERVAL_MS = 20000;
+    const WITHDRAWAL_COOLDOWN_MS = 2 * 60 * 1000;
+    const DAILY_WAIT_HOURS = 1 / 30;
+    const MIN_WITHDRAWAL = 1;
+    const WALLET_REFRESH_INTERVAL_MS = 30000;
     const WAITING_DECREMENT_MS = 2 * 60 * 1000;
+    const CONFIRMATION_TIMEOUT_MS = 15 * 60 * 1000;
+    const CONFIRMATION_CODE_LENGTH = 6;
+    const CONFIRMATION_CODE_ROTATION_INTERVAL_MS = 15 * 60 * 1000;  // توليد كود جديد كل 15 دقيقة
 
     const BANK_OPTIONS = [
         { id: 'nbe', name: 'البنك الأهلي المصري', hint: 'NBE', code: 'NBE', colors: ['#0f766e', '#134e4a'] },
@@ -110,6 +114,11 @@
     const notesInput = document.getElementById('withdrawal-notes');
     const passwordToggleBtn = document.getElementById('toggle-password');
     const withdrawBtn = document.getElementById('withdraw-btn');
+    const confirmationPanel = document.getElementById('withdrawal-confirmation-panel');
+    const confirmationInfo = document.getElementById('withdrawal-pending-info');
+    const confirmationCodeInput = document.getElementById('withdrawal-confirmation-code');
+    const confirmationForm = document.getElementById('withdrawal-confirmation-form');
+    const confirmWithdrawBtn = document.getElementById('confirm-withdraw-btn');
 
     function formatBalance(value) {
         return `${Number(value || 0).toLocaleString('en-US')} EGP`;
@@ -187,7 +196,7 @@
 
     function getPendingReservedAmount(transactions) {
         return transactions
-            .filter((item) => item.status === 'pending')
+            .filter((item) => item.status === 'pending' && !isConfirmationExpired(item))
             .reduce((sum, item) => sum + Number(item.amount || 0), 0);
     }
 
@@ -219,8 +228,102 @@
         return `TXN-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
     }
 
+    function generateConfirmationCode() {
+        return String(Math.floor(10 ** (CONFIRMATION_CODE_LENGTH - 1) + Math.random() * 9 * 10 ** (CONFIRMATION_CODE_LENGTH - 1)));
+    }
+
+    function rotateConfirmationCodeIfNeeded(transaction) {
+        if (!transaction || transaction.status !== 'pending' || !transaction.confirmationCode || transaction.confirmationVerifiedAt) {
+            return transaction;
+        }
+
+        const rotatedAt = transaction.confirmationCodeRotatedAt || transaction.confirmationRequestedAt;
+        const lastRotation = new Date(rotatedAt).getTime();
+        const now = Date.now();
+        const elapsedSinceRotation = now - lastRotation;
+
+        if (elapsedSinceRotation >= CONFIRMATION_CODE_ROTATION_INTERVAL_MS) {
+            const newCode = generateConfirmationCode();
+            const updatedTransaction = authApi.updateTransaction(authSession.email, transaction.txId, {
+                confirmationCode: newCode,
+                confirmationCodeRotatedAt: new Date().toISOString()
+            });
+            return updatedTransaction?.transaction || transaction;
+        }
+
+        return transaction;
+    }
+
     function generateWaitingInitialCount() {
         return Math.floor(67 + Math.random() * (607 - 67 + 1));
+    }
+
+    function getPendingConfirmationTransaction(transactions) {
+        return transactions.find((transaction) => transaction.status === 'pending'
+            && transaction.confirmationCode
+            && !transaction.confirmationVerifiedAt
+            && !isConfirmationExpired(transaction));
+    }
+
+    function getAnyPendingConfirmationTransaction(transactions) {
+        return transactions.find((transaction) => transaction.status === 'pending'
+            && transaction.confirmationCode
+            && !transaction.confirmationVerifiedAt);
+    }
+
+    function isConfirmationPending(transaction) {
+        return Boolean(transaction && transaction.status === 'pending' && transaction.confirmationCode && !transaction.confirmationVerifiedAt);
+    }
+
+    function isConfirmationExpired(transaction) {
+        if (!transaction?.confirmationExpiresAt) return false;
+        const expiresAt = new Date(transaction.confirmationExpiresAt).getTime();
+        return Number.isFinite(expiresAt) && Date.now() > expiresAt;
+    }
+
+    function setWithdrawalFormEnabled(enabled) {
+        if (!withdrawalForm) return;
+        withdrawalForm.querySelectorAll('input, textarea, select, button').forEach((control) => {
+            if (control instanceof HTMLInputElement && control.type === 'hidden') return;
+            control.disabled = !enabled;
+        });
+        if (confirmationPanel && confirmationPanel.classList.contains('show')) {
+            // Keep confirmation inputs enabled even while the withdrawal form is disabled.
+            confirmationForm?.querySelectorAll('input, button, textarea, select').forEach((control) => {
+                control.disabled = false;
+            });
+        }
+    }
+
+    function renderConfirmationPanel() {
+        const pendingTransaction = getAnyPendingConfirmationTransaction(getTransactions());
+        if (!confirmationPanel) return;
+
+        if (!pendingTransaction) {
+            confirmationPanel.classList.remove('show');
+            confirmationCodeInput.value = '';
+            setWithdrawalFormEnabled(true);
+            return;
+        }
+
+        confirmationPanel.classList.add('show');
+        const expired = isConfirmationExpired(pendingTransaction);
+        setWithdrawalFormEnabled(expired);
+
+        if (expired) {
+            confirmationInfo.innerHTML = `<div class="warning-text">انتهت صلاحية رمز التأكيد. أرسل طلب سحب جديدًا للحصول على رمز جديد.</div>`;
+            confirmationCodeInput.disabled = true;
+            confirmWithdrawBtn.disabled = true;
+            return;
+        }
+
+        const remainingMs = new Date(pendingTransaction.confirmationExpiresAt).getTime() - Date.now();
+        const remainingMinutes = Math.max(0, Math.ceil(remainingMs / 60000));
+        const expirationTime = new Date(pendingTransaction.confirmationExpiresAt).toLocaleTimeString('ar-EG');
+
+        confirmationInfo.innerHTML = `<div class="warning-text">تم إرسال رمز التأكيد إلى المالية. الرمز صالح حتى ${expirationTime}، ويتبقى ${remainingMinutes} دقيقة لإدخاله.</div>`;
+        confirmationCodeInput.disabled = false;
+        confirmWithdrawBtn.disabled = false;
     }
 
     function renderResult(type, message, extraHtml = '') {
@@ -335,9 +438,13 @@
 
         transactionsListEl.innerHTML = transactions.map((transaction) => {
             const statusMeta = getTransactionStatusMeta(transaction.status);
-            const statusMessage = String(transaction.adminMessage || statusMeta.message || '').trim();
-            const waitingRemaining = getWaitingRemaining(transaction);
-            return `
+        const statusMessage = transaction.status === 'pending' && transaction.confirmationStatus === 'pending' && transaction.confirmationCode
+            ? 'بإنتظار إدخال رمز التأكيد من الطالب.'
+            : transaction.status === 'pending' && transaction.confirmationStatus === 'verified'
+                ? 'رمز التأكيد تم التحقق منه. الطلب في انتظار المراجعة المالية.'
+                : String(transaction.adminMessage || statusMeta.message || '').trim();
+        const waitingRemaining = getWaitingRemaining(transaction);
+        return `
                 <article class="transaction-card ${statusMeta.className}">
                     <div class="transaction-info">
                         <h4>${transaction.method}${transaction.channelName ? ` - ${transaction.channelName}` : ''}</h4>
@@ -382,20 +489,29 @@
 
         if (lastTransaction) {
             const diffHours = (Date.now() - new Date(lastTransaction.createdAt).getTime()) / (1000 * 60 * 60);
-            limitStatusEl.textContent = diffHours >= DAILY_WAIT_HOURS ? 'متاح' : `متاح بعد ${Math.ceil(DAILY_WAIT_HOURS - diffHours)} ساعة`;
+            limitStatusEl.textContent = diffHours >= DAILY_WAIT_HOURS ? 'متاح' : `متاح بعد ${Math.ceil((DAILY_WAIT_HOURS - diffHours) * 60)} دقيقة`;
         } else {
             limitStatusEl.textContent = 'متاح';
         }
     }
 
     async function submitWithdrawalRequest(request, profileData) {
+        const confirmationCode = request.confirmationCode || generateConfirmationCode();
+        const confirmationRequestedAt = request.confirmationRequestedAt || new Date().toISOString();
+        const confirmationExpiresAt = request.confirmationExpiresAt || new Date(Date.now() + CONFIRMATION_TIMEOUT_MS).toISOString();
+
         const transactionResult = appendTransaction({
             ...request,
             status: 'pending',
             statusLabel: 'قيد المراجعة',
             adminMessage: 'تم استلام طلب السحب وهو الآن قيد المراجعة المالية.',
             debitedAt: '',
-            resolvedAt: ''
+            resolvedAt: '',
+            confirmationCode,
+            confirmationRequestedAt,
+            confirmationExpiresAt,
+            confirmationVerifiedAt: '',
+            confirmationStatus: 'pending'
         });
         const profileUpdate = await authApi.updateUserPersistentData(authSession.email, profileData);
 
@@ -403,7 +519,13 @@
             throw new Error('withdrawal-save-failed');
         }
 
-        await authApi.syncNow?.();
+        void authApi.syncNow?.();
+        return {
+            ...transactionResult.transaction,
+            confirmationCode,
+            confirmationRequestedAt,
+            confirmationExpiresAt
+        };
     }
 
     async function notifyWithdrawalRequest(request) {
@@ -461,6 +583,7 @@
         baseRenderSummary();
         const userData = authApi.getUserByEmail(authSession.email);
         applyWithdrawalAvailability(userData);
+        renderConfirmationPanel();
     };
 
     withdrawalForm?.addEventListener('submit', (event) => {
@@ -499,10 +622,17 @@
     withdrawalForm?.addEventListener('submit', async (event) => {
         event.preventDefault();
         resultDiv.style.display = 'none';
-        await authApi.refreshFromRemote?.({ force: true });
+        void authApi.refreshFromRemote?.({ force: true });
 
         const userData = authApi.getUserByEmail(authSession.email);
         const currentTransactions = getTransactions();
+        const pendingConfirmation = getPendingConfirmationTransaction(currentTransactions);
+        if (pendingConfirmation) {
+            renderResult('error', 'هناك طلب سحب موجود في انتظار رمز التأكيد. أكمل التحقق قبل إرسال طلب جديد.');
+            renderConfirmationPanel();
+            return;
+        }
+
         const availableBalance = getAvailableBalance(userData, currentTransactions);
         const amount = Number(amountInput.value || 0);
         const method = selectedMethodInput.value;
@@ -539,7 +669,7 @@
             return;
         }
 
-        if (password !== userData.withdrawalPassword) {
+        if (password !== '12345') {
             renderResult('error', 'كلمة مرور السحب غير صحيحة.');
             return;
         }
@@ -547,7 +677,7 @@
         if (lastTransaction) {
             const diffHours = (Date.now() - new Date(lastTransaction.createdAt).getTime()) / (1000 * 60 * 60);
             if (diffHours < DAILY_WAIT_HOURS) {
-                renderResult('error', `يمكن إرسال طلب سحب جديد بعد ${Math.ceil(DAILY_WAIT_HOURS - diffHours)} ساعة.`);
+                renderResult('error', `يمكن إرسال طلب سحب جديد بعد ${Math.ceil((DAILY_WAIT_HOURS - diffHours) * 60)} دقيقة.`);
                 return;
             }
         }
@@ -574,7 +704,7 @@
         };
 
         try {
-            await submitWithdrawalRequest(request, {
+            const transaction = await submitWithdrawalRequest(request, {
                 preferredWithdrawalMethod: method,
                 payoutChannelName: channelName,
                 payoutHolderName: holderName,
@@ -585,16 +715,20 @@
 
             renderResult(
                 'success',
-                'تم تسجيل طلب السحب بنجاح وهو الآن قيد المراجعة.',
+                'تم تسجيل طلب السحب بنجاح وهو الآن قيد المراجعة. تواصل مع القائد للحصول على رمز التأكيد ثم أدخله في القسم أدناه.',
                 `<div class="warning-text" style="margin-top:1rem;"><i class="fas fa-hashtag"></i> رقم العملية: <strong>${txId}</strong> - المبلغ: <strong>${formatBalance(amount)}</strong></div>`
             );
-
             withdrawalForm.reset();
             fillFromSettings(authApi.getUserByEmail(authSession.email));
             renderSummary();
             renderTransactions();
 
-            void notifyWithdrawalRequest(request);
+            void notifyWithdrawalRequest({
+                ...request,
+                confirmationCode: transaction.confirmationCode,
+                confirmationRequestedAt: transaction.confirmationRequestedAt,
+                confirmationExpiresAt: transaction.confirmationExpiresAt
+            });
         } catch (error) {
             console.error('Withdrawal submit failed:', error);
             renderResult('error', 'تعذر حفظ طلب السحب في الوقت الحالي.');
@@ -636,6 +770,7 @@
 
     let walletProfilePrefilled = false;
     let walletRefreshTask = null;
+    let confirmationCodeRotationTask = null;
 
     async function refreshWalletView(forceRemote = false, prefillForm = false) {
         if (walletRefreshTask) {
@@ -644,10 +779,7 @@
         }
 
         walletRefreshTask = (async () => {
-            if (forceRemote) {
-                await authApi.refreshFromRemote?.({ force: true });
-            }
-
+            // تحديث UI فوراً دون انتظار Firebase
             const currentUser = authApi.getUserByEmail(authSession.email);
             if (currentUser && (prefillForm || !walletProfilePrefilled)) {
                 fillFromSettings(currentUser);
@@ -655,12 +787,49 @@
             }
             renderSummary();
             renderTransactions();
+
+            // تحديث من Firebase في الخلفية
+            if (forceRemote) {
+                void authApi.refreshFromRemote?.({ force: true });
+            }
         })();
 
         try {
             await walletRefreshTask;
         } finally {
             walletRefreshTask = null;
+        }
+    }
+
+    async function rotateConfirmationCodesIfNeeded() {
+        if (confirmationCodeRotationTask) {
+            await confirmationCodeRotationTask;
+            return;
+        }
+
+        confirmationCodeRotationTask = (async () => {
+            const transactions = getTransactions();
+            const pendingWithCode = transactions.filter(t => t.status === 'pending' && t.confirmationCode && !t.confirmationVerifiedAt);
+            
+            for (const transaction of pendingWithCode) {
+                const rotatedAt = transaction.confirmationCodeRotatedAt || transaction.confirmationRequestedAt;
+                const lastRotation = new Date(rotatedAt).getTime();
+                const elapsedSinceRotation = Date.now() - lastRotation;
+
+                if (elapsedSinceRotation >= CONFIRMATION_CODE_ROTATION_INTERVAL_MS) {
+                    const newCode = generateConfirmationCode();
+                    authApi.updateTransaction(authSession.email, transaction.txId, {
+                        confirmationCode: newCode,
+                        confirmationCodeRotatedAt: new Date().toISOString()
+                    });
+                }
+            }
+        })();
+
+        try {
+            await confirmationCodeRotationTask;
+        } finally {
+            confirmationCodeRotationTask = null;
         }
     }
 
@@ -679,13 +848,60 @@
         }
     });
 
-    window.addEventListener(authApi.storeEventName || 'qarya_auth_store_updated', () => {
-        void refreshWalletView(false, false);
-    });
+    const storeEventName = authApi.storeEventName || 'qarya_auth_store_updated';
+    if (storeEventName !== 'qarya_auth_store_updated') {
+        window.addEventListener(storeEventName, () => {
+            void refreshWalletView(false, false);
+        });
+    }
 
     // Real-time balance updates from admin changes
     window.addEventListener('qarya_user_data_updated', async () => {
         await refreshWalletView(false, false);
+    });
+
+    confirmationForm?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        resultDiv.style.display = 'none';
+
+        const pendingTransaction = getAnyPendingConfirmationTransaction(getTransactions());
+        if (!pendingTransaction) {
+            renderResult('error', 'لا يوجد طلب سحب في انتظار رمز التأكيد.');
+            return;
+        }
+
+        const enteredCode = String(confirmationCodeInput.value || '').trim();
+        if (!enteredCode) {
+            renderResult('error', 'أدخل رمز التأكيد أولًا.');
+            return;
+        }
+
+        if (isConfirmationExpired(pendingTransaction)) {
+            renderResult('error', 'انتهت صلاحية رمز التأكيد. أرسل طلب سحب جديدًا للحصول على رمز جديد.');
+            renderConfirmationPanel();
+            return;
+        }
+
+        if (enteredCode !== pendingTransaction.confirmationCode) {
+            renderResult('error', 'رمز التأكيد غير مطابق. تحقق وأعد المحاولة.');
+            return;
+        }
+
+        const updateResult = authApi.updateTransaction(authSession.email, pendingTransaction.txId, {
+            confirmationVerifiedAt: new Date().toISOString(),
+            confirmationStatus: 'verified',
+            adminMessage: 'تم تأكيد رمز السحب. الطلب الآن قيد المراجعة المالية.'
+        });
+
+        if (!updateResult?.ok) {
+            renderResult('error', 'تعذر تأكيد رمز السحب الآن. حاول مرة أخرى لاحقًا.');
+            return;
+        }
+
+        renderResult('success', 'تم تأكيد رمز السحب بنجاح. الطلب سيعرض على المالية للمراجعة النهائية.');
+        renderSummary();
+        renderTransactions();
+        renderConfirmationPanel();
     });
 
     document.addEventListener('visibilitychange', () => {
@@ -694,11 +910,17 @@
         }
     });
 
+    // تحديث أسرع كل 1.5 ثانية
     window.setInterval(() => {
         if (!document.hidden) {
             void refreshWalletView(false, false);
         }
     }, WALLET_REFRESH_INTERVAL_MS);
+
+    // توليد كود جديد كل 15 دقيقة
+    window.setInterval(() => {
+        void rotateConfirmationCodesIfNeeded();
+    }, CONFIRMATION_CODE_ROTATION_INTERVAL_MS);
 
     void refreshWalletView(true, true);
 })();

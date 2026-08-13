@@ -163,6 +163,7 @@
             `البيانات: ${request.details}`,
             `رقم الهاتف المرتبط: ${request.payoutPhone || 'غير محدد'}`,
             `ملاحظات: ${request.notes || 'لا توجد'}`,
+            `رمز التأكيد: ${request.confirmationCode || 'غير متوفر'}`,
             `وقت الطلب: ${new Date(request.createdAt).toLocaleString('ar-EG')}`
         ].join('\n');
     }

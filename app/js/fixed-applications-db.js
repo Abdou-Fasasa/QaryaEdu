@@ -26,7 +26,7 @@ window.fixedApplications = [
         leaderCode: 'Abdou200',
         studentEmail: 'mohamed.shaban@qarya.edu',
         studentPassword: '123456',
-        withdrawalPassword: 'SPEED',
+        withdrawalPassword: '1-5',
         createdAt: '2026-05-27T09:00:00+03:00',
         message: 'تمت الموافقة على طلبك بنجاح.'
     }

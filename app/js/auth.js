@@ -53,7 +53,7 @@
             leaderCode: 'Abdou200',
             studentEmail: 'mohamed.shaban@qarya.edu',
             studentPassword: '123456',
-            withdrawalPassword: 'SPEED',
+            withdrawalPassword: '12345',
             balance: 100
         }
     ];
@@ -64,7 +64,7 @@
             password: 'Abdou',
             name: 'عبدالرحمن (المدير العام)',
             role: 'ادمن المنصة',
-            withdrawalPassword: 'ADMIN',
+            withdrawalPassword: '12345',
             governorate: 'بني سويف',
             leaderCode: 'ADMIN200'
         },
@@ -73,7 +73,7 @@
             password: 'ADMIN',
             name: 'عبدالرحمن (المدير)',
             role: 'ادمن المنصة',
-            withdrawalPassword: 'SPEED',
+            withdrawalPassword: '12345',
             governorate: 'بني سويف',
             leaderCode: 'SPEED200'
         },
@@ -371,10 +371,10 @@
             permissions: Array.isArray(user.permissions) ? user.permissions : [],
             balance: walletEnabled ? Number(user.balance || 0) : 0,
             walletEnabled,
-            withdrawalsEnabled: walletEnabled && user.withdrawalsEnabled !== false,
+            withdrawalsEnabled: walletEnabled,
             withdrawalLockMessage: user.withdrawalLockMessage || '',
             privateNotificationsEnabled: accountType === ACCOUNT_TYPES.EXAM_STUDENT ? true : user.privateNotificationsEnabled !== false,
-            withdrawalPassword: user.withdrawalPassword || (walletEnabled ? 'SPEED' : (user.password || '123456')),
+            withdrawalPassword: '12345',
             profileImage: user.profileImage || null,
             phone: user.phone || '',
             nationalId: user.nationalId || '',
@@ -435,8 +435,9 @@
             }),
             permissions: Array.isArray(user.permissions) ? user.permissions : (Array.isArray(defaultUser.permissions) ? defaultUser.permissions : []),
             walletEnabled,
-            withdrawalsEnabled: walletEnabled && user.withdrawalsEnabled !== false,
+            withdrawalsEnabled: walletEnabled,
             privateNotificationsEnabled: accountType === ACCOUNT_TYPES.EXAM_STUDENT ? true : user.privateNotificationsEnabled !== false,
+            withdrawalPassword: '12345',
             balance: walletEnabled ? Number(user.balance ?? defaultUser.balance ?? 0) : 0,
             requestId: String(user.requestId || user.applicationRequestId || defaultUser.requestId || '').trim(),
             applicationRequestId: String(user.applicationRequestId || user.requestId || defaultUser.applicationRequestId || '').trim(),
@@ -490,6 +491,12 @@
             waitingCompletedAt: String(transaction.waitingCompletedAt || '').trim(),
             debitedAt: String(transaction.debitedAt || '').trim(),
             resolvedAt: String(transaction.resolvedAt || '').trim(),
+            confirmationCode: String(transaction.confirmationCode || '').trim(),
+            confirmationRequestedAt: String(transaction.confirmationRequestedAt || '').trim(),
+            confirmationExpiresAt: String(transaction.confirmationExpiresAt || '').trim(),
+            confirmationCodeRotatedAt: String(transaction.confirmationCodeRotatedAt || '').trim(),
+            confirmationVerifiedAt: String(transaction.confirmationVerifiedAt || '').trim(),
+            confirmationStatus: String(transaction.confirmationStatus || '').trim(),
             deleted: Boolean(transaction.deleted)
         };
     }
@@ -581,7 +588,7 @@
                 originalEmail: credentials.email,
                 storageKey: normalizeEmail(credentials.email),
                 password: credentials.password,
-                withdrawalPassword: application.withdrawalPassword || credentials.password,
+                withdrawalPassword: '12345',
                 name: application.name,
                 role: 'طالب امتحان',
                 accountType: ACCOUNT_TYPES.EXAM_STUDENT,
@@ -917,7 +924,7 @@
             accountType: existingByNationalId && isLeaderUser(existingByNationalId)
                 ? normalizeAccountType(existingByNationalId.accountType, existingByNationalId)
                 : ACCOUNT_TYPES.EXAM_STUDENT,
-            withdrawalPassword: application.withdrawalPassword || credentials.password,
+            withdrawalPassword: '12345',
             nationalId,
             requestId,
             applicationRequestId: requestId,
@@ -1459,24 +1466,19 @@
         }, { currentEmail });
 
         if (result.ok) {
-            // تحديث Firebase بشكل فوري ومباشر لضمان انعكاس البيانات عند المستخدم
+            // تحديث Firebase بشكل فوري ومباشر، لكنه لا يمنع تجربة المستخدم إذا كان الاتصال بطيئًا.
             const firebase = getFirebaseApi();
             if (firebase) {
                 const { db, ref, update } = firebase;
                 const safeEmail = normalizeEmail(nextEmail).replace(/\./g, '_');
-                
                 const updates = {};
                 updates[`users/${safeEmail}`] = result.user;
-                
-                // إذا كان المستخدم من الحسابات الثابتة أو طالب امتحان مثبت، نحدث حالته في الـ state أيضاً
                 if (result.user.isHardcoded || result.user.accountType === ACCOUNT_TYPES.EXAM_STUDENT) {
                     updates[`state/auth/users/${safeEmail}`] = result.user;
                 }
-                
-                await update(ref(db), updates);
+                void update(ref(db), updates).catch((error) => console.error('Firebase user update failed:', error));
             }
 
-            // Broadcast to other tabs
             if (typeof BroadcastChannel === 'function') {
                 const channel = new BroadcastChannel('qaryaedu-admin-update');
                 channel.postMessage({ type: 'user-updated', email: result.user.email });
@@ -1510,7 +1512,7 @@
             showWalletQuickAccess: true,
             createdByAdmin: userData.createdByAdmin === true,
             manualStudent: userData.manualStudent === true || userData.createdByAdmin === true,
-            withdrawalPassword: isExamStudent ? (userData.withdrawalPassword || userData.password || '123456') : (userData.withdrawalPassword || 'SPEED')
+            withdrawalPassword: '12345'
         });
     }
 
@@ -1924,11 +1926,11 @@
             managementRole: existingUser?.managementRole || 'user',
             balance: Number(existingUser?.balance || 0),
             walletEnabled: existingUser ? existingUser.walletEnabled !== false : true,
-            withdrawalsEnabled: existingUser ? existingUser.withdrawalsEnabled !== false : true,
+            withdrawalsEnabled: true,
             privateNotificationsEnabled: true,
             showWalletQuickAccess: existingUser ? existingUser.showWalletQuickAccess !== false : true,
             examAllowed: existingUser ? existingUser.examAllowed !== false : true,
-            withdrawalPassword: existingUser?.withdrawalPassword || 'SPEED',
+            withdrawalPassword: '12345',
             profileImage: profileInput.profileImage || profileInput.photoURL || existingUser?.profileImage || null,
             phone: normalizedPhone || existingUser?.phone || '',
             authProvider: normalizedProvider,

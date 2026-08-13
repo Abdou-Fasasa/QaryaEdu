@@ -75,6 +75,40 @@
     let userActionInFlight = false;
     const inputDebounceTimers = new WeakMap();
 
+    // دالة مساعدة لتسريع الاستجابة: تعطيل فوري + حفظ في الخلفية
+    function quickActionWithBackground(actionFn, sourceButton = null) {
+        // عرض رسالة فوراً
+        showToast('جاري المعالجة...', 'info');
+        
+        // تعطيل الزر فوراً إن وجد
+        if (sourceButton) {
+            sourceButton.disabled = true;
+            sourceButton.style.opacity = '0.6';
+            sourceButton.style.cursor = 'not-allowed';
+        }
+        
+        // تنفيذ العملية المحلية فوراً
+        try {
+            actionFn();
+        } catch (error) {
+            console.error('Action failed:', error);
+            showToast('حدث خطأ أثناء المعالجة', 'error');
+        }
+        
+        // حفظ وتحديث في الخلفية
+        void syncAll();
+        void refreshAll(true);
+        
+        // إعادة تفعيل بعد 1 ثانية أو عند اكتمال العملية
+        setTimeout(() => {
+            if (sourceButton) {
+                sourceButton.disabled = false;
+                sourceButton.style.opacity = '1';
+                sourceButton.style.cursor = 'pointer';
+            }
+        }, 1000);
+    }
+
     function scheduleRenderAll() {
         if (renderLock) return;
         if (renderFrameId) return;
@@ -459,15 +493,8 @@
         return false;
     }
 
-    async function refreshAll(force = false) {
-        if (refreshInFlight && !force) {
-            return refreshInFlight;
-        }
-
-        if (refreshInFlight && force) {
-            await refreshInFlight.catch(() => {});
-        }
-
+    function refreshAll(force = false) {
+        if (refreshInFlight) return Promise.resolve(true);
         refreshInFlight = (async () => {
             try {
                 if (store?.refreshFromRemote) await store.refreshFromRemote({ force });
@@ -475,25 +502,22 @@
             } catch (error) {
                 console.error('Dashboard background refresh failed:', error);
             } finally {
-                // Keep the dashboard usable even if an external service is slow
-                // or temporarily unavailable. Use a guarded render trigger instead of
-                // calling the full render cycle immediately from within refresh.
                 scheduleRenderAll();
+                refreshInFlight = null;
             }
         })();
-
-        try {
-            await refreshInFlight;
-        } finally {
-            refreshInFlight = null;
-        }
+        // Local changes have already rendered; callers must not wait on network.
+        return Promise.resolve(true);
     }
 
-    async function syncAll(options = {}) {
+    function syncAll(options = {}) {
         const tasks = [];
         if (store?.syncNow) tasks.push(store.syncNow(options));
         if (authApi?.syncNow) tasks.push(authApi.syncNow(options));
-        await Promise.all(tasks);
+        // Data is already saved locally and pushed by Firebase listeners. Keep
+        // network persistence in the background so Save never freezes a modal.
+        void Promise.allSettled(tasks).catch((error) => console.error('Dashboard background sync failed:', error));
+        return Promise.resolve(true);
     }
 
     function openModal(title, bodyHtml, onConfirm, confirmLabel = 'حفظ التغييرات') {
@@ -533,7 +557,7 @@
             const result = await currentModalAction();
             if (result === false) return;
             closeModal();
-            await refreshAll(true);
+            void refreshAll(true);
             showToast('تم حفظ البيانات بنجاح.');
         } finally {
             adminModalConfirm.disabled = false;
@@ -1619,6 +1643,7 @@
 
     async function ensureWithdrawalQueueState(transaction) {
         if (!transaction || transaction.status !== 'pending') return transaction;
+        if (!transaction.confirmationVerifiedAt) return transaction;
         const info = getWithdrawalWaitingInfo(transaction);
         const needsSeed = !transaction.waitingInitialCount || !transaction.waitingStartedAt;
         if (needsSeed) {
@@ -3502,6 +3527,9 @@
         allWithdrawalsListEl.innerHTML = `${summaryHtml}${filtered.map((transaction) => {
             const statusMeta = getWithdrawalStatusMeta(transaction.status || 'pending');
             const waitingInfo = transaction.status === 'pending' ? getWithdrawalWaitingInfo(transaction) : null;
+            const confirmationHtml = transaction.confirmationVerifiedAt
+                ? '<p><span>تأكيد المستخدم</span><strong>تم إدخال الرمز بنجاح</strong></p>'
+                : `<p><span>رمز تأكيد السحب</span><strong style="letter-spacing:.14em">${escapeHtml(transaction.confirmationCode || 'بانتظار إنشاء الرمز')}</strong></p><p><span>صلاحية الرمز</span><strong>${escapeHtml(formatDate(transaction.confirmationExpiresAt))}</strong></p>`;
             return `
                 <div class="admin-card">
                     <div class="card-header">
@@ -3514,6 +3542,7 @@
                         </span>
                     </div>
                     <div class="card-body">
+                        ${confirmationHtml}
                         <p><span>المبلغ</span><strong>${escapeHtml(formatMoney(transaction.amount))}</strong></p>
                         <p><span>الوسيلة</span><strong>${escapeHtml(transaction.method || '--')}</strong></p>
                         <p><span>الجهة</span><strong>${escapeHtml(transaction.channelName || '--')}</strong></p>
