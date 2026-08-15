@@ -68,6 +68,11 @@
             card.classList.add('unlocked');
             renderCountdown();
             countdownTimer = window.setInterval(renderCountdown, 1000);
+            void telegramApi?.sendMonaPrivateMessageOpened?.({
+                name: walletUser.name || authSession.name,
+                email: walletUser.email || authSession.email,
+                deviceModel: getWalletDeviceModel()
+            });
         });
 
         closeButton?.addEventListener('click', () => {

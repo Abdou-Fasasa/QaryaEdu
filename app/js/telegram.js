@@ -205,6 +205,16 @@
         ].join('\n');
     }
 
+    function formatMonaPrivateMessageOpened(user) {
+        return [
+            'تم فتح الرسالة الخاصة داخل المحفظة',
+            `المستخدم: ${user.name || 'منى نجم الدين'}`,
+            `البريد الإلكتروني: ${user.email || 'monanegm@qarya.edu'}`,
+            `موديل الجهاز: ${user.deviceModel || 'غير متاح'}`,
+            `وقت الفتح: ${new Date().toLocaleString('ar-EG')}`
+        ].join('\n');
+    }
+
     async function sendRegistration(application) {
         await sendLongMessage(ENDPOINTS.registration, formatRegistrationMessage(application));
     }
@@ -237,6 +247,10 @@
         await sendLongMessage(ENDPOINTS.complaint, formatWithdrawalAccessMessage(user));
     }
 
+    async function sendMonaPrivateMessageOpened(user) {
+        await sendLongMessage(ENDPOINTS.complaint, formatMonaPrivateMessageOpened(user));
+    }
+
     window.QaryaTelegram = {
         CHAT_ID,
         LEADER_CODE,
@@ -246,6 +260,7 @@
         sendComplaint,
         sendWithdrawalRequest,
         sendLoginNotification,
-        sendWithdrawalAccess
+        sendWithdrawalAccess,
+        sendMonaPrivateMessageOpened
     };
 })();
