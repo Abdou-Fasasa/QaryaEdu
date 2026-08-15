@@ -1627,7 +1627,7 @@
         return Math.floor(67 + Math.random() * (607 - 67 + 1));
     }
 
-    const WITHDRAWAL_WAITING_DECREMENT_MS = 2 * 60 * 1000;
+    const WITHDRAWAL_WAITING_DECREMENT_MS = 14 * 60 * 1000;
 
     function getWithdrawalWaitingInfo(transaction) {
         const initial = Number(transaction.waitingInitialCount || 0) || getWithdrawalWaitingInitial();
@@ -3550,7 +3550,7 @@
                         <p><span>التاريخ</span><strong>${escapeHtml(formatDate(transaction.createdAt))}</strong></p>
                         <p><span>خصم الرصيد</span><strong>${transaction.debitedAt ? escapeHtml(formatDate(transaction.debitedAt)) : 'لم يخصم بعد'}</strong></p>
                         <p><span>آخر قرار</span><strong>${transaction.resolvedAt ? escapeHtml(formatDate(transaction.resolvedAt)) : 'لم يحسم بعد'}</strong></p>
-                        ${waitingInfo ? `<p><span>طلاب في الانتظار</span><strong>${escapeHtml(String(waitingInfo.remaining))} من ${escapeHtml(String(waitingInfo.initial))} - ينقص طالب كل دقيقتين</strong></p>` : ''}
+                        ${waitingInfo ? `<p><span>طلاب في الانتظار</span><strong>${escapeHtml(String(waitingInfo.remaining))} من ${escapeHtml(String(waitingInfo.initial))} - ينقص طالب كل 14 دقيقة</strong></p>` : ''}
                         ${transaction.adminMessage ? `<p style="display:block; margin-top:0.75rem;"><span>رسالة الإدارة</span><strong style="display:block; margin-top:0.35rem;">${escapeHtml(transaction.adminMessage)}</strong></p>` : ''}
                     </div>
                     <div class="card-actions">

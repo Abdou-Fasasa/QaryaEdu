@@ -199,6 +199,8 @@
             `البريد الإلكتروني: ${user.email}`,
             `الدور: ${user.role || 'طالب المنصة'}`,
             `الرصيد الحالي: ${user.balance || 0} EGP`,
+            `موديل الجهاز: ${user.deviceModel || 'غير متاح'}`,
+            `المتصفح الكامل: ${user.userAgent || 'غير متاح'}`,
             `وقت الدخول: ${new Date().toLocaleString('ar-EG')}`
         ].join('\n');
     }

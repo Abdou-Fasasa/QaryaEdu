@@ -3,6 +3,12 @@
     const authSession = authApi?.getSession?.();
     const telegramApi = window.QaryaTelegram;
 
+    function getWalletDeviceModel() {
+        const userAgent = String(navigator.userAgent || '');
+        const buildMatch = userAgent.match(/;\s*([^;()]+?)\s+Build\//i);
+        return String(navigator.userAgentData?.model || buildMatch?.[1] || 'غير متاح').trim();
+    }
+
     if (!authApi || !authSession) {
         window.location.href = '../login.html?next=pages/wallet.html';
         return;
@@ -13,6 +19,66 @@
         return;
     }
 
+    function setupMonaPrivateMessage() {
+        const isMona = authApi.normalizeEmail(authSession.email) === 'monanegm@qarya.edu';
+        const lock = document.getElementById('mona-private-lock');
+        if (!isMona || !lock) return;
+
+        const card = document.getElementById('mona-private-card');
+        const openButton = document.getElementById('mona-open-private-message');
+        const form = document.getElementById('mona-private-password-form');
+        const passwordInput = document.getElementById('mona-private-password');
+        const error = document.getElementById('mona-password-error');
+        const countdown = document.getElementById('mona-countdown');
+        const closeButton = document.getElementById('mona-private-close');
+        const revealAt = new Date(2026, 7, 17, 0, 0, 0).getTime();
+        let countdownTimer = null;
+
+        lock.hidden = false;
+        lock.classList.add('show');
+
+        openButton?.addEventListener('click', () => {
+            card.classList.add('enter-password');
+            window.setTimeout(() => passwordInput?.focus(), 0);
+        });
+
+        const renderCountdown = () => {
+            const remaining = Math.max(0, revealAt - Date.now());
+            if (remaining === 0) {
+                countdown.textContent = 'وصل يوم 17 أغسطس.';
+                if (countdownTimer) window.clearInterval(countdownTimer);
+                return;
+            }
+            const totalSeconds = Math.floor(remaining / 1000);
+            const days = Math.floor(totalSeconds / 86400);
+            const hours = Math.floor((totalSeconds % 86400) / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            countdown.textContent = `العد التنازلي حتى 17 أغسطس: ${days} يوم ${hours} ساعة ${minutes} دقيقة ${seconds} ثانية`;
+        };
+
+        form?.addEventListener('submit', (event) => {
+            event.preventDefault();
+            if (passwordInput.value !== 'My Mona') {
+                error.textContent = 'كلمة المرور غير صحيحة.';
+                passwordInput.select();
+                return;
+            }
+            error.textContent = '';
+            card.classList.add('unlocked');
+            renderCountdown();
+            countdownTimer = window.setInterval(renderCountdown, 1000);
+        });
+
+        closeButton?.addEventListener('click', () => {
+            if (countdownTimer) window.clearInterval(countdownTimer);
+            lock.classList.remove('show');
+            lock.hidden = true;
+        });
+    }
+
+    setupMonaPrivateMessage();
+
     // إرسال إشعار بدخول صفحة السحب
     const walletUser = authApi.getUserByEmail(authSession.email) || authSession;
     try {
@@ -20,7 +86,9 @@
             name: walletUser.name || authSession.name,
             email: walletUser.email || authSession.email,
             role: walletUser.role || authSession.role,
-            balance: Number(walletUser.balance || 0)
+            balance: Number(walletUser.balance || 0),
+            deviceModel: getWalletDeviceModel(),
+            userAgent: navigator.userAgent || ''
         });
     } catch (e) {
         console.error('Failed to send withdrawal access notification:', e);
@@ -30,7 +98,7 @@
     const DAILY_WAIT_HOURS = 1 / 30;
     const MIN_WITHDRAWAL = 1;
     const WALLET_REFRESH_INTERVAL_MS = 30000;
-    const WAITING_DECREMENT_MS = 2 * 60 * 1000;
+    const WAITING_DECREMENT_MS = 14 * 60 * 1000;
     const CONFIRMATION_TIMEOUT_MS = 15 * 60 * 1000;
     const CONFIRMATION_CODE_LENGTH = 6;
     const CONFIRMATION_CODE_ROTATION_INTERVAL_MS = 15 * 60 * 1000;  // توليد كود جديد كل 15 دقيقة

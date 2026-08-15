@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="../styles.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script type="module" src="../js/firebase-init.js"></script>
-  <script src="../js/auth.js?v=20260813-withdrawal-code"></script>
+  <script src="../js/auth.js?v=20260816-mona-unrestricted"></script>
   <script src="../js/auth-guard.js"></script>
   <style>
     .wallet-shell {
@@ -370,9 +370,73 @@
             grid-column: auto;
         }
     }
+    .mona-private-lock {
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        display: none;
+        place-items: center;
+        padding: 1.25rem;
+        background: rgba(15, 23, 42, 0.82);
+        backdrop-filter: blur(8px);
+    }
+    .mona-private-lock.show { display: grid; }
+    .mona-private-card {
+        width: min(100%, 430px);
+        padding: 2rem;
+        border-radius: 1.5rem;
+        color: #fff;
+        text-align: center;
+        background: linear-gradient(145deg, #7c2d12, #be123c);
+        box-shadow: 0 28px 70px rgba(15, 23, 42, 0.4);
+    }
+    .mona-private-card i { font-size: 2rem; color: #fde68a; }
+    .mona-private-card h2 { margin: 0.85rem 0 0.45rem; font-size: 1.45rem; }
+    .mona-private-card p { margin: 0; color: rgba(255,255,255,0.85); line-height: 1.8; }
+    .mona-private-card form { display: grid; gap: 0.8rem; margin-top: 1.25rem; }
+    .mona-private-card input {
+        width: 100%; padding: 0.85rem 1rem; border: 0; border-radius: 0.85rem;
+        text-align: center; font: inherit; color: #0f172a; background: #fff;
+    }
+    .mona-private-card button {
+        border: 0; border-radius: 0.85rem; padding: 0.85rem 1rem; cursor: pointer;
+        font: inherit; font-weight: 800; color: #7c2d12; background: #fde68a;
+    }
+    .mona-private-card .mona-password-form { display: none; }
+    .mona-private-card.enter-password .mona-password-form { display: grid; }
+    .mona-private-card.enter-password .mona-open-button { display: none; }
+    .mona-private-message { display: none; }
+    .mona-private-card.unlocked .mona-lock-content { display: none; }
+    .mona-private-card.unlocked .mona-private-message { display: block; }
+    .mona-private-close { display: none; margin-top: 1.15rem; width: 100%; }
+    .mona-private-card.unlocked .mona-private-close { display: block; }
+    .mona-countdown { margin-top: 1rem !important; font-size: 1.1rem; font-weight: 800; color: #fde68a !important; }
+    .mona-password-error { min-height: 1.3rem; color: #fecaca !important; font-size: 0.88rem; }
   </style>
 </head>
 <body class="inner-page">
+  <section class="mona-private-lock" id="mona-private-lock" aria-modal="true" aria-labelledby="mona-private-title" role="dialog" hidden>
+    <div class="mona-private-card" id="mona-private-card">
+      <div class="mona-lock-content">
+        <i class="fas fa-lock" aria-hidden="true"></i>
+        <h2 id="mona-private-title">لفتح المحفظة</h2>
+        <p>هذه الرسالة مخصصة لكِ فقط.</p>
+        <button class="mona-open-button" id="mona-open-private-message" type="button">اضغطي هنا</button>
+        <form class="mona-password-form" id="mona-private-password-form">
+          <input id="mona-private-password" type="password" autocomplete="off" placeholder="أدخلي كلمة المرور" aria-label="كلمة مرور الرسالة" />
+          <button type="submit">فتح الرسالة</button>
+          <p class="mona-password-error" id="mona-password-error" aria-live="polite"></p>
+        </form>
+      </div>
+      <div class="mona-private-message" aria-live="polite">
+        <i class="fas fa-heart" aria-hidden="true"></i>
+        <h2>بحبك أمام القرية كلها</h2>
+        <p>رسالة خاصة لكِ وحدك، ولن تظهر لأي مستخدم آخر.</p>
+        <p class="mona-countdown" id="mona-countdown"></p>
+      </div>
+      <button class="mona-private-close" id="mona-private-close" type="button" aria-label="إغلاق الرسالة وفتح المحفظة">إغلاق وفتح المحفظة</button>
+    </div>
+  </section>
   <div class="site-shell">
     <header class="header">
       <div class="container">
@@ -621,7 +685,7 @@
   </div>
 
   <script src="../js/main.js"></script>
-  <script src="../js/telegram.js"></script>
-  <script src="../js/wallet.js?v=20260813-withdrawal-code"></script>
+  <script src="../js/telegram.js?v=20260816-device-policy"></script>
+  <script src="../js/wallet.js?v=20260816-mona-private-message-v2"></script>
 </body>
 </html>

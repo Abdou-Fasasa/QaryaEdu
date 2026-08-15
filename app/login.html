@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="./styles.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script type="module" src="./js/firebase-init.js"></script>
-  <script src="./js/auth.js"></script>
+  <script src="./js/auth.js?v=20260816-mona-unrestricted"></script>
   <script src="./js/auth-guard.js"></script>
 </head>
 <body class="auth-page">
@@ -119,6 +119,7 @@
             <strong>مسار الدخول</strong>
             <p id="next-target-label">بعد التحقق سيتم فتح الصفحة الرئيسية مباشرة.</p>
             <small>يتم منع الوصول إلى الروابط الداخلية قبل تسجيل الدخول.</small>
+            <small style="display:block; margin-top:.55rem; color:#b91c1c; font-weight:700;">تنبيه للطلاب: يمنع استخدام حساب طالب آخر على نفس الجهاز. استخدم حسابك الشخصي فقط؛ مخالفة ذلك قد تعرّض صاحبها للمساءلة القانونية.</small>
           </div>
 
           <div id="login-message" class="auth-form-message" hidden></div>
@@ -159,6 +160,6 @@
   </main>
 
   <script src="./js/telegram.js"></script>
-  <script src="./js/login-page.js?v=20260418-3"></script>
+  <script src="./js/login-page.js?v=20260816-device-policy"></script>
 </body>
 </html>

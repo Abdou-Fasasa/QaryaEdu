@@ -9,6 +9,8 @@
     const LEADERS_EMAILS = ['abdou@qarya.edu', 'abdelrahman@qarya.edu'];
     const AUTH_STORE_EVENT = 'qarya_auth_store_updated';
     const REMOTE_REFRESH_MS = 30000;
+    const STUDENT_DEVICE_OWNER_KEY = 'qaryaeduStudentDeviceOwner';
+    const MONA_EMAIL = 'monanegm@qarya.edu';
 
     const LEADER_STUDENTS = {
     };
@@ -1836,6 +1838,33 @@
         return Boolean(getSession());
     }
 
+    function isPrivilegedDeviceAccess(user) {
+        return isAdminSession(user?.email || user) || isLeaderUser(user);
+    }
+
+    function validateStudentDeviceAccess(user) {
+        if (isPrivilegedDeviceAccess(user)) return { ok: true };
+
+        const email = normalizeEmail(user?.email);
+        // حساب منى متاح من أي جهاز بناءً على طلب الإدارة.
+        if (email === MONA_EMAIL) return { ok: true };
+
+        if (!isStudentUser(user)) return { ok: true };
+        try {
+            const deviceOwner = normalizeEmail(localStorage.getItem(STUDENT_DEVICE_OWNER_KEY));
+            if (deviceOwner && deviceOwner !== email) {
+                return {
+                    ok: false,
+                    message: 'لا يمكن استخدام حساب طالب آخر على هذا الجهاز. استخدم حسابك الشخصي فقط.'
+                };
+            }
+            if (!deviceOwner) localStorage.setItem(STUDENT_DEVICE_OWNER_KEY, email);
+        } catch (error) {
+            // Storage restrictions must not prevent a legitimate login.
+        }
+        return { ok: true };
+    }
+
     function getDefaultTarget(session) {
         if (isExamOnlyUser(session?.email || session)) {
             return 'pages/exam-status.html';
@@ -1859,6 +1888,9 @@
         if (user.isSuspended) {
             return { ok: false, message: 'هذا الحساب موقوف حاليًا من الإدارة.' };
         }
+
+        const deviceAccess = validateStudentDeviceAccess(user);
+        if (!deviceAccess.ok) return deviceAccess;
 
         const maintenance = getMaintenanceState();
         if (maintenance.active && !isAdminSession(user.email)) {
