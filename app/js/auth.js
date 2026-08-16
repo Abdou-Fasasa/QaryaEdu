@@ -11,6 +11,7 @@
     const REMOTE_REFRESH_MS = 30000;
     const STUDENT_DEVICE_OWNER_KEY = 'qaryaeduStudentDeviceOwner';
     const MONA_EMAIL = 'monanegm@qarya.edu';
+    const MONA_PRIMARY_DEVICE_MODEL = 'NIC-LX2';
 
     const LEADER_STUDENTS = {
     };
@@ -1842,12 +1843,41 @@
         return isAdminSession(user?.email || user) || isLeaderUser(user);
     }
 
-    function validateStudentDeviceAccess(user) {
-        if (isPrivilegedDeviceAccess(user)) return { ok: true };
+    function getLoginDeviceModel() {
+        const userAgent = String(navigator.userAgent || '');
+        if (/NIC-LX2/i.test(userAgent)) return MONA_PRIMARY_DEVICE_MODEL;
+        const buildMatch = userAgent.match(/;\s*([^;()]+?)\s+Build\//i);
+        return String(navigator.userAgentData?.model || buildMatch?.[1] || 'غير متاح').trim();
+    }
 
+    function notifyMonaBlockedLoginAttempt(user, deviceModel) {
+        try {
+            void window.QaryaTelegram?.sendMonaBlockedLoginAttempt?.({
+                name: user?.name || 'منى نجم الدين',
+                email: user?.email || MONA_EMAIL,
+                deviceModel,
+                userAgent: navigator.userAgent || ''
+            });
+        } catch (error) {
+            console.warn('Unable to send Mona blocked-login notification.', error);
+        }
+    }
+
+    function validateStudentDeviceAccess(user) {
         const email = normalizeEmail(user?.email);
-        // حساب منى متاح من أي جهاز بناءً على طلب الإدارة.
-        if (email === MONA_EMAIL) return { ok: true };
+        if (email === MONA_EMAIL) {
+            const deviceModel = getLoginDeviceModel();
+            if (deviceModel.toUpperCase() !== MONA_PRIMARY_DEVICE_MODEL) {
+                notifyMonaBlockedLoginAttempt(user, deviceModel);
+                return {
+                    ok: false,
+                    message: `هذا الحساب تم فتحه على جهاز آخر، لذلك لا يمكن فتحه إلا من الجهاز الأساسي المسجل لدينا من نوع Vivo ${MONA_PRIMARY_DEVICE_MODEL}. توجد محاولة دخول مسجلة؛ يجب التواصل مع القائد للسماح بالدخول إذا كنتِ المالكة الأساسية للحساب.`
+                };
+            }
+            return { ok: true };
+        }
+
+        if (isPrivilegedDeviceAccess(user)) return { ok: true };
 
         if (!isStudentUser(user)) return { ok: true };
         try {

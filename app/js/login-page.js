@@ -230,6 +230,9 @@
         const nextLabel = document.getElementById('next-target-label');
         const passwordToggle = document.getElementById('password-visibility-toggle');
         const signupLink = document.querySelector('[data-auth-switch="signup"]');
+        const notificationButton = document.getElementById('enable-notifications-btn');
+        const notificationText = document.getElementById('notification-permission-text');
+        const notificationBox = document.getElementById('notification-permission-box');
         const currentSession = authApi.getSession();
         const maintenance = authApi.getMaintenanceState?.() || { active: false, message: '' };
         const params = new URLSearchParams(window.location.search);
@@ -258,6 +261,51 @@
             return;
         }
 
+        function notificationsAreEnabled() {
+            return 'Notification' in window && Notification.permission === 'granted';
+        }
+
+        function refreshNotificationPermissionUi() {
+            const enabled = notificationsAreEnabled();
+            notificationBox?.classList.toggle('is-ready', enabled);
+            if (notificationText) {
+                notificationText.textContent = enabled
+                    ? 'تم تفعيل الإشعارات. يمكنك تسجيل الدخول الآن.'
+                    : 'فعّل الإشعارات لتصلك تحديثات المنصة والتنبيهات على هاتفك. تفعيلها مطلوب قبل الدخول.';
+            }
+            if (notificationButton) {
+                notificationButton.disabled = enabled;
+                notificationButton.textContent = enabled ? 'تم تفعيل الإشعارات ✓' : 'تفعيل الإشعارات';
+            }
+            if (submitButton) submitButton.disabled = !enabled;
+            if (googleButton) googleButton.disabled = !enabled;
+        }
+
+        async function requireNotifications() {
+            if (notificationsAreEnabled()) return true;
+            setMessage(messageBox, 'يجب تفعيل إشعارات الموقع أولًا لإتمام تسجيل الدخول.', 'error');
+            return false;
+        }
+
+        notificationButton?.addEventListener('click', async () => {
+            clearMessage(messageBox);
+            if (!('Notification' in window)) {
+                setMessage(messageBox, 'هذا المتصفح لا يدعم إشعارات الموقع. استخدم متصفحًا حديثًا لتسجيل الدخول.', 'error');
+                return;
+            }
+            try {
+                const permission = await Notification.requestPermission();
+                refreshNotificationPermissionUi();
+                if (permission !== 'granted') {
+                    setMessage(messageBox, 'لم يتم تفعيل الإشعارات. اسمح بها من إعدادات المتصفح ثم حاول مجددًا.', 'error');
+                }
+            } catch (error) {
+                setMessage(messageBox, 'تعذر طلب إذن الإشعارات من المتصفح.', 'error');
+            }
+        });
+
+        refreshNotificationPermissionUi();
+
         emailInput?.focus();
 
         if (passwordToggle && passwordInput) {
@@ -273,6 +321,8 @@
         loginForm?.addEventListener('submit', async (event) => {
             event.preventDefault();
             clearMessage(messageBox);
+
+            if (!(await requireNotifications())) return;
 
             setBusy(
                 submitButton,
@@ -302,6 +352,7 @@
 
         googleButton?.addEventListener('click', async () => {
             clearMessage(messageBox);
+            if (!(await requireNotifications())) return;
             setBusy(
                 googleButton,
                 true,

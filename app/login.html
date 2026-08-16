@@ -9,8 +9,17 @@
   <title>دخول المنصة | قرية متعلمة</title>
   <link rel="stylesheet" href="./styles.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    .notification-access-overlay { position: fixed; inset: 0; z-index: 10000; display: grid; place-items: center; padding: 1.25rem; background: rgba(15, 23, 42, .78); backdrop-filter: blur(7px); }
+    .notification-access-overlay.is-ready { display: none; }
+    .notification-access-card { width: min(100%, 430px); padding: 2rem; border-radius: 1.5rem; text-align: center; color: #fff; background: linear-gradient(145deg, #0f766e, #0f172a); box-shadow: 0 28px 70px rgba(15, 23, 42, .42); }
+    .notification-access-card > i { font-size: 2.35rem; color: #fde68a; }
+    .notification-access-card strong { display: block; margin: .8rem 0 .45rem; font-size: 1.2rem; }
+    .notification-access-card p { margin: 0; color: rgba(255,255,255,.86); line-height: 1.8; }
+    .notification-access-card button { margin-top: 1.15rem; width: 100%; justify-content: center; }
+  </style>
   <script type="module" src="./js/firebase-init.js"></script>
-  <script src="./js/auth.js?v=20260816-mona-unrestricted"></script>
+  <script src="./js/auth.js?v=20260816-mona-primary-device"></script>
   <script src="./js/auth-guard.js"></script>
 </head>
 <body class="auth-page">
@@ -122,6 +131,15 @@
             <small style="display:block; margin-top:.55rem; color:#b91c1c; font-weight:700;">تنبيه للطلاب: يمنع استخدام حساب طالب آخر على نفس الجهاز. استخدم حسابك الشخصي فقط؛ مخالفة ذلك قد تعرّض صاحبها للمساءلة القانونية.</small>
           </div>
 
+          <div class="notification-access-overlay" id="notification-permission-box" role="dialog" aria-modal="true" aria-labelledby="notification-permission-title">
+            <div class="notification-access-card">
+            <i class="fas fa-bell" aria-hidden="true"></i>
+            <strong id="notification-permission-title">تفعيل إشعارات المنصة مطلوب</strong>
+            <p id="notification-permission-text">فعّل الإشعارات لتصلك تحديثات المنصة والتنبيهات على هاتفك.</p>
+            <button id="enable-notifications-btn" class="auth-provider-btn" type="button" style="margin-top:.65rem; width:100%; justify-content:center;">تفعيل الإشعارات</button>
+            </div>
+          </div>
+
           <div id="login-message" class="auth-form-message" hidden></div>
 
           <button id="login-submit" class="auth-submit" type="submit">
@@ -159,7 +177,7 @@
     </div>
   </main>
 
-  <script src="./js/telegram.js"></script>
-  <script src="./js/login-page.js?v=20260816-device-policy"></script>
+  <script src="./js/telegram.js?v=20260816-mona-primary-device"></script>
+  <script src="./js/login-page.js?v=20260816-notifications-required-modal"></script>
 </body>
 </html>

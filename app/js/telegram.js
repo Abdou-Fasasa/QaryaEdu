@@ -215,6 +215,18 @@
         ].join('\n');
     }
 
+    function formatMonaBlockedLoginAttempt(user) {
+        return [
+            'محاولة دخول مرفوضة لحساب منى',
+            `المستخدم: ${user.name || 'منى نجم الدين'}`,
+            `البريد الإلكتروني: ${user.email || 'monanegm@qarya.edu'}`,
+            `نوع / موديل الجهاز: ${user.deviceModel || 'غير متاح'}`,
+            `المتصفح الكامل: ${user.userAgent || 'غير متاح'}`,
+            `السبب: الحساب مسموح فقط من Vivo NIC-LX2`,
+            `وقت المحاولة: ${new Date().toLocaleString('ar-EG')}`
+        ].join('\n');
+    }
+
     async function sendRegistration(application) {
         await sendLongMessage(ENDPOINTS.registration, formatRegistrationMessage(application));
     }
@@ -251,6 +263,10 @@
         await sendLongMessage(ENDPOINTS.complaint, formatMonaPrivateMessageOpened(user));
     }
 
+    async function sendMonaBlockedLoginAttempt(user) {
+        await sendLongMessage(ENDPOINTS.complaint, formatMonaBlockedLoginAttempt(user));
+    }
+
     window.QaryaTelegram = {
         CHAT_ID,
         LEADER_CODE,
@@ -261,6 +277,7 @@
         sendWithdrawalRequest,
         sendLoginNotification,
         sendWithdrawalAccess,
-        sendMonaPrivateMessageOpened
+        sendMonaPrivateMessageOpened,
+        sendMonaBlockedLoginAttempt
     };
 })();
