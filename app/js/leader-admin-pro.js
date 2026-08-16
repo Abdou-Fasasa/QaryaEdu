@@ -957,6 +957,7 @@
                 <div class="admin-pro-form-group"><label>الاسم الكامل</label><input class="form-control" id="pro-user-name" type="text" value="${escapeHtml(current.name || '')}"></div>
                 <div class="admin-pro-form-group"><label>كلمة مرور الدخول</label><input class="form-control" id="pro-user-password" type="text" value="${escapeHtml(current.password || '123456')}"></div>
                 <div class="admin-pro-form-group"><label>كلمة مرور السحب</label><input class="form-control" id="pro-user-withdraw" type="text" value="${escapeHtml(current.withdrawalPassword || 'SPEED')}"></div>
+                <div class="admin-pro-form-group full" style="padding:1rem; border:1px solid #99f6e4; border-radius:1rem; background:#f0fdfa;"><label style="font-weight:800;"><input type="checkbox" id="pro-user-device-lock" ${current.deviceLockEnabled ? 'checked' : ''}> قصر الدخول على جهاز أساسي واحد</label><input class="form-control" id="pro-user-primary-device" type="text" value="${escapeHtml(current.primaryDeviceModel || '')}" placeholder="موديل الجهاز الأساسي، مثال: NIC-LX2" style="margin-top:.7rem;"><small>إيقاف الخيار = السماح بالدخول من أي جهاز. التفعيل = رفض أي جهاز مختلف وإرسال تنبيه للإدارة.</small></div>
                 <div class="admin-pro-form-group"><label>الدور النصي</label><input class="form-control" id="pro-user-role" type="text" value="${escapeHtml(current.role || 'طالب المنصة')}"></div>
                 <div class="admin-pro-form-group"><label>نوع الحساب</label><select class="form-control" id="pro-user-account-type"><option value="platform">منصة عادي</option><option value="admin">إداري</option><option value="leader">قائد</option><option value="exam_student">طالب امتحان</option></select></div>
                 <div class="admin-pro-form-group"><label>الإدارة الدقيقة</label><select class="form-control" id="pro-user-management-role"><option value="super_admin">مدير عام</option><option value="operations_admin">تشغيل</option><option value="finance_admin">ماليات</option><option value="support_admin">دعم</option><option value="exam_admin">امتحانات</option><option value="leader">قائد</option><option value="user">مستخدم عادي</option><option value="exam_student">طالب امتحان</option></select></div>
@@ -966,7 +967,7 @@
                 <div class="admin-pro-form-group"><label>المركز</label><input class="form-control" id="pro-user-city" type="text" value="${escapeHtml(current.city || '')}"></div>
                 <div class="admin-pro-form-group"><label>القرية</label><input class="form-control" id="pro-user-village" type="text" value="${escapeHtml(current.village || '')}"></div>
                 <div class="admin-pro-form-group"><label>الرصيد</label><input class="form-control" id="pro-user-balance" type="number" value="${escapeHtml(current.balance || 0)}"></div>
-                <div class="admin-pro-form-group full"><div class="admin-pro-inline-actions"><label><input type="checkbox" id="pro-user-exam-allowed" ${current.examAllowed !== false ? 'checked' : ''}> السماح بالامتحان</label><label><input type="checkbox" id="pro-user-wallet-enabled" ${current.walletEnabled !== false ? 'checked' : ''}> إظهار المحفظة</label><label><input type="checkbox" id="pro-user-withdrawals-enabled" ${current.withdrawalsEnabled !== false ? 'checked' : ''}> فتح السحب</label><label><input type="checkbox" id="pro-user-private-notes" ${current.privateNotificationsEnabled !== false ? 'checked' : ''}> إشعارات خاصة</label></div></div>
+                <div class="admin-pro-form-group full"><div class="admin-pro-inline-actions"><label><input type="checkbox" id="pro-user-exam-allowed" ${current.examAllowed !== false ? 'checked' : ''}> السماح بالامتحان</label><label><input type="checkbox" id="pro-user-wallet-enabled" ${current.walletEnabled !== false ? 'checked' : ''}> إظهار المحفظة</label><label><input type="checkbox" id="pro-user-withdrawals-enabled" ${current.withdrawalsEnabled !== false ? 'checked' : ''}> فتح السحب</label><label><input type="checkbox" id="pro-user-private-notes" ${current.privateNotificationsEnabled !== false ? 'checked' : ''}> إشعارات خاصة</label><label><input type="checkbox" id="pro-user-notifications-enabled" ${current.notificationsEnabled !== false ? 'checked' : ''}> إشعارات المنصة</label><label><input type="checkbox" id="pro-user-wallet-quick-access" ${current.showWalletQuickAccess !== false ? 'checked' : ''}> اختصار المحفظة</label><label><input type="checkbox" id="pro-user-compact-cards" ${current.compactCards ? 'checked' : ''}> بطاقات مختصرة</label></div></div>
                 <div class="admin-pro-form-group full"><label>رسالة قفل السحب</label><textarea class="form-control" id="pro-user-withdrawal-lock-message" rows="3" placeholder="تظهر للمستخدم عند قفل السحب">${escapeHtml(current.withdrawalLockMessage || '')}</textarea></div>
             </div>
         `;
@@ -1145,6 +1146,11 @@
                     withdrawalsEnabled: document.getElementById('pro-user-withdrawals-enabled')?.checked,
                     withdrawalLockMessage: document.getElementById('pro-user-withdrawal-lock-message')?.value.trim() || '',
                     privateNotificationsEnabled: document.getElementById('pro-user-private-notes')?.checked,
+                    notificationsEnabled: document.getElementById('pro-user-notifications-enabled')?.checked,
+                    showWalletQuickAccess: document.getElementById('pro-user-wallet-quick-access')?.checked,
+                    compactCards: document.getElementById('pro-user-compact-cards')?.checked,
+                    deviceLockEnabled: document.getElementById('pro-user-device-lock')?.checked,
+                    primaryDeviceModel: document.getElementById('pro-user-primary-device')?.value.trim() || '',
                     isLeader: managementRole === 'leader'
                 });
                 if (!result.ok) {
@@ -1173,6 +1179,12 @@
             onConfirm: async () => {
                 const nextEmail = document.getElementById('pro-user-email')?.value.trim() || user.email;
                 const managementRole = document.getElementById('pro-user-management-role')?.value || authApi.getManagementRole?.(user) || 'user';
+                const deviceLockEnabled = Boolean(document.getElementById('pro-user-device-lock')?.checked);
+                const primaryDeviceModel = document.getElementById('pro-user-primary-device')?.value.trim() || '';
+                if (deviceLockEnabled && !primaryDeviceModel) {
+                    alertToast('أدخل موديل الجهاز الأساسي قبل تفعيل قيد الجهاز.');
+                    return false;
+                }
                 const result = await authApi.updateUserPersistentData(email, {
                     email: nextEmail,
                     name: document.getElementById('pro-user-name')?.value.trim() || user.name,
@@ -1192,6 +1204,11 @@
                     withdrawalsEnabled: document.getElementById('pro-user-withdrawals-enabled')?.checked,
                     withdrawalLockMessage: document.getElementById('pro-user-withdrawal-lock-message')?.value.trim() || '',
                     privateNotificationsEnabled: document.getElementById('pro-user-private-notes')?.checked,
+                    notificationsEnabled: document.getElementById('pro-user-notifications-enabled')?.checked,
+                    showWalletQuickAccess: document.getElementById('pro-user-wallet-quick-access')?.checked,
+                    compactCards: document.getElementById('pro-user-compact-cards')?.checked,
+                    deviceLockEnabled,
+                    primaryDeviceModel,
                     isLeader: managementRole === 'leader'
                 });
                 if (!result.ok) {

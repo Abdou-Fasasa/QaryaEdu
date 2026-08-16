@@ -2172,12 +2172,20 @@
                     <label><input type="checkbox" id="edit-user-wallet-enabled" ${user.walletEnabled !== false ? 'checked' : ''}> إظهار المحفظة</label>
                     <label><input type="checkbox" id="edit-user-withdrawals-enabled" ${user.withdrawalsEnabled !== false ? 'checked' : ''}> فتح السحب</label>
                     <label><input type="checkbox" id="edit-user-private-notes" ${user.privateNotificationsEnabled !== false ? 'checked' : ''}> إشعارات خاصة</label>
+                    <label><input type="checkbox" id="edit-user-device-lock" ${user.deviceLockEnabled ? 'checked' : ''}> قصر الدخول على جهاز أساسي</label>
                 </div>
             </div>
+            <div class="form-group"><label>موديل الجهاز الأساسي</label><input class="form-control" id="edit-user-primary-device" type="text" value="${escapeHtml(user.primaryDeviceModel || '')}" placeholder="مثال: NIC-LX2 — يطبّق عند تفعيل قصر الدخول"></div>
             <div class="form-group"><label>رسالة قفل السحب</label><textarea class="form-control" id="edit-user-withdrawal-lock-message" rows="3" placeholder="تظهر للمستخدم عند قفل السحب">${escapeHtml(user.withdrawalLockMessage || '')}</textarea></div>
         `, async () => {
             const mRole = document.getElementById('edit-user-management-role').value;
             const nextRoleName = document.getElementById('edit-user-role').value.trim();
+            const deviceLockEnabled = Boolean(document.getElementById('edit-user-device-lock')?.checked);
+            const primaryDeviceModel = document.getElementById('edit-user-primary-device')?.value.trim() || '';
+            if (deviceLockEnabled && !primaryDeviceModel) {
+                showToast('أدخل موديل الجهاز الأساسي قبل تفعيل قيد الجهاز.');
+                return false;
+            }
             
             const updates = {
                 name: document.getElementById('edit-user-name')?.value.trim() || user.name,
@@ -2192,6 +2200,8 @@
                 withdrawalsEnabled: document.getElementById('edit-user-withdrawals-enabled')?.checked,
                 withdrawalLockMessage: document.getElementById('edit-user-withdrawal-lock-message')?.value.trim() || '',
                 privateNotificationsEnabled: document.getElementById('edit-user-private-notes')?.checked,
+                deviceLockEnabled,
+                primaryDeviceModel,
                 updatedAt: new Date().toISOString()
             };
 
@@ -2905,6 +2915,7 @@
                     <p><span>كود القائد</span><strong>${escapeHtml(user.leaderCode || '--')}</strong></p>
                     <p><span>صلاحية الامتحان</span><strong>${user.examAllowed === false ? 'موقوفة' : 'مسموحة'}</strong></p>
                     <p><span>صلاحية السحب</span><strong>${user.withdrawalsEnabled === false ? 'مغلقة' : 'مفتوحة'}</strong></p>
+                    <p><span>قيد الجهاز</span><strong>${user.deviceLockEnabled ? `مفعّل: ${escapeHtml(user.primaryDeviceModel || 'لم يحدد')}` : 'السماح من أي جهاز'}</strong></p>
                     ${user.withdrawalLockMessage ? `<p style="display:block; margin-top:0.75rem;"><span>رسالة قفل السحب</span><strong style="display:block; margin-top:0.35rem;">${escapeHtml(user.withdrawalLockMessage)}</strong></p>` : ''}
                     <p><span>آخر دخول</span><strong>${escapeHtml(formatDate(user.lastLoginAt))}</strong></p>
                 </div>

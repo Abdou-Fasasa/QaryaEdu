@@ -10,8 +10,6 @@
     const AUTH_STORE_EVENT = 'qarya_auth_store_updated';
     const REMOTE_REFRESH_MS = 30000;
     const STUDENT_DEVICE_OWNER_KEY = 'qaryaeduStudentDeviceOwner';
-    const MONA_EMAIL = 'monanegm@qarya.edu';
-    const MONA_PRIMARY_DEVICE_MODEL = 'NIC-LX2';
 
     const LEADER_STUDENTS = {
     };
@@ -398,6 +396,8 @@
             payoutPhone: user.payoutPhone || '',
             payoutNotes: user.payoutNotes || '',
             notificationsEnabled: user.notificationsEnabled !== false,
+            deviceLockEnabled: Boolean(user.deviceLockEnabled),
+            primaryDeviceModel: String(user.primaryDeviceModel || '').trim(),
             compactCards: Boolean(user.compactCards),
             showWalletQuickAccess: walletEnabled && user.showWalletQuickAccess !== false,
             profileVisibility: user.profileVisibility || 'platform',
@@ -445,6 +445,8 @@
             requestId: String(user.requestId || user.applicationRequestId || defaultUser.requestId || '').trim(),
             applicationRequestId: String(user.applicationRequestId || user.requestId || defaultUser.applicationRequestId || '').trim(),
             notificationsEnabled: user.notificationsEnabled !== false,
+            deviceLockEnabled: Boolean(user.deviceLockEnabled ?? defaultUser.deviceLockEnabled),
+            primaryDeviceModel: String(user.primaryDeviceModel || defaultUser.primaryDeviceModel || '').trim(),
             compactCards: Boolean(user.compactCards ?? defaultUser.compactCards),
             showWalletQuickAccess: walletEnabled && user.showWalletQuickAccess !== false,
             isSuspended: Boolean(user.isSuspended),
@@ -1042,6 +1044,14 @@
                         if (sessionChanged) {
                             console.log("بيانات المستخدم تغيرت، جاري تحديث الجلسة...");
                             sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(nextSession));
+
+                            const deviceAccess = validateStudentDeviceAccess(updatedUser);
+                            if (!deviceAccess.ok) {
+                                logout();
+                                const loginPath = window.location.pathname.includes('/pages/') ? '../login.html' : './login.html';
+                                window.location.replace(`${loginPath}?device-lock=1`);
+                                return;
+                            }
                             
                             // إذا سُحبت منه صلاحية الدخول للوحة الإدارة وهو فيها، نقوم بتحويله
                             if (window.location.pathname.includes('leader-admin.html') && !isAdminSession(nextSession) && !isLeader(nextSession.email)) {
@@ -1845,17 +1855,18 @@
 
     function getLoginDeviceModel() {
         const userAgent = String(navigator.userAgent || '');
-        if (/NIC-LX2/i.test(userAgent)) return MONA_PRIMARY_DEVICE_MODEL;
+        if (/NIC-LX2/i.test(userAgent)) return 'NIC-LX2';
         const buildMatch = userAgent.match(/;\s*([^;()]+?)\s+Build\//i);
         return String(navigator.userAgentData?.model || buildMatch?.[1] || 'غير متاح').trim();
     }
 
-    function notifyMonaBlockedLoginAttempt(user, deviceModel) {
+    function notifyBlockedDeviceLoginAttempt(user, deviceModel, requiredDeviceModel) {
         try {
-            void window.QaryaTelegram?.sendMonaBlockedLoginAttempt?.({
-                name: user?.name || 'منى نجم الدين',
-                email: user?.email || MONA_EMAIL,
+            void window.QaryaTelegram?.sendBlockedDeviceLoginAttempt?.({
+                name: user?.name || 'مستخدم المنصة',
+                email: user?.email || '',
                 deviceModel,
+                requiredDeviceModel,
                 userAgent: navigator.userAgent || ''
             });
         } catch (error) {
@@ -1865,13 +1876,18 @@
 
     function validateStudentDeviceAccess(user) {
         const email = normalizeEmail(user?.email);
-        if (email === MONA_EMAIL) {
+
+        // حساب منى مفتوح من جميع الأجهزة افتراضيًا؛ يُطبق القيد فقط عندما يفعّله الأدمن من التعديل.
+        if (email === 'monanegm@qarya.edu' && !user?.deviceLockEnabled) return { ok: true };
+
+        if (user?.deviceLockEnabled) {
             const deviceModel = getLoginDeviceModel();
-            if (deviceModel.toUpperCase() !== MONA_PRIMARY_DEVICE_MODEL) {
-                notifyMonaBlockedLoginAttempt(user, deviceModel);
+            const requiredDeviceModel = String(user.primaryDeviceModel || '').trim();
+            if (requiredDeviceModel && deviceModel.toUpperCase() !== requiredDeviceModel.toUpperCase()) {
+                notifyBlockedDeviceLoginAttempt(user, deviceModel, requiredDeviceModel);
                 return {
                     ok: false,
-                    message: `هذا الحساب تم فتحه على جهاز آخر، لذلك لا يمكن فتحه إلا من الجهاز الأساسي المسجل لدينا من نوع Vivo ${MONA_PRIMARY_DEVICE_MODEL}. توجد محاولة دخول مسجلة؛ يجب التواصل مع القائد للسماح بالدخول إذا كنتِ المالكة الأساسية للحساب.`
+                    message: `هذا الحساب مقيد بجهاز أساسي واحد من نوع ${requiredDeviceModel}. يجب التواصل مع القائد للسماح بالدخول إذا كنت المالك الأساسي للحساب.`
                 };
             }
             return { ok: true };
@@ -2082,6 +2098,23 @@ async function login(email, password) {
             Promise.resolve(firebase.signOut(firebase.auth)).catch(() => {});
         }
     }
+
+    function enforceCurrentSessionDeviceAccess() {
+        const session = readStoredSession();
+        if (!session?.email) return;
+        const currentUser = getUserByEmail(session.email) || session;
+        const deviceAccess = validateStudentDeviceAccess(currentUser);
+        if (deviceAccess.ok) return;
+        logout();
+        const loginPath = window.location.pathname.includes('/pages/') ? '../login.html' : './login.html';
+        window.location.replace(`${loginPath}?device-lock=1`);
+    }
+
+    window.addEventListener('storage', (event) => {
+        if (event.key === USERS_DATA_KEY) {
+            enforceCurrentSessionDeviceAccess();
+        }
+    });
 
     function checkAndApplyHolidayGift() {
         return false;

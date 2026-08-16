@@ -59,7 +59,7 @@
 
         form?.addEventListener('submit', (event) => {
             event.preventDefault();
-            if (passwordInput.value !== 'My Mona') {
+            if (passwordInput.value !== 'Mona2026') {
                 error.textContent = 'كلمة المرور غير صحيحة.';
                 passwordInput.select();
                 return;
