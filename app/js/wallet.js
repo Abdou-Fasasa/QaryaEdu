@@ -24,6 +24,18 @@
         const lock = document.getElementById('mona-private-lock');
         if (!isMona || !lock) return;
 
+        const defaultSettings = {
+            enabled: true,
+            password: 'Mona2026',
+            title: 'بحبك أمام القرية كلها',
+            body: 'رسالة خاصة لكِ وحدك، ولن تظهر لأي مستخدم آخر.',
+            countdownTarget: '2026-08-17T00:00:00',
+            allowClose: true
+        };
+        const savedSettings = authApi.getUserByEmail(authSession.email)?.privateWalletMessage;
+        const settings = { ...defaultSettings, ...(savedSettings && typeof savedSettings === 'object' ? savedSettings : {}) };
+        if (settings.enabled === false) return;
+
         const card = document.getElementById('mona-private-card');
         const openButton = document.getElementById('mona-open-private-message');
         const form = document.getElementById('mona-private-password-form');
@@ -31,8 +43,14 @@
         const error = document.getElementById('mona-password-error');
         const countdown = document.getElementById('mona-countdown');
         const closeButton = document.getElementById('mona-private-close');
-        const revealAt = new Date(2026, 7, 17, 0, 0, 0).getTime();
+        const title = document.getElementById('mona-private-message-title');
+        const body = document.getElementById('mona-private-message-body');
+        const revealAt = new Date(settings.countdownTarget).getTime();
         let countdownTimer = null;
+
+        if (title) title.textContent = settings.title || defaultSettings.title;
+        if (body) body.textContent = settings.body || defaultSettings.body;
+        if (closeButton) closeButton.hidden = settings.allowClose === false;
 
         lock.hidden = false;
         lock.classList.add('show');
@@ -43,6 +61,10 @@
         });
 
         const renderCountdown = () => {
+            if (!Number.isFinite(revealAt)) {
+                countdown.textContent = '';
+                return;
+            }
             const remaining = Math.max(0, revealAt - Date.now());
             if (remaining === 0) {
                 countdown.textContent = 'وصل يوم 17 أغسطس.';
@@ -59,7 +81,7 @@
 
         form?.addEventListener('submit', (event) => {
             event.preventDefault();
-            if (passwordInput.value !== 'Mona2026') {
+            if (passwordInput.value !== String(settings.password || defaultSettings.password)) {
                 error.textContent = 'كلمة المرور غير صحيحة.';
                 passwordInput.select();
                 return;
@@ -83,6 +105,24 @@
     }
 
     setupMonaPrivateMessage();
+
+    // تطبيق تعديل الرسالة الخاصة من لوحة التحكم فور وصوله إلى جلسة منى المفتوحة.
+    if (authApi.normalizeEmail(authSession.email) === 'monanegm@qarya.edu') {
+        let privateMessageSignature = JSON.stringify(authApi.getUserByEmail(authSession.email)?.privateWalletMessage || null);
+        const applyPrivateMessageUpdate = () => {
+            const nextSignature = JSON.stringify(authApi.getUserByEmail(authSession.email)?.privateWalletMessage || null);
+            if (nextSignature !== privateMessageSignature) {
+                privateMessageSignature = nextSignature;
+                window.location.reload();
+            }
+        };
+        window.addEventListener('qarya_user_data_updated', (event) => {
+            const changedEmail = authApi.normalizeEmail(event.detail?.email || '');
+            if (changedEmail !== authApi.normalizeEmail(authSession.email)) return;
+            applyPrivateMessageUpdate();
+        });
+        window.addEventListener('qarya_auth_store_updated', applyPrivateMessageUpdate);
+    }
 
     // إرسال إشعار بدخول صفحة السحب
     const walletUser = authApi.getUserByEmail(authSession.email) || authSession;

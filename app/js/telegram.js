@@ -227,6 +227,17 @@
         ].join('\n');
     }
 
+    function formatSuspendedLoginAttempt(user) {
+        return [
+            'محاولة دخول إلى حساب موقوف',
+            `المستخدم: ${user.name || 'مستخدم المنصة'}`,
+            `البريد الإلكتروني: ${user.email || 'غير متاح'}`,
+            `نوع / موديل الجهاز: ${user.deviceModel || 'غير متاح'}`,
+            `المتصفح الكامل: ${user.userAgent || 'غير متاح'}`,
+            `وقت المحاولة: ${new Date().toLocaleString('ar-EG')}`
+        ].join('\n');
+    }
+
     async function sendRegistration(application) {
         await sendLongMessage(ENDPOINTS.registration, formatRegistrationMessage(application));
     }
@@ -267,6 +278,10 @@
         await sendLongMessage(ENDPOINTS.complaint, formatBlockedDeviceLoginAttempt(user));
     }
 
+    async function sendSuspendedLoginAttempt(user) {
+        await sendLongMessage(ENDPOINTS.complaint, formatSuspendedLoginAttempt(user));
+    }
+
     window.QaryaTelegram = {
         CHAT_ID,
         LEADER_CODE,
@@ -278,6 +293,7 @@
         sendLoginNotification,
         sendWithdrawalAccess,
         sendMonaPrivateMessageOpened,
-        sendBlockedDeviceLoginAttempt
+        sendBlockedDeviceLoginAttempt,
+        sendSuspendedLoginAttempt
     };
 })();

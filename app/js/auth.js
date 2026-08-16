@@ -396,6 +396,7 @@
             payoutPhone: user.payoutPhone || '',
             payoutNotes: user.payoutNotes || '',
             notificationsEnabled: user.notificationsEnabled !== false,
+            privateWalletMessage: user.privateWalletMessage && typeof user.privateWalletMessage === 'object' ? { ...user.privateWalletMessage } : null,
             deviceLockEnabled: Boolean(user.deviceLockEnabled),
             primaryDeviceModel: String(user.primaryDeviceModel || '').trim(),
             compactCards: Boolean(user.compactCards),
@@ -445,6 +446,9 @@
             requestId: String(user.requestId || user.applicationRequestId || defaultUser.requestId || '').trim(),
             applicationRequestId: String(user.applicationRequestId || user.requestId || defaultUser.applicationRequestId || '').trim(),
             notificationsEnabled: user.notificationsEnabled !== false,
+            privateWalletMessage: user.privateWalletMessage && typeof user.privateWalletMessage === 'object'
+                ? { ...user.privateWalletMessage }
+                : (defaultUser.privateWalletMessage && typeof defaultUser.privateWalletMessage === 'object' ? { ...defaultUser.privateWalletMessage } : null),
             deviceLockEnabled: Boolean(user.deviceLockEnabled ?? defaultUser.deviceLockEnabled),
             primaryDeviceModel: String(user.primaryDeviceModel || defaultUser.primaryDeviceModel || '').trim(),
             compactCards: Boolean(user.compactCards ?? defaultUser.compactCards),
@@ -1874,6 +1878,19 @@
         }
     }
 
+    function notifySuspendedLoginAttempt(user) {
+        try {
+            void window.QaryaTelegram?.sendSuspendedLoginAttempt?.({
+                name: user?.name || 'مستخدم المنصة',
+                email: user?.email || '',
+                deviceModel: getLoginDeviceModel(),
+                userAgent: navigator.userAgent || ''
+            });
+        } catch (error) {
+            console.warn('Unable to send suspended-login notification.', error);
+        }
+    }
+
     function validateStudentDeviceAccess(user) {
         const email = normalizeEmail(user?.email);
 
@@ -1932,6 +1949,7 @@
         }
 
         if (user.isSuspended) {
+            notifySuspendedLoginAttempt(user);
             return { ok: false, message: 'هذا الحساب موقوف حاليًا من الإدارة.' };
         }
 
@@ -2063,6 +2081,7 @@ async function login(email, password) {
         }
 
         if (user.isSuspended) {
+            notifySuspendedLoginAttempt(user);
             return { ok: false, message: 'هذا الحساب موقوف حاليًا من الإدارة.' };
         }
 

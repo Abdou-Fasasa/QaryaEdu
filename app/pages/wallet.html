@@ -410,6 +410,7 @@
     .mona-private-card.unlocked .mona-private-message { display: block; }
     .mona-private-close { display: none; margin-top: 1.15rem; width: 100%; }
     .mona-private-card.unlocked .mona-private-close { display: block; }
+    .mona-private-close[hidden] { display: none !important; }
     .mona-countdown { margin-top: 1rem !important; font-size: 1.1rem; font-weight: 800; color: #fde68a !important; }
     .mona-password-error { min-height: 1.3rem; color: #fecaca !important; font-size: 0.88rem; }
   </style>
@@ -430,8 +431,8 @@
       </div>
       <div class="mona-private-message" aria-live="polite">
         <i class="fas fa-heart" aria-hidden="true"></i>
-        <h2>بحبك أمام القرية كلها</h2>
-        <p>رسالة خاصة لكِ وحدك، ولن تظهر لأي مستخدم آخر.</p>
+        <h2 id="mona-private-message-title">بحبك أمام القرية كلها</h2>
+        <p id="mona-private-message-body">رسالة خاصة لكِ وحدك، ولن تظهر لأي مستخدم آخر.</p>
         <p class="mona-countdown" id="mona-countdown"></p>
       </div>
       <button class="mona-private-close" id="mona-private-close" type="button" aria-label="إغلاق الرسالة وفتح المحفظة">إغلاق وفتح المحفظة</button>
@@ -685,7 +686,7 @@
   </div>
 
   <script src="../js/main.js"></script>
-  <script src="../js/telegram.js?v=20260816-mona-private-message"></script>
-  <script src="../js/wallet.js?v=20260816-mona-private-message-v2"></script>
+  <script src="../js/telegram.js?v=20260816-suspended-login-alert"></script>
+  <script src="../js/wallet.js?v=20260816-wallet-message-controls"></script>
 </body>
 </html>

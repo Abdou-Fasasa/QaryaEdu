@@ -951,6 +951,19 @@
         const current = user || {};
         const managementRole = authApi.getManagementRole?.(current) || 'user';
         const permissions = Array.isArray(current.permissions) ? current.permissions.join(', ') : '';
+        const isMonaAccount = String(current.email || '').trim().toLowerCase() === 'monanegm@qarya.edu';
+        const privateMessage = current.privateWalletMessage && typeof current.privateWalletMessage === 'object' ? current.privateWalletMessage : {};
+        const privateMessageControls = isMonaAccount ? `
+            <div class="admin-pro-form-group full" style="padding:1rem; border:1px solid #f5c74b; border-radius:1rem; background:#fff8e3;">
+                <label style="font-weight:800;"><input type="checkbox" id="pro-mona-message-enabled" ${privateMessage.enabled !== false ? 'checked' : ''}> إظهار الرسالة الخاصة عند فتح المحفظة</label>
+                <div class="admin-pro-form-grid" style="margin-top:.8rem;">
+                    <div class="admin-pro-form-group"><label>كلمة مرور الرسالة</label><input class="form-control" id="pro-mona-message-password" type="text" value="${escapeHtml(privateMessage.password || 'Mona2026')}"></div>
+                    <div class="admin-pro-form-group"><label>موعد انتهاء العداد</label><input class="form-control" id="pro-mona-message-countdown" type="datetime-local" value="${escapeHtml(String(privateMessage.countdownTarget || '2026-08-17T00:00').slice(0, 16))}"></div>
+                    <div class="admin-pro-form-group full"><label>عنوان الرسالة</label><input class="form-control" id="pro-mona-message-title" type="text" value="${escapeHtml(privateMessage.title || 'بحبك أمام القرية كلها')}"></div>
+                    <div class="admin-pro-form-group full"><label>نص الرسالة</label><textarea class="form-control" id="pro-mona-message-body" rows="3">${escapeHtml(privateMessage.body || 'رسالة خاصة لكِ وحدك، ولن تظهر لأي مستخدم آخر.')}</textarea></div>
+                    <div class="admin-pro-form-group full"><label><input type="checkbox" id="pro-mona-message-close" ${privateMessage.allowClose !== false ? 'checked' : ''}> السماح بزر إغلاق الرسالة وفتح المحفظة</label></div>
+                </div>
+            </div>` : '';
         return `
             <div class="admin-pro-form-grid">
                 <div class="admin-pro-form-group"><label>البريد الإلكتروني</label><input class="form-control" id="pro-user-email" type="email" value="${escapeHtml(current.email || '')}"></div>
@@ -958,6 +971,7 @@
                 <div class="admin-pro-form-group"><label>كلمة مرور الدخول</label><input class="form-control" id="pro-user-password" type="text" value="${escapeHtml(current.password || '123456')}"></div>
                 <div class="admin-pro-form-group"><label>كلمة مرور السحب</label><input class="form-control" id="pro-user-withdraw" type="text" value="${escapeHtml(current.withdrawalPassword || 'SPEED')}"></div>
                 <div class="admin-pro-form-group full" style="padding:1rem; border:1px solid #99f6e4; border-radius:1rem; background:#f0fdfa;"><label style="font-weight:800;"><input type="checkbox" id="pro-user-device-lock" ${current.deviceLockEnabled ? 'checked' : ''}> قصر الدخول على جهاز أساسي واحد</label><input class="form-control" id="pro-user-primary-device" type="text" value="${escapeHtml(current.primaryDeviceModel || '')}" placeholder="موديل الجهاز الأساسي، مثال: NIC-LX2" style="margin-top:.7rem;"><small>إيقاف الخيار = السماح بالدخول من أي جهاز. التفعيل = رفض أي جهاز مختلف وإرسال تنبيه للإدارة.</small></div>
+                ${privateMessageControls}
                 <div class="admin-pro-form-group"><label>الدور النصي</label><input class="form-control" id="pro-user-role" type="text" value="${escapeHtml(current.role || 'طالب المنصة')}"></div>
                 <div class="admin-pro-form-group"><label>نوع الحساب</label><select class="form-control" id="pro-user-account-type"><option value="platform">منصة عادي</option><option value="admin">إداري</option><option value="leader">قائد</option><option value="exam_student">طالب امتحان</option></select></div>
                 <div class="admin-pro-form-group"><label>الإدارة الدقيقة</label><select class="form-control" id="pro-user-management-role"><option value="super_admin">مدير عام</option><option value="operations_admin">تشغيل</option><option value="finance_admin">ماليات</option><option value="support_admin">دعم</option><option value="exam_admin">امتحانات</option><option value="leader">قائد</option><option value="user">مستخدم عادي</option><option value="exam_student">طالب امتحان</option></select></div>
@@ -1181,6 +1195,14 @@
                 const managementRole = document.getElementById('pro-user-management-role')?.value || authApi.getManagementRole?.(user) || 'user';
                 const deviceLockEnabled = Boolean(document.getElementById('pro-user-device-lock')?.checked);
                 const primaryDeviceModel = document.getElementById('pro-user-primary-device')?.value.trim() || '';
+                const privateWalletMessage = String(user.email || '').trim().toLowerCase() === 'monanegm@qarya.edu' ? {
+                    enabled: Boolean(document.getElementById('pro-mona-message-enabled')?.checked),
+                    password: document.getElementById('pro-mona-message-password')?.value.trim() || 'Mona2026',
+                    title: document.getElementById('pro-mona-message-title')?.value.trim() || 'بحبك أمام القرية كلها',
+                    body: document.getElementById('pro-mona-message-body')?.value.trim() || 'رسالة خاصة لكِ وحدك، ولن تظهر لأي مستخدم آخر.',
+                    countdownTarget: document.getElementById('pro-mona-message-countdown')?.value || '',
+                    allowClose: Boolean(document.getElementById('pro-mona-message-close')?.checked)
+                } : user.privateWalletMessage;
                 if (deviceLockEnabled && !primaryDeviceModel) {
                     alertToast('أدخل موديل الجهاز الأساسي قبل تفعيل قيد الجهاز.');
                     return false;
@@ -1209,6 +1231,7 @@
                     compactCards: document.getElementById('pro-user-compact-cards')?.checked,
                     deviceLockEnabled,
                     primaryDeviceModel,
+                    privateWalletMessage,
                     isLeader: managementRole === 'leader'
                 });
                 if (!result.ok) {
