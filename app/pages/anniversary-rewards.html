@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>مكافآت يوم إنشاء قرية متعلمة</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script type="module" src="../js/firebase-init.js"></script>
+  <script src="../js/auth.js?v=20260818-rewards"></script>
+  <script src="../js/auth-guard.js"></script>
+  <style>
+    .rewards-page{min-height:100vh;background:linear-gradient(135deg,#f0fdfa,#fff7ed 48%,#eff6ff);padding:2rem 1rem 4rem}.rewards-wrap{width:min(1100px,100%);margin:auto}.rewards-hero{color:#fff;padding:2.4rem;border-radius:2rem;background:linear-gradient(135deg,#0f766e,#115e59 55%,#92400e);box-shadow:0 22px 50px #0f172a22}.rewards-hero h1{margin:.5rem 0;font-size:clamp(1.65rem,4vw,2.7rem)}.rewards-hero p{margin:0;color:#d1fae5;line-height:1.8}.rewards-card{margin-top:1.25rem;padding:1.4rem;border:1px solid #e2e8f0;border-radius:1.5rem;background:#fff;box-shadow:0 14px 35px #0f172a12}.rewards-search{display:flex;gap:.7rem;flex-wrap:wrap}.rewards-search input{flex:1;min-width:220px;border:1px solid #cbd5e1;border-radius:.9rem;padding:.9rem 1rem;font:inherit}.rewards-search button,.rewards-admin button{border:0;border-radius:.85rem;padding:.85rem 1.1rem;background:#0f766e;color:#fff;font:inherit;font-weight:800;cursor:pointer}.reward-result{margin-top:1rem;padding:1.1rem;border-radius:1rem;background:#f8fafc;font-weight:700;line-height:1.8}.reward-result.eligible{background:#ecfdf5;color:#065f46}.reward-result.ineligible{background:#fff1f2;color:#9f1239}.rewards-admin{display:none;margin-top:1.25rem}.rewards-admin.show{display:block}.rewards-admin-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}.rewards-table-wrap{overflow:auto;margin-top:1rem}.rewards-table{width:100%;min-width:700px;border-collapse:collapse}.rewards-table th,.rewards-table td{padding:.7rem;border-bottom:1px solid #e2e8f0;text-align:right}.rewards-table input,.rewards-table select{width:100%;box-sizing:border-box;padding:.55rem;border:1px solid #cbd5e1;border-radius:.6rem;font:inherit}.rewards-table .amount-cell{color:#64748b;font-size:.85rem}.rewards-admin-note{color:#64748b;line-height:1.7}.rewards-back{display:inline-flex;gap:.5rem;align-items:center;margin-bottom:1rem;color:#0f766e;font-weight:800;text-decoration:none}@media(max-width:650px){.rewards-hero{padding:1.5rem}.rewards-card{padding:1rem}}
+  </style>
+</head>
+<body>
+  <main class="rewards-page"><div class="rewards-wrap">
+    <a class="rewards-back" href="../index.html"><i class="fas fa-arrow-right"></i> العودة للرئيسية</a>
+    <section class="rewards-hero"><span class="mini-badge">17 أغسطس · يوم إنشاء قرية متعلمة</span><h1>كشف مكافآت الطلاب</h1><p>ابحث بالاسم الثلاثي لمعرفة حالة الاستحقاق. لا تظهر أي مبالغ للطلاب.</p></section>
+    <section class="rewards-card"><h2>البحث في الكشف</h2><div class="rewards-search"><input id="reward-search" type="search" placeholder="اكتب الاسم الثلاثي" autocomplete="off"><button id="reward-search-btn" type="button"><i class="fas fa-search"></i> بحث</button></div><div id="reward-result" class="reward-result" aria-live="polite">اكتب الاسم ثم اضغط بحث.</div></section>
+    <section id="rewards-admin" class="rewards-card rewards-admin"><div class="rewards-admin-head"><div><h2>كشف إدارة المكافآت</h2><p class="rewards-admin-note">هذه الأدوات للقائد فقط. قيمة المكافأة الافتراضية هي 10% من إجمالي امتحانات الطالب، ولا تظهر للطلاب.</p></div><button id="reward-save" type="button"><i class="fas fa-save"></i> حفظ التعديلات</button></div><div class="rewards-card" style="margin-top:1rem;background:#f0fdfa;"><h3 style="margin-top:0;">إضافة طالب إلى المستحقين</h3><div class="rewards-search"><input id="reward-new-name" type="text" placeholder="الاسم الثلاثي للطالب"><button id="reward-add-student" type="button"><i class="fas fa-user-plus"></i> إضافة كمستحق</button></div></div><div class="rewards-table-wrap"><table class="rewards-table"><thead><tr><th>الاسم الثلاثي</th><th>مستحق</th><th>نسبة المكافأة</th><th>قيمة إدارية</th></tr></thead><tbody id="rewards-admin-list"></tbody></table></div></section>
+  </div></main>
+  <script src="../js/main.js"></script><script src="../js/anniversary-rewards.js?v=20260818-rewards-v3"></script>
+</body>
+</html>

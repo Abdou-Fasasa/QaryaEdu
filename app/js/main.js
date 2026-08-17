@@ -749,6 +749,8 @@
     injectHeaderServiceDropdown();
     injectLeaderAdminLink();
     injectStudentHubLink();
+    injectAnniversaryRewardsLink();
+    showAnniversaryRewardsNotice();
     injectSettingsIcon();
     injectAuthSummary();
     injectSidebarExtras();
@@ -1126,6 +1128,34 @@
                 sidebarNav.prepend(studentsLink);
             }
         }
+    }
+
+    function injectAnniversaryRewardsLink() {
+        const prefix = getPrefix();
+        const href = `${prefix}anniversary-rewards.html`;
+        if (mainNav && !mainNav.querySelector('a[href*="anniversary-rewards.html"]')) {
+            const link = document.createElement('a');
+            link.href = href;
+            link.className = 'nav-link';
+            link.innerHTML = '<i class="fas fa-gift"></i> مكافآت 17 أغسطس';
+            mainNav.appendChild(link);
+        }
+        if (sidebarNav && !sidebarNav.querySelector('a[href*="anniversary-rewards.html"]')) {
+            const link = document.createElement('a');
+            link.href = href;
+            link.className = 'sidebar-link';
+            link.innerHTML = '<i class="fas fa-gift"></i> <span>مكافآت 17 أغسطس</span>';
+            sidebarNav.appendChild(link);
+        }
+    }
+
+    function showAnniversaryRewardsNotice() {
+        showLiveNotification(
+            'مكافآت يوم إنشاء قرية متعلمة',
+            'تم نشر كشف المكافآت. ابحث باسمك لمعرفة حالة الاستحقاق.',
+            null,
+            { actionLabel: 'فتح الكشف', actionUrl: `${getPrefix()}anniversary-rewards.html`, persistDismiss: false, dismissKey: 'anniversary-rewards-2026' }
+        );
     }
 
     function createOverlay() {
