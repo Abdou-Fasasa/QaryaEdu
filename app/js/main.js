@@ -57,6 +57,9 @@
     const runtimeSeenNotifications = new Map();
     let runtimeNotificationsSeeded = false;
     let managedNotificationSurfaceSignature = '';
+    let welcomeAnnouncementSignature = '';
+    let welcomeAnnouncementElement = null;
+    let welcomeAnnouncementDismissedSignature = sessionStorage.getItem('qaryaWelcomeAnnouncementDismissed') || '';
     let serverSyncToastVisible = false;
 
     function escapeHtml(value) {
@@ -756,6 +759,7 @@
     injectSidebarExtras();
     checkComplaintNotification();
     checkBalanceNotification();
+    renderWelcomeAnnouncement();
     handleSpecialLoginNotif();
     handleHolidayGiftAndNotif();
     handleCloudNotifications();
@@ -892,6 +896,7 @@
         if (typeof updateBalanceDisplays === 'function') updateBalanceDisplays();
         if (typeof renderNotifications === 'function') renderNotifications();
         renderManagedNotificationSurfaces();
+        renderWelcomeAnnouncement();
         syncRealtimeNotificationState();
         if (supportWidget) {
             renderSupportWidget();
@@ -1360,6 +1365,8 @@
         notif.className = 'floating-notification';
         if (dismissKey) notif.dataset.liveNotificationKey = dismissKey;
         notif.style.zIndex = '9999';
+        const closeActions = options.allowClose === false ? '' : '<button class="btn-ghost btn-xs floating-notification-close-btn" type="button">إغلاق</button>';
+        const closeButton = options.allowClose === false ? '' : '<button class="floating-notification-close" type="button" aria-label="إغلاق">&times;</button>';
         notif.innerHTML = `
             <div class="floating-notification-content">
                 <div class="floating-notification-icon" style="background: var(--primary-soft); color: var(--primary);">
@@ -1370,11 +1377,11 @@
                     <p>${escapeHtml(text)}</p>
                     <div class="floating-notification-actions">
                         ${options.actionUrl ? `<a href="${resolvePlatformUrl(options.actionUrl)}" class="btn-primary btn-xs">${escapeHtml(options.actionLabel || 'فتح')}</a>` : ''}
-                        <button class="btn-ghost btn-xs floating-notification-close-btn" type="button">إغلاق</button>
+                        ${closeActions}
                     </div>
                 </div>
             </div>
-            <button class="floating-notification-close" type="button" aria-label="إغلاق">&times;</button>
+            ${closeButton}
         `;
         
         const closeNotif = () => {
@@ -1389,6 +1396,37 @@
         notif.querySelector('.floating-notification-close-btn')?.addEventListener('click', closeNotif);
         document.body.appendChild(notif);
         return notif;
+    }
+
+    function renderWelcomeAnnouncement() {
+        if (!authSession || !store?.getPlatformSettings) return;
+        if (authApi.isAdminSession?.(authSession) || authApi.isLeader?.(authSession.email)) return;
+        const settings = store.getPlatformSettings();
+        if (welcomeAnnouncementElement && (!settings.welcomeAnnouncementEnabled || welcomeAnnouncementSignature !== `${settings.updatedAt}|${settings.welcomeAnnouncementTitle}|${settings.welcomeAnnouncementMessage}|${settings.welcomeAnnouncementClosable}`)) {
+            welcomeAnnouncementElement.remove();
+            welcomeAnnouncementElement = null;
+        }
+        if (!settings.welcomeAnnouncementEnabled || welcomeAnnouncementElement) return;
+        welcomeAnnouncementSignature = `${settings.updatedAt}|${settings.welcomeAnnouncementTitle}|${settings.welcomeAnnouncementMessage}|${settings.welcomeAnnouncementClosable}`;
+        if (settings.welcomeAnnouncementClosable && welcomeAnnouncementDismissedSignature === welcomeAnnouncementSignature) return;
+        const overlay = document.createElement('div');
+        overlay.className = 'welcome-announcement-overlay';
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:20000;display:grid;place-items:center;padding:1.25rem;background:rgba(15,23,42,.86);backdrop-filter:blur(9px);';
+        const card = document.createElement('div');
+        card.style.cssText = 'width:min(100%,560px);padding:2.25rem;border-radius:1.5rem;text-align:center;color:#fff;background:linear-gradient(145deg,#0f766e,#0f172a);box-shadow:0 30px 80px rgba(15,23,42,.5);';
+        const safeTitle = escapeHtml(settings.welcomeAnnouncementTitle);
+        const safeMessage = escapeHtml(settings.welcomeAnnouncementMessage).replace(/\r?\n/g, '<br>');
+        card.innerHTML = `<i class="fas fa-bullhorn" style="font-size:2.4rem;color:#fde68a"></i><h2 style="margin:.9rem 0 .75rem;font-size:clamp(1.35rem,4vw,2rem)">${safeTitle}</h2><p style="margin:0;color:rgba(255,255,255,.9);line-height:2;font-size:1.05rem">${safeMessage}</p>${settings.welcomeAnnouncementClosable ? '<button type="button" class="btn-primary" style="margin-top:1.35rem">إغلاق الرسالة والمتابعة</button>' : '<small style="display:block;margin-top:1.35rem;color:#fde68a">يرجى قراءة التنبيه قبل المتابعة</small>'}`;
+        overlay.appendChild(card);
+        if (settings.welcomeAnnouncementClosable) {
+            card.querySelector('button')?.addEventListener('click', () => {
+                overlay.remove();
+                welcomeAnnouncementElement = null;
+                sessionStorage.setItem('qaryaWelcomeAnnouncementDismissed', welcomeAnnouncementSignature);
+            });
+        }
+        document.body.appendChild(overlay);
+        welcomeAnnouncementElement = overlay;
     }
 
     function showToast(message) {

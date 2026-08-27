@@ -20,6 +20,10 @@
         manualExamDurationMinutes: 60,
         maintenanceMode: false,
         maintenanceMessage: 'جاري الآن صيانة الموقع. يرجى المحاولة لاحقًا.',
+        welcomeAnnouncementEnabled: true,
+        welcomeAnnouncementTitle: 'مرحباً بعودتنا',
+        welcomeAnnouncementMessage: 'يرجى العلم أنه جاري الآن تجهيز المرحلة الثالثة على التوالي لبرنامجنا التعليمي "قرية متعلمة".\n\nيرجى التنويه أن جميع طلبات السحب محفوظة لدينا.\n\nانتظرونا يوم 5 سبتمبر.',
+        welcomeAnnouncementClosable: false,
         updatedAt: ''
     };
 
@@ -251,6 +255,10 @@
             manualExamDurationMinutes: Math.max(5, Number(settings?.manualExamDurationMinutes || DEFAULT_SETTINGS.manualExamDurationMinutes)),
             maintenanceMode: Boolean(settings?.maintenanceMode),
             maintenanceMessage: normalizeText(settings?.maintenanceMessage) || DEFAULT_SETTINGS.maintenanceMessage,
+            welcomeAnnouncementEnabled: settings?.welcomeAnnouncementEnabled !== false,
+            welcomeAnnouncementTitle: normalizeText(settings?.welcomeAnnouncementTitle) || DEFAULT_SETTINGS.welcomeAnnouncementTitle,
+            welcomeAnnouncementMessage: normalizeText(settings?.welcomeAnnouncementMessage) || DEFAULT_SETTINGS.welcomeAnnouncementMessage,
+            welcomeAnnouncementClosable: settings?.welcomeAnnouncementClosable !== false,
             updatedAt: settings?.updatedAt || DEFAULT_SETTINGS.updatedAt
         };
     }

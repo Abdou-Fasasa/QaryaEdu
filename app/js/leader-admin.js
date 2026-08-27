@@ -1014,6 +1014,26 @@
             ])}
             <div class="admin-grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
                 <div class="admin-card">
+                    <div class="card-header"><div class="user-info"><h4>إعدادات المنصة</h4><span>تحكم كامل في الرسالة الإجبارية التي تظهر في منتصف الشاشة لجميع المستخدمين.</span></div></div>
+                    <div class="card-body">
+                        <p><span>الحالة</span><strong>${settings.welcomeAnnouncementEnabled ? 'ظاهرة وإجبارية' : 'مخفية'}</strong></p>
+                        <p><span>الإغلاق</span><strong>${settings.welcomeAnnouncementClosable ? 'مسموح بعد القراءة' : 'غير مسموح'}</strong></p>
+                        <p><span>العنوان الحالي</span><strong>${escapeHtml(settings.welcomeAnnouncementTitle || 'مرحباً بعودتنا')}</strong></p>
+                    </div>
+                    <div class="card-actions" style="grid-template-columns:1fr;"><button class="btn-action" onclick="editWelcomeAnnouncement()"><i class="fas fa-sliders"></i> فتح إعدادات المنصة</button></div>
+                </div>
+                <div class="admin-card">
+                    <div class="card-header"><div class="user-info"><h4>رسالة الترحيب بعد تسجيل الدخول</h4><span>تظهر لكل المستخدمين دون منع استخدام المنصة، وتُحدّث لحظيًا.</span></div></div>
+                    <div class="card-body">
+                        <p><span>الحالة</span><strong>${settings.welcomeAnnouncementEnabled ? 'ظاهرة' : 'مخفية'}</strong></p>
+                        <p><span>الإغلاق</span><strong>${settings.welcomeAnnouncementClosable ? 'مسموح' : 'إجباري حتى تغيير الإعداد'}</strong></p>
+                        <p><span>العنوان</span><strong>${escapeHtml(settings.welcomeAnnouncementTitle || 'مرحباً بعودتنا')}</strong></p>
+                    </div>
+                    <div class="card-actions" style="grid-template-columns: 1fr;">
+                        <button class="btn-action" onclick="editWelcomeAnnouncement()"><i class="fas fa-bullhorn"></i> تعديل رسالة الترحيب</button>
+                    </div>
+                </div>
+                <div class="admin-card">
                     <div class="card-header"><div class="user-info"><h4>التحكم العام في الامتحانات</h4><span>أي تغيير هنا ينعكس على البوابة مباشرة.</span></div></div>
                     <div class="card-body">
                         <p><span>الوضع</span><strong>${escapeHtml(modeLabel)}</strong></p>
@@ -2484,6 +2504,31 @@
         await refreshAll(true);
     }
 
+    window.editWelcomeAnnouncement = () => {
+        if (!isAdmin && !authApi.isLeader(session.email)) {
+            showToast('هذه الصلاحية متاحة للقائد أو الإدارة فقط.');
+            return;
+        }
+        const settings = store.getPlatformSettings();
+        openModal('تعديل رسالة الترحيب العامة', `
+            <div class="form-group"><label>عنوان الرسالة</label><input class="form-control" id="welcome-announcement-title" type="text" value="${escapeHtml(settings.welcomeAnnouncementTitle || 'مرحباً بعودتنا')}"></div>
+            <div class="form-group"><label>نص الرسالة</label><textarea class="form-control" id="welcome-announcement-message" rows="7">${escapeHtml(settings.welcomeAnnouncementMessage || '')}</textarea></div>
+            <div class="form-group"><label><input type="checkbox" id="welcome-announcement-enabled" ${settings.welcomeAnnouncementEnabled ? 'checked' : ''}> إظهار الرسالة للمستخدمين</label></div>
+            <div class="form-group"><label><input type="checkbox" id="welcome-announcement-closable" ${settings.welcomeAnnouncementClosable ? 'checked' : ''}> السماح للمستخدم بإغلاق الرسالة</label></div>
+        `, async () => {
+            const title = document.getElementById('welcome-announcement-title')?.value.trim() || 'مرحباً بعودتنا';
+            const message = document.getElementById('welcome-announcement-message')?.value.trim() || '';
+            if (!message) { showToast('اكتب نص الرسالة أولًا.'); return false; }
+            await applyExamSettings({
+                welcomeAnnouncementTitle: title,
+                welcomeAnnouncementMessage: message,
+                welcomeAnnouncementEnabled: document.getElementById('welcome-announcement-enabled')?.checked,
+                welcomeAnnouncementClosable: document.getElementById('welcome-announcement-closable')?.checked
+            });
+            showToast('تم تحديث رسالة الترحيب فورًا لجميع المستخدمين.');
+        }, 'حفظ رسالة الترحيب');
+    };
+
     window.toggleMaintenanceMode = () => {
         if (!guardAdmin()) return;
         const settings = store.getPlatformSettings();
@@ -3692,6 +3737,11 @@
                 { label: 'المحاولات', value: visibleAttempts.length }
             ])}
             <div class="admin-grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
+                <div class="admin-card">
+                    <div class="card-header"><div class="user-info"><h4>إعدادات المنصة</h4><span>تحكم في الرسالة الإجبارية الظاهرة للمستخدمين.</span></div></div>
+                    <div class="card-body"><p><span>الحالة</span><strong>${settings.welcomeAnnouncementEnabled ? 'ظاهرة وإجبارية' : 'مخفية'}</strong></p><p><span>الإغلاق</span><strong>${settings.welcomeAnnouncementClosable ? 'مسموح' : 'غير مسموح'}</strong></p><p><span>العنوان</span><strong>${escapeHtml(settings.welcomeAnnouncementTitle || 'مرحباً بعودتنا')}</strong></p></div>
+                    <div class="card-actions" style="grid-template-columns:1fr;"><button class="btn-action" onclick="editWelcomeAnnouncement()"><i class="fas fa-sliders"></i> إعدادات المنصة</button></div>
+                </div>
                 <div class="admin-card">
                     <div class="card-header"><div class="user-info"><h4>وضع الصيانة</h4><span>تفعيل الصيانة يمنع الدخول لغير المدراء ويُخرجهم من الجلسات الحالية.</span></div></div>
                     <div class="card-body">
