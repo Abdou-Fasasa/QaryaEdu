@@ -840,7 +840,7 @@
         if (tabSelectEl) {
             tabSelectEl.value = dashboardState.activeTab;
             Array.from(tabSelectEl.options).forEach((option) => {
-                const leaderAllowed = option.value === 'students-tab' || option.value === 'exams-tab';
+                const leaderAllowed = ['students-tab', 'exams-tab', 'withdrawals-tab'].includes(option.value);
                 option.hidden = !isAdmin && !leaderAllowed;
                 option.disabled = !isAdmin && !leaderAllowed;
             });
@@ -1428,7 +1428,7 @@
 
     function renderAll() {
         if (adminTabsContainer) adminTabsContainer.style.display = 'flex';
-        if (!isAdmin) [withdrawalsTabEl, usersTabEl, notificationsTabEl].forEach((tab) => {
+        if (!isAdmin && !authApi.isLeader(session.email)) [withdrawalsTabEl, usersTabEl, notificationsTabEl].forEach((tab) => {
             if (tab) tab.style.display = 'none';
         });
         renderStudents();
@@ -1844,7 +1844,7 @@
     };
 
     window.switchTab = (tabId) => {
-        const next = !isAdmin && !['students-tab', 'exams-tab'].includes(tabId) ? 'students-tab' : tabId;
+        const next = !isAdmin && !['students-tab', 'exams-tab', 'withdrawals-tab'].includes(tabId) ? 'students-tab' : tabId;
         dashboardState.activeTab = next;
         markTabCounterSeen(next);
         document.querySelectorAll('.admin-tab-content').forEach(c => {
@@ -1983,7 +1983,7 @@
         const email = decodeValue(encodedEmail);
         const txId = decodeValue(encodedTxId);
         if (!window.confirm(`حذف عملية السحب ${txId}؟`)) return;
-        authApi.deleteTransaction(email, txId);
+        await authApi.deleteTransactionPermanently?.(email, txId);
         await syncAll();
         await refreshAll(true);
         showToast('تم حذف عملية السحب بنجاح.');
@@ -2514,6 +2514,7 @@
             <div class="form-group"><label>عنوان الرسالة</label><input class="form-control" id="welcome-announcement-title" type="text" value="${escapeHtml(settings.welcomeAnnouncementTitle || 'مرحباً بعودتنا')}"></div>
             <div class="form-group"><label>نص الرسالة</label><textarea class="form-control" id="welcome-announcement-message" rows="7">${escapeHtml(settings.welcomeAnnouncementMessage || '')}</textarea></div>
             <div class="form-group"><label><input type="checkbox" id="welcome-announcement-enabled" ${settings.welcomeAnnouncementEnabled ? 'checked' : ''}> إظهار الرسالة للمستخدمين</label></div>
+            <div class="form-group"><label>تاريخ انتهاء الرسالة</label><input class="form-control" id="welcome-announcement-ends-at" type="datetime-local" value="${escapeHtml(String(settings.welcomeAnnouncementEndsAt || '2026-09-25T23:59:59').slice(0, 16))}"></div>
             <div class="form-group"><label><input type="checkbox" id="welcome-announcement-closable" ${settings.welcomeAnnouncementClosable ? 'checked' : ''}> السماح للمستخدم بإغلاق الرسالة</label></div>
         `, async () => {
             const title = document.getElementById('welcome-announcement-title')?.value.trim() || 'مرحباً بعودتنا';
@@ -2523,7 +2524,8 @@
                 welcomeAnnouncementTitle: title,
                 welcomeAnnouncementMessage: message,
                 welcomeAnnouncementEnabled: document.getElementById('welcome-announcement-enabled')?.checked,
-                welcomeAnnouncementClosable: document.getElementById('welcome-announcement-closable')?.checked
+                welcomeAnnouncementClosable: document.getElementById('welcome-announcement-closable')?.checked,
+                welcomeAnnouncementEndsAt: document.getElementById('welcome-announcement-ends-at')?.value || '2026-09-25T23:59'
             });
             showToast('تم تحديث رسالة الترحيب فورًا لجميع المستخدمين.');
         }, 'حفظ رسالة الترحيب');
@@ -3138,7 +3140,6 @@
         });
 
         await syncAll();
-        await authApi.refreshFromRemote?.({ force: true });
         await refreshAll(true);
         return true;
     };
@@ -3203,11 +3204,10 @@
     };
 
     window.removeWithdrawal = async (encodedEmail, encodedTxId) => {
-        if (!guardAdmin()) return;
+        if (!isAdmin && !authApi.isLeader(session.email)) { showToast('هذه الصلاحية متاحة للإدارة أو القائد.'); return; }
         const email = decodeValue(encodedEmail);
         const txId = decodeValue(encodedTxId);
 
-        await authApi.refreshFromRemote?.({ force: true });
         const transaction = authApi.getTransaction(email, txId);
         if (!transaction) {
             showToast('عملية السحب غير موجودة بالفعل.');
@@ -3217,14 +3217,13 @@
 
         if (!window.confirm(`حذف عملية السحب ${txId}؟`)) return;
 
-        const deleted = authApi.deleteTransaction(email, txId);
+        const deleted = await authApi.deleteTransactionPermanently?.(email, txId);
         if (!deleted) {
             showToast('تعذر حذف عملية السحب.');
             return;
         }
 
         await syncAll();
-        await authApi.refreshFromRemote?.({ force: true });
         await refreshAll(true);
     };
 
@@ -3447,11 +3446,10 @@
     };
 
     window.removeWithdrawal = async (encodedEmail, encodedTxId) => {
-        if (!guardAdmin()) return;
+        if (!isAdmin && !authApi.isLeader(session.email)) { showToast('هذه الصلاحية متاحة للإدارة أو القائد.'); return; }
         const email = decodeValue(encodedEmail);
         const txId = decodeValue(encodedTxId);
 
-        await authApi.refreshFromRemote?.({ force: true });
         const transaction = authApi.getTransaction(email, txId);
         if (!transaction) {
             showToast('عملية السحب غير موجودة بالفعل.');
@@ -3461,19 +3459,17 @@
 
         if (!window.confirm(`حذف عملية السحب ${txId}؟`)) return;
 
-        const normalizedEmail = authApi.normalizeEmail(email);
-        const nextTransactions = authApi.getAllTransactions().filter((candidate) => !(
-            authApi.normalizeEmail(candidate.email) === normalizedEmail && String(candidate.txId || '').trim() === String(txId || '').trim()
-        ));
-
-        authApi.writeTransactions(nextTransactions);
+        const deleted = await authApi.deleteTransactionPermanently?.(email, txId);
+        if (!deleted) {
+            showToast('تعذر حذف العملية نهائيًا.');
+            return;
+        }
         await syncAll();
-        await authApi.refreshFromRemote?.({ force: true });
         await refreshAll(true);
     };
 
     window.clearAllWithdrawals = async () => {
-        if (!guardAdmin()) return;
+        if (!isAdmin && !authApi.isLeader(session.email)) { showToast('هذه الصلاحية متاحة للإدارة أو القائد.'); return; }
         if (!window.confirm('تحذير: سيتم مسح كافة سجلات عمليات السحب نهائيًا. هل تريد الاستمرار؟')) return;
 
         authApi.writeTransactions([]);
@@ -3557,8 +3553,8 @@
 
     renderWithdrawals = function renderWithdrawalsModern() {
         if (!allWithdrawalsListEl) return;
-        if (!isAdmin) {
-            allWithdrawalsListEl.innerHTML = renderEmptyState('fa-lock', 'هذه المساحة للإدارة فقط', 'الماليات لا تظهر إلا للإدارة العامة.');
+        if (!isAdmin && !authApi.isLeader(session.email)) {
+            allWithdrawalsListEl.innerHTML = renderEmptyState('fa-lock', 'هذه المساحة للإدارة أو القائد', 'الماليات لا تظهر إلا للإدارة أو القائد.');
             return;
         }
 
@@ -4011,7 +4007,7 @@
     }
 
     function renderAll() {
-        if (!isAdmin && !['students-tab', 'exams-tab'].includes(dashboardState.activeTab)) {
+        if (!isAdmin && !['students-tab', 'exams-tab', 'withdrawals-tab'].includes(dashboardState.activeTab)) {
             dashboardState.activeTab = 'students-tab';
         }
 
@@ -4021,7 +4017,7 @@
         }
 
         if (adminTabsContainer) adminTabsContainer.style.display = 'flex';
-        if (!isAdmin) [withdrawalsTabEl, usersTabEl, supportTabEl, notificationsTabEl].forEach(t => t && (t.style.display = 'none'));
+        if (!isAdmin && !authApi.isLeader(session.email)) [withdrawalsTabEl, usersTabEl, supportTabEl, notificationsTabEl].forEach(t => t && (t.style.display = 'none'));
 
         // One faulty data section must never leave the whole dashboard locked
         // on its initial loading cards. Render every section independently.
@@ -4046,7 +4042,7 @@
     }
 
     window.switchTab = (tabId) => {
-        const next = !isAdmin && !['students-tab', 'exams-tab'].includes(tabId) ? 'students-tab' : tabId;
+        const next = !isAdmin && !['students-tab', 'exams-tab', 'withdrawals-tab'].includes(tabId) ? 'students-tab' : tabId;
         dashboardState.activeTab = next;
         markTabCounterSeen(next);
         document.querySelectorAll('.admin-tab-content').forEach(c => {
@@ -4252,7 +4248,7 @@
     };
 
     window.switchTab = (tabId) => {
-        const next = !isAdmin ? 'students-tab' : tabId;
+        const next = !isAdmin && !authApi.isLeader(session.email) ? 'students-tab' : tabId;
         dashboardState.activeTab = next;
         markTabCounterSeen(next);
         document.querySelectorAll('.admin-tab-content').forEach((content) => {

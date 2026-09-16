@@ -752,8 +752,6 @@
     injectHeaderServiceDropdown();
     injectLeaderAdminLink();
     injectStudentHubLink();
-    injectAnniversaryRewardsLink();
-    showAnniversaryRewardsNotice();
     injectSettingsIcon();
     injectAuthSummary();
     injectSidebarExtras();
@@ -1135,34 +1133,6 @@
         }
     }
 
-    function injectAnniversaryRewardsLink() {
-        const prefix = getPrefix();
-        const href = `${prefix}anniversary-rewards.html`;
-        if (mainNav && !mainNav.querySelector('a[href*="anniversary-rewards.html"]')) {
-            const link = document.createElement('a');
-            link.href = href;
-            link.className = 'nav-link';
-            link.innerHTML = '<i class="fas fa-gift"></i> مكافآت 17 أغسطس';
-            mainNav.appendChild(link);
-        }
-        if (sidebarNav && !sidebarNav.querySelector('a[href*="anniversary-rewards.html"]')) {
-            const link = document.createElement('a');
-            link.href = href;
-            link.className = 'sidebar-link';
-            link.innerHTML = '<i class="fas fa-gift"></i> <span>مكافآت 17 أغسطس</span>';
-            sidebarNav.appendChild(link);
-        }
-    }
-
-    function showAnniversaryRewardsNotice() {
-        showLiveNotification(
-            'مكافآت يوم إنشاء قرية متعلمة',
-            'تم نشر كشف المكافآت. ابحث باسمك لمعرفة حالة الاستحقاق.',
-            null,
-            { actionLabel: 'فتح الكشف', actionUrl: `${getPrefix()}anniversary-rewards.html`, persistDismiss: false, dismissKey: 'anniversary-rewards-2026' }
-        );
-    }
-
     function createOverlay() {
         let element = document.getElementById('page-overlay');
         if (!element) {
@@ -1402,12 +1372,19 @@
         if (!authSession || !store?.getPlatformSettings) return;
         if (authApi.isAdminSession?.(authSession) || authApi.isLeader?.(authSession.email)) return;
         const settings = store.getPlatformSettings();
-        if (welcomeAnnouncementElement && (!settings.welcomeAnnouncementEnabled || welcomeAnnouncementSignature !== `${settings.updatedAt}|${settings.welcomeAnnouncementTitle}|${settings.welcomeAnnouncementMessage}|${settings.welcomeAnnouncementClosable}`)) {
+        const announcementEndsAt = Date.parse(settings.welcomeAnnouncementEndsAt || '');
+        if (Number.isFinite(announcementEndsAt) && Date.now() > announcementEndsAt) {
+            welcomeAnnouncementElement?.remove();
+            welcomeAnnouncementElement = null;
+            return;
+        }
+        const currentAnnouncementSignature = `${settings.updatedAt}|${settings.welcomeAnnouncementTitle}|${settings.welcomeAnnouncementMessage}|${settings.welcomeAnnouncementClosable}|${settings.welcomeAnnouncementEndsAt}`;
+        if (welcomeAnnouncementElement && (!settings.welcomeAnnouncementEnabled || welcomeAnnouncementSignature !== currentAnnouncementSignature)) {
             welcomeAnnouncementElement.remove();
             welcomeAnnouncementElement = null;
         }
         if (!settings.welcomeAnnouncementEnabled || welcomeAnnouncementElement) return;
-        welcomeAnnouncementSignature = `${settings.updatedAt}|${settings.welcomeAnnouncementTitle}|${settings.welcomeAnnouncementMessage}|${settings.welcomeAnnouncementClosable}`;
+        welcomeAnnouncementSignature = `${settings.updatedAt}|${settings.welcomeAnnouncementTitle}|${settings.welcomeAnnouncementMessage}|${settings.welcomeAnnouncementClosable}|${settings.welcomeAnnouncementEndsAt}`;
         if (settings.welcomeAnnouncementClosable && welcomeAnnouncementDismissedSignature === welcomeAnnouncementSignature) return;
         const overlay = document.createElement('div');
         overlay.className = 'welcome-announcement-overlay';

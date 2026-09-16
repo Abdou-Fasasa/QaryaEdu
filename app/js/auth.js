@@ -1609,7 +1609,27 @@
     }
 
     function deleteTransaction(email, txId) {
-        return updateTransaction(email, txId, { deleted: true }).ok;
+        return deleteTransactionPermanently(email, txId).then(() => true);
+    }
+
+    async function deleteTransactionPermanently(email, txId) {
+        const normalizedEmail = normalizeEmail(email);
+        const normalizedTxId = String(txId || '').trim();
+        const current = getTransaction(normalizedEmail, normalizedTxId);
+        if (!current) return false;
+        const nextTransactions = getAllTransactions().filter((item) => !(
+            normalizeEmail(item.email) === normalizedEmail && String(item.txId || '').trim() === normalizedTxId
+        ));
+        saveStoredTransactions(nextTransactions);
+        notifyStoreUpdated({ email: normalizedEmail, txId: normalizedTxId, deleted: true });
+        if (typeof BroadcastChannel === 'function') {
+            const channel = new BroadcastChannel('qaryaedu-admin-update');
+            channel.postMessage({ type: 'transactions-deleted', email: normalizedEmail, txId: normalizedTxId });
+            channel.close();
+        }
+        await replaceTransactionsInFirebaseDirectly(nextTransactions);
+        await syncNow();
+        return true;
     }
 
     function getPrivateNotifications(email) {
@@ -2171,6 +2191,7 @@ async function login(email, password) {
         upsertTransaction,
         updateTransaction,
         deleteTransaction,
+        deleteTransactionPermanently,
         getPrivateNotifications,
         pushPrivateNotification,
         updatePrivateNotification,
