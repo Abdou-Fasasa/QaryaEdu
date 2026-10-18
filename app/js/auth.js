@@ -10,6 +10,7 @@
     const AUTH_STORE_EVENT = 'qarya_auth_store_updated';
     const REMOTE_REFRESH_MS = 30000;
     const STUDENT_DEVICE_OWNER_KEY = 'qaryaeduStudentDeviceOwner';
+    const IP_APPROVED_EMAIL_KEY = 'qaryaeduIpApprovedEmail';
 
     const LEADER_STUDENTS = {
     };
@@ -19,9 +20,10 @@
         EXAM_STUDENT: 'exam_student',
         PLATFORM: 'platform'
     };
-    const ALLOWED_STUDENT_NAMES = ['عبدالرحمن رمضان محمد', 'محمد شعبان'];
-    const ALLOWED_STUDENT_REQUEST_IDS = ['KD-37649', 'MS-2026'];
-    const ALLOWED_STUDENT_EMAILS = ['student.29309302200459@qarya.edu', 'mohamed.shaban@qarya.edu'];
+    const ACTIVE_ACCOUNT_EMAILS = ['abdou@qarya.edu', 'gehad@qarya.edu', 'mohamed.shaban@qarya.edu'];
+    const ALLOWED_STUDENT_NAMES = ['محمد شعبان', 'جهاد'];
+    const ALLOWED_STUDENT_REQUEST_IDS = ['MS-2026', 'GEHAD-2026'];
+    const ALLOWED_STUDENT_EMAILS = ['gehad@qarya.edu', 'mohamed.shaban@qarya.edu'];
     const EID_GIFT_KEY = 'eid_adha_2026_100egp';
     const MANAGEMENT_PERMISSION_MATRIX = {
         super_admin: ['admin_access', 'students', 'withdrawals', 'users', 'support', 'notifications', 'exams', 'exports', 'backups', 'archives', 'activity', 'student_files'],
@@ -56,6 +58,22 @@
             studentPassword: '123456',
             withdrawalPassword: '12345',
             balance: 100
+        },
+        {
+            requestId: 'GEHAD-2026',
+            nationalId: '',
+            name: 'جهاد',
+            governorate: 'بني سويف',
+            city: '',
+            village: '',
+            leaderCode: 'ADMIN200',
+            studentEmail: 'gehad@qarya.edu',
+            studentPassword: '12356',
+            withdrawalPassword: '12345',
+            balance: 0,
+            loginAccessMode: 'device_notice',
+            loginDeviceLabel: 'Galaxy A12',
+            loginAccessPolicyVersion: 1
         }
     ];
 
@@ -131,6 +149,16 @@
 
     function normalizeEmail(email) {
         return String(email || '').trim().toLowerCase();
+    }
+
+    function normalizePasswordInput(value) {
+        const arabicIndic = '٠١٢٣٤٥٦٧٨٩';
+        const easternArabic = '۰۱۲۳۴۵۶۷۸۹';
+        return String(value ?? '').trim().replace(/[٠-٩۰-۹]/g, (digit) => {
+            const arabicIndex = arabicIndic.indexOf(digit);
+            if (arabicIndex >= 0) return String(arabicIndex);
+            return String(easternArabic.indexOf(digit));
+        });
     }
 
     function normalizePhoneNumber(phone) {
@@ -399,6 +427,9 @@
             privateWalletMessage: user.privateWalletMessage && typeof user.privateWalletMessage === 'object' ? { ...user.privateWalletMessage } : null,
             deviceLockEnabled: Boolean(user.deviceLockEnabled),
             primaryDeviceModel: String(user.primaryDeviceModel || '').trim(),
+            loginAccessMode: user.loginAccessMode === 'device_notice' ? 'device_notice' : 'direct',
+            loginDeviceLabel: String(user.loginDeviceLabel || '').trim(),
+            primaryDeviceIp: String(user.primaryDeviceIp || '').trim(),
             compactCards: Boolean(user.compactCards),
             showWalletQuickAccess: walletEnabled && user.showWalletQuickAccess !== false,
             profileVisibility: user.profileVisibility || 'platform',
@@ -451,6 +482,9 @@
                 : (defaultUser.privateWalletMessage && typeof defaultUser.privateWalletMessage === 'object' ? { ...defaultUser.privateWalletMessage } : null),
             deviceLockEnabled: Boolean(user.deviceLockEnabled ?? defaultUser.deviceLockEnabled),
             primaryDeviceModel: String(user.primaryDeviceModel || defaultUser.primaryDeviceModel || '').trim(),
+            loginAccessMode: user.loginAccessMode === 'device_notice' ? 'device_notice' : (defaultUser.loginAccessMode || 'direct'),
+            loginDeviceLabel: String(user.loginDeviceLabel || defaultUser.loginDeviceLabel || '').trim(),
+            primaryDeviceIp: String(user.primaryDeviceIp || defaultUser.primaryDeviceIp || '').trim(),
             compactCards: Boolean(user.compactCards ?? defaultUser.compactCards),
             showWalletQuickAccess: walletEnabled && user.showWalletQuickAccess !== false,
             isSuspended: Boolean(user.isSuspended),
@@ -615,7 +649,10 @@
                 leaderCode: application.leaderCode || '',
                 examAllowed: true,
                 createdAt: '2024-01-01T12:00:00Z',
-                updatedAt: '2024-01-01T12:00:00Z'
+                loginAccessMode: application.loginAccessMode || 'direct',
+                loginDeviceLabel: application.loginDeviceLabel || '',
+                isSuspended: false,
+                updatedAt: '2026-10-18T00:00:00Z'
             });
         });
     }
@@ -733,8 +770,20 @@
         return mergeUsers(seededUsers, cachedUsers);
     }
 
+    function applyAccountActivationPolicy(user = {}) {
+        const email = normalizeEmail(user.email || user.originalEmail);
+        const migratedLoginPolicy = email === 'gehad@qarya.edu' && !user.loginAccessPolicyVersion
+            ? { loginAccessMode: 'device_notice', loginDeviceLabel: 'Galaxy A12', loginAccessPolicyVersion: 1 }
+            : {};
+        return {
+            ...user,
+            ...migratedLoginPolicy,
+            isSuspended: !ACTIVE_ACCOUNT_EMAILS.includes(email)
+        };
+    }
+
     function getAllUsersRaw() {
-        return mergeUsers(ensureUsersCache());
+        return mergeUsers(ensureUsersCache()).map((user) => applyAccountActivationPolicy(user));
     }
 
     function getAllUsers() {
@@ -796,7 +845,6 @@
         return [
             'student.kd.3556@qarya.edu',
             'mona.edu.eg@gmail.com',
-            'gehad@qarya.edu',
             'student.31202022200178@qarya.edu',
             'student.30709302200924@qarya.edu'
         ].includes(email);
@@ -821,7 +869,8 @@
     }
 
     function cleanupStudentUsers(users = getAllUsersRaw()) {
-        const currentUsers = mergeUsers(users);
+        const sourceUsers = mergeUsers(users);
+        const currentUsers = sourceUsers.map((user) => applyAccountActivationPolicy(user));
         const nextUsers = currentUsers.filter((user) => shouldKeepUserAfterStudentCleanup(user));
         const removedEmails = currentUsers
             .filter((user) => !shouldKeepUserAfterStudentCleanup(user))
@@ -830,9 +879,10 @@
 
         const currentTransactions = getAllTransactions();
         const nextTransactions = filterTransactionsForUsers(currentTransactions, nextUsers);
+        const usersChanged = JSON.stringify(sourceUsers) !== JSON.stringify(nextUsers);
         const transactionsChanged = JSON.stringify(nextTransactions) !== JSON.stringify(currentTransactions);
 
-        if (removedEmails.length || transactionsChanged) {
+        if (usersChanged || removedEmails.length || transactionsChanged) {
             writeUsers(nextUsers, { silent: true });
             writeTransactions(nextTransactions, { silent: true, fromRemote: true });
             removedEmails.forEach((email) => {
@@ -1295,7 +1345,6 @@
         const deletedEmails = [
             'student.kd.3556@qarya.edu',
             'mona.edu.eg@gmail.com',
-            'gehad@qarya.edu',
             'student.31202022200178@qarya.edu',
             'student.30709302200924@qarya.edu'
         ];
@@ -1914,6 +1963,16 @@
     function validateStudentDeviceAccess(user) {
         const email = normalizeEmail(user?.email);
 
+        if (user?.loginAccessMode === 'device_notice') {
+            const deviceLabel = String(user.loginDeviceLabel || 'Galaxy A12').trim();
+            const approvedEmail = normalizeEmail(sessionStorage.getItem(IP_APPROVED_EMAIL_KEY));
+            if (approvedEmail === email) return { ok: true };
+            return {
+                ok: false,
+                message: `هذا الحساب مسجل على هاتف ${deviceLabel}. يجب فتح الحساب من الجهاز المسجل لدينا، وسيتم التعرف عليه من خلال IP.`
+            };
+        }
+
         // حساب منى مفتوح من جميع الأجهزة افتراضيًا؛ يُطبق القيد فقط عندما يفعّله الأدمن من التعديل.
         if (email === 'monanegm@qarya.edu' && !user?.deviceLockEnabled) return { ok: true };
 
@@ -2083,13 +2142,23 @@
 
 async function login(email, password) {
         const normalized = normalizeEmail(email);
+        const normalizedPassword = normalizePasswordInput(password);
         
         // التحقق من الحسابات الثابتة أولاً
-        let user = getHardCodedUsers().find((item) => normalizeEmail(item.email) === normalized && item.password === password);
+        const hardCodedMatch = getHardCodedUsers().find((item) => (
+            normalizeEmail(item.email) === normalized
+            && normalizePasswordInput(item.password) === normalizedPassword
+        ));
+        // كلمة المرور الثابتة تثبت الهوية فقط، أما حالة الإيقاف وسياسة الدخول
+        // فتؤخذ دائمًا من أحدث نسخة محفوظة حتى تعمل تحكمات القائد فورًا.
+        let user = hardCodedMatch ? (getUserByEmail(normalized) || hardCodedMatch) : null;
         
         // إذا لم يكن ثابتاً، نبحث في المستخدمين المسجلين (Firebase/Local)
         if (!user) {
-            user = getAllUsersRaw().find((item) => normalizeEmail(item.email) === normalized && item.password === password);
+            user = getAllUsersRaw().find((item) => (
+                normalizeEmail(item.email) === normalized
+                && normalizePasswordInput(item.password) === normalizedPassword
+            ));
         }
 
         if (!user) {
@@ -2110,6 +2179,32 @@ async function login(email, password) {
             return { ok: false, message: maintenance.message || 'جاري الآن صيانة الموقع. يرجى المحاولة لاحقًا.' };
         }
 
+        if (user.loginAccessMode === 'device_notice') {
+            const requiredIp = String(user.primaryDeviceIp || '').trim();
+            let currentIp = '';
+            if (requiredIp) {
+                try {
+                    const response = await Promise.race([
+                        fetch('https://ipapi.co/json/', { cache: 'no-store', credentials: 'omit' }),
+                        new Promise((resolve) => window.setTimeout(() => resolve(null), 3000))
+                    ]);
+                    if (response?.ok) {
+                        const data = await response.json();
+                        currentIp = String(data?.ip || '').trim();
+                    }
+                } catch (error) {}
+            }
+
+            if (!requiredIp || currentIp !== requiredIp) {
+                const deviceLabel = String(user.loginDeviceLabel || 'Galaxy A12').trim();
+                return {
+                    ok: false,
+                    message: `هذا الحساب مسجل على هاتف ${deviceLabel}. يجب فتح الحساب من الجهاز المسجل لدينا، وسيتم التعرف عليه من خلال IP.`
+                };
+            }
+            sessionStorage.setItem(IP_APPROVED_EMAIL_KEY, normalized);
+        }
+
         // Start session immediately
         const sessionResult = startSessionForUser(user);
         if (!sessionResult.ok) return sessionResult;
@@ -2125,6 +2220,7 @@ async function login(email, password) {
         localStorage.removeItem(AUTH_SESSION_KEY);
         sessionStorage.removeItem('qarya_verified_student');
         sessionStorage.removeItem('qaryaeduExamGatePass');
+        sessionStorage.removeItem(IP_APPROVED_EMAIL_KEY);
     }
 
     function logout() {
@@ -2132,6 +2228,7 @@ async function login(email, password) {
         localStorage.removeItem(AUTH_SESSION_KEY);
         sessionStorage.removeItem('qarya_verified_student');
         sessionStorage.removeItem('qaryaeduExamGatePass');
+        sessionStorage.removeItem(IP_APPROVED_EMAIL_KEY);
         const firebase = getFirebaseApi();
         if (firebase?.auth && typeof firebase.signOut === 'function') {
             Promise.resolve(firebase.signOut(firebase.auth)).catch(() => {});

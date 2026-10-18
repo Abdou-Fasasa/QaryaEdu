@@ -206,6 +206,7 @@
         }
 
         const target = resolveTarget(result.session);
+        const navigationTarget = new URL(target, window.location.href).href;
         const targetLabel = getTargetLabel(target);
 
         authApi.updateUserPersistentData?.(result.session.email, {
@@ -217,7 +218,7 @@
         }
 
         await emitLoginNotification(result.user || authApi.getUserByEmail?.(result.session.email) || result.session, targetLabel);
-        window.location.replace(target);
+        window.location.replace(navigationTarget);
     }
 
     document.addEventListener('DOMContentLoaded', () => {

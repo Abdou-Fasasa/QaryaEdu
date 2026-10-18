@@ -2196,6 +2196,9 @@
                 </div>
             </div>
             <div class="form-group"><label>موديل الجهاز الأساسي</label><input class="form-control" id="edit-user-primary-device" type="text" value="${escapeHtml(user.primaryDeviceModel || '')}" placeholder="مثال: NIC-LX2 — يطبّق عند تفعيل قصر الدخول"></div>
+            <div class="form-group"><label>طريقة تسجيل الدخول</label><select class="form-control" id="edit-user-login-access-mode"><option value="direct" ${user.loginAccessMode !== 'device_notice' ? 'selected' : ''}>Direct login — تسجيل مباشر</option><option value="device_notice" ${user.loginAccessMode === 'device_notice' ? 'selected' : ''}>Device notice — إظهار رسالة الجهاز</option></select></div>
+            <div class="form-group"><label>اسم الهاتف الظاهر في الرسالة</label><input class="form-control" id="edit-user-login-device-label" type="text" value="${escapeHtml(user.loginDeviceLabel || 'Galaxy A12')}" placeholder="Galaxy A12"></div>
+            <div class="form-group"><label>IP الجهاز المسجل</label><input class="form-control" id="edit-user-primary-device-ip" type="text" value="${escapeHtml(user.primaryDeviceIp || '')}" placeholder="مثال: 197.40.10.25"></div>
             <div class="form-group"><label>رسالة قفل السحب</label><textarea class="form-control" id="edit-user-withdrawal-lock-message" rows="3" placeholder="تظهر للمستخدم عند قفل السحب">${escapeHtml(user.withdrawalLockMessage || '')}</textarea></div>
         `, async () => {
             const mRole = document.getElementById('edit-user-management-role').value;
@@ -2222,6 +2225,10 @@
                 privateNotificationsEnabled: document.getElementById('edit-user-private-notes')?.checked,
                 deviceLockEnabled,
                 primaryDeviceModel,
+                loginAccessMode: document.getElementById('edit-user-login-access-mode')?.value === 'device_notice' ? 'device_notice' : 'direct',
+                loginDeviceLabel: document.getElementById('edit-user-login-device-label')?.value.trim() || 'Galaxy A12',
+                primaryDeviceIp: document.getElementById('edit-user-primary-device-ip')?.value.trim() || '',
+                loginAccessPolicyVersion: 1,
                 updatedAt: new Date().toISOString()
             };
 

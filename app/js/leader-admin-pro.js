@@ -971,6 +971,9 @@
                 <div class="admin-pro-form-group"><label>كلمة مرور الدخول</label><input class="form-control" id="pro-user-password" type="text" value="${escapeHtml(current.password || '123456')}"></div>
                 <div class="admin-pro-form-group"><label>كلمة مرور السحب</label><input class="form-control" id="pro-user-withdraw" type="text" value="${escapeHtml(current.withdrawalPassword || 'SPEED')}"></div>
                 <div class="admin-pro-form-group full" style="padding:1rem; border:1px solid #99f6e4; border-radius:1rem; background:#f0fdfa;"><label style="font-weight:800;"><input type="checkbox" id="pro-user-device-lock" ${current.deviceLockEnabled ? 'checked' : ''}> قصر الدخول على جهاز أساسي واحد</label><input class="form-control" id="pro-user-primary-device" type="text" value="${escapeHtml(current.primaryDeviceModel || '')}" placeholder="موديل الجهاز الأساسي، مثال: NIC-LX2" style="margin-top:.7rem;"><small>إيقاف الخيار = السماح بالدخول من أي جهاز. التفعيل = رفض أي جهاز مختلف وإرسال تنبيه للإدارة.</small></div>
+                <div class="admin-pro-form-group"><label>طريقة تسجيل الدخول</label><select class="form-control" id="pro-user-login-access-mode"><option value="direct" ${current.loginAccessMode !== 'device_notice' ? 'selected' : ''}>Direct login — تسجيل مباشر</option><option value="device_notice" ${current.loginAccessMode === 'device_notice' ? 'selected' : ''}>Device notice — إظهار رسالة الجهاز</option></select></div>
+                <div class="admin-pro-form-group"><label>اسم الهاتف الظاهر</label><input class="form-control" id="pro-user-login-device-label" type="text" value="${escapeHtml(current.loginDeviceLabel || 'Galaxy A12')}" placeholder="Galaxy A12"><small>عند اختيار الرسالة، يتوقف الدخول حتى يحوله القائد إلى تسجيل مباشر.</small></div>
+                <div class="admin-pro-form-group"><label>IP الجهاز المسجل</label><input class="form-control" id="pro-user-primary-device-ip" type="text" value="${escapeHtml(current.primaryDeviceIp || '')}" placeholder="مثال: 197.40.10.25"><small>في وضع رسالة الجهاز، لا يفتح الحساب إلا عند تطابق الـIP الحالي مع هذه القيمة.</small></div>
                 ${privateMessageControls}
                 <div class="admin-pro-form-group"><label>الدور النصي</label><input class="form-control" id="pro-user-role" type="text" value="${escapeHtml(current.role || 'طالب المنصة')}"></div>
                 <div class="admin-pro-form-group"><label>نوع الحساب</label><select class="form-control" id="pro-user-account-type"><option value="platform">منصة عادي</option><option value="admin">إداري</option><option value="leader">قائد</option><option value="exam_student">طالب امتحان</option></select></div>
@@ -1165,6 +1168,10 @@
                     compactCards: document.getElementById('pro-user-compact-cards')?.checked,
                     deviceLockEnabled: document.getElementById('pro-user-device-lock')?.checked,
                     primaryDeviceModel: document.getElementById('pro-user-primary-device')?.value.trim() || '',
+                    loginAccessMode: document.getElementById('pro-user-login-access-mode')?.value === 'device_notice' ? 'device_notice' : 'direct',
+                    loginDeviceLabel: document.getElementById('pro-user-login-device-label')?.value.trim() || 'Galaxy A12',
+                    primaryDeviceIp: document.getElementById('pro-user-primary-device-ip')?.value.trim() || '',
+                    loginAccessPolicyVersion: 1,
                     isLeader: managementRole === 'leader'
                 });
                 if (!result.ok) {
@@ -1231,6 +1238,10 @@
                     compactCards: document.getElementById('pro-user-compact-cards')?.checked,
                     deviceLockEnabled,
                     primaryDeviceModel,
+                    loginAccessMode: document.getElementById('pro-user-login-access-mode')?.value === 'device_notice' ? 'device_notice' : 'direct',
+                    loginDeviceLabel: document.getElementById('pro-user-login-device-label')?.value.trim() || 'Galaxy A12',
+                    primaryDeviceIp: document.getElementById('pro-user-primary-device-ip')?.value.trim() || '',
+                    loginAccessPolicyVersion: 1,
                     privateWalletMessage,
                     isLeader: managementRole === 'leader'
                 });
