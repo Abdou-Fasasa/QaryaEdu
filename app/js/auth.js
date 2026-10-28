@@ -400,7 +400,7 @@
             permissions: Array.isArray(user.permissions) ? user.permissions : [],
             balance: walletEnabled ? Number(user.balance || 0) : 0,
             walletEnabled,
-            withdrawalsEnabled: walletEnabled,
+            withdrawalsEnabled: walletEnabled && user.withdrawalsEnabled !== false,
             withdrawalLockMessage: user.withdrawalLockMessage || '',
             privateNotificationsEnabled: accountType === ACCOUNT_TYPES.EXAM_STUDENT ? true : user.privateNotificationsEnabled !== false,
             withdrawalPassword: '12345',
@@ -470,7 +470,7 @@
             }),
             permissions: Array.isArray(user.permissions) ? user.permissions : (Array.isArray(defaultUser.permissions) ? defaultUser.permissions : []),
             walletEnabled,
-            withdrawalsEnabled: walletEnabled,
+            withdrawalsEnabled: walletEnabled && user.withdrawalsEnabled !== false,
             privateNotificationsEnabled: accountType === ACCOUNT_TYPES.EXAM_STUDENT ? true : user.privateNotificationsEnabled !== false,
             withdrawalPassword: '12345',
             balance: walletEnabled ? Number(user.balance ?? defaultUser.balance ?? 0) : 0,
@@ -778,7 +778,9 @@
         return {
             ...user,
             ...migratedLoginPolicy,
-            isSuspended: !ACTIVE_ACCOUNT_EMAILS.includes(email)
+            isSuspended: user.activationPolicyVersion === 1
+                ? Boolean(user.isSuspended)
+                : !ACTIVE_ACCOUNT_EMAILS.includes(email)
         };
     }
 
@@ -1466,6 +1468,12 @@
     }
 
     async function upsertUser(userInput, options = {}) {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(userInput.email || '').trim())) {
+            return { ok: false, message: 'البريد الإلكتروني غير صحيح.' };
+        }
+        if (!Number.isFinite(Number(userInput.balance ?? 0)) || Number(userInput.balance ?? 0) < 0) {
+            return { ok: false, message: 'الرصيد يجب أن يكون رقمًا صحيحًا لا يقل عن صفر.' };
+        }
         const currentUsers = getAllUsersRaw();
         const nextUser = normalizeUser({
             ...userInput,
@@ -1523,9 +1531,10 @@
 
         const nextEmail = String(data?.email || currentUser.email || '').trim();
         const currentEmail = currentUser.email;
-        const result = upsertUser({
+        const result = await upsertUser({
             ...currentUser,
             ...data,
+            activationPolicyVersion: 1,
             email: nextEmail,
             originalEmail: nextEmail,
             storageKey: normalizeEmail(nextEmail)
@@ -1572,6 +1581,7 @@
             storageKey: email,
             accountType,
             role: userData.role || (isExamStudent ? 'طالب امتحان' : 'طالب المنصة'),
+            activationPolicyVersion: 1,
             balance: Number(userData.balance ?? (isExamStudent ? 100 : 0)),
             walletEnabled: true,
             privateNotificationsEnabled: true,
@@ -1583,12 +1593,18 @@
     }
 
     function deleteUserAccount(email) {
-        const nextUsers = getAllUsersRaw().filter(u => normalizeEmail(u.email) !== normalizeEmail(email));
+        const target = getUserByEmail(email);
+        if (!target) return { ok: false, message: 'المستخدم غير موجود.' };
+        const now = new Date().toISOString();
+        const nextUsers = getAllUsersRaw().map(user => normalizeEmail(user.email) === normalizeEmail(email)
+            ? { ...user, deleted: true, isSuspended: true, activationPolicyVersion: 1, updatedAt: now, lastUpdatedAt: now }
+            : user);
         const nextTransactions = getAllTransactions().filter((transaction) => normalizeEmail(transaction.email) !== normalizeEmail(email));
         writeUsers(nextUsers);
         writeTransactions(nextTransactions, { silent: true, fromRemote: true });
-        deleteFromFirebaseDirectly(email); // حذف مباشر من Firebase
-        pushRemoteState({ users: nextUsers, transactions: nextTransactions });
+        saveCustomUserShadow(nextUsers.find(user => normalizeEmail(user.email) === normalizeEmail(email)));
+        dispatchUserUpdate(email, normalizeEmail(email));
+        void pushRemoteState({ users: nextUsers, transactions: nextTransactions });
         return { ok: true, message: 'تم حذف الحساب بنجاح.' };
     }
 

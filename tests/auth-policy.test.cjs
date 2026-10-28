@@ -125,6 +125,26 @@ vm.runInNewContext(source, context, { filename: 'auth.js' });
     assert.equal(stoppedResult.ok, false);
     assert.match(stoppedResult.message, /موقوف/);
 
+    const activated = await auth.updateUserPersistentData('abdelrahman@qarya.edu', {
+        isSuspended: false, balance: 0, withdrawalsEnabled: false, examAllowed: false
+    });
+    assert.equal(activated.ok, true);
+    const saved = auth.getUserByEmail('abdelrahman@qarya.edu');
+    assert.equal(saved.isSuspended, false, 'Admin activation must survive policy normalization');
+    assert.equal(saved.withdrawalsEnabled, false, 'Withdrawal lock must survive wallet normalization');
+    assert.equal(saved.balance, 0);
+    assert.equal(saved.examAllowed, false);
+    assert.equal((await auth.updateUserPersistentData(saved.email, { balance: -10 })).ok, false);
+    assert.equal((await auth.updateUserPersistentData(saved.email, { balance: Infinity })).ok, false);
+    assert.equal((await auth.updateUserPersistentData(saved.email, { email: 'invalid' })).ok, false);
+    assert.equal(auth.getUserByEmail(saved.email).balance, 0, 'Rejected updates must preserve balance');
+    assert.equal(auth.deleteUserAccount(saved.email).ok, true);
+    assert.equal(auth.getAllUsers().some(user => user.email === saved.email), false, 'Deleted seed must not reappear');
+    assert.equal((await auth.login(saved.email, 'ADMIN')).ok, false);
+    const restored = await auth.upsertUser({ ...saved, deleted: false }, { currentEmail: saved.email });
+    assert.equal(restored.ok, true);
+    assert.equal(auth.getAllUsers().some(user => user.email === saved.email), true);
+
     console.log('PASS auth policy: active accounts, Galaxy A12 notice, direct login, and suspension rules');
 })().catch((error) => {
     console.error(error);

@@ -355,6 +355,9 @@
                 if (result === false) return;
                 close();
                 alertToast('تم حفظ التغييرات المتقدمة بنجاح.');
+            } catch (error) {
+                console.error('Advanced admin operation failed:', error);
+                alertToast('تعذر حفظ التغييرات. راجع الاتصال وحاول مرة أخرى.');
             } finally {
                 confirmButton.disabled = false;
             }
@@ -983,7 +986,7 @@
                 <div class="admin-pro-form-group"><label>المحافظة</label><input class="form-control" id="pro-user-governorate" type="text" value="${escapeHtml(current.governorate || 'بني سويف')}"></div>
                 <div class="admin-pro-form-group"><label>المركز</label><input class="form-control" id="pro-user-city" type="text" value="${escapeHtml(current.city || '')}"></div>
                 <div class="admin-pro-form-group"><label>القرية</label><input class="form-control" id="pro-user-village" type="text" value="${escapeHtml(current.village || '')}"></div>
-                <div class="admin-pro-form-group"><label>الرصيد</label><input class="form-control" id="pro-user-balance" type="number" value="${escapeHtml(current.balance || 0)}"></div>
+                <div class="admin-pro-form-group"><label>الرصيد</label><input class="form-control" id="pro-user-balance" type="number" min="0" step="0.01" value="${escapeHtml(current.balance || 0)}"></div>
                 <div class="admin-pro-form-group full"><div class="admin-pro-inline-actions"><label><input type="checkbox" id="pro-user-exam-allowed" ${current.examAllowed !== false ? 'checked' : ''}> السماح بالامتحان</label><label><input type="checkbox" id="pro-user-wallet-enabled" ${current.walletEnabled !== false ? 'checked' : ''}> إظهار المحفظة</label><label><input type="checkbox" id="pro-user-withdrawals-enabled" ${current.withdrawalsEnabled !== false ? 'checked' : ''}> فتح السحب</label><label><input type="checkbox" id="pro-user-private-notes" ${current.privateNotificationsEnabled !== false ? 'checked' : ''}> إشعارات خاصة</label><label><input type="checkbox" id="pro-user-notifications-enabled" ${current.notificationsEnabled !== false ? 'checked' : ''}> إشعارات المنصة</label><label><input type="checkbox" id="pro-user-wallet-quick-access" ${current.showWalletQuickAccess !== false ? 'checked' : ''}> اختصار المحفظة</label><label><input type="checkbox" id="pro-user-compact-cards" ${current.compactCards ? 'checked' : ''}> بطاقات مختصرة</label></div></div>
                 <div class="admin-pro-form-group full"><label>رسالة قفل السحب</label><textarea class="form-control" id="pro-user-withdrawal-lock-message" rows="3" placeholder="تظهر للمستخدم عند قفل السحب">${escapeHtml(current.withdrawalLockMessage || '')}</textarea></div>
             </div>
@@ -1142,8 +1145,8 @@
             confirmLabel: 'إضافة المستخدم',
             onConfirm: async () => {
                 const email = document.getElementById('pro-user-email')?.value.trim();
-                const managementRole = document.getElementById('pro-user-management-role')?.value || 'user';
-                const accountType = document.getElementById('pro-user-account-type')?.value || 'platform';
+                const managementRole = isSuperAdmin() ? document.getElementById('pro-user-management-role')?.value || 'user' : 'user';
+                const accountType = isSuperAdmin() ? document.getElementById('pro-user-account-type')?.value || 'platform' : 'platform';
                 const result = await authApi.addUser({
                     email,
                     name: document.getElementById('pro-user-name')?.value.trim() || email,
@@ -1152,7 +1155,7 @@
                     role: document.getElementById('pro-user-role')?.value.trim() || 'طالب المنصة',
                     accountType,
                     managementRole,
-                    permissions: parsePermissions(document.getElementById('pro-user-permissions')?.value),
+                    permissions: isSuperAdmin() ? parsePermissions(document.getElementById('pro-user-permissions')?.value) : [],
                     leaderCode: document.getElementById('pro-user-leader-code')?.value.trim() || '',
                     governorate: document.getElementById('pro-user-governorate')?.value.trim() || 'بني سويف',
                     city: document.getElementById('pro-user-city')?.value.trim() || '',
@@ -1187,18 +1190,28 @@
         document.getElementById('pro-user-management-role').value = 'user';
     };
 
-    window.editUser = (encodedEmail) => {
+    window.editUser = (encodedEmail, { activate = false } = {}) => {
         if (!canAccessUsers()) return alertToast('هذه الصلاحية غير متاحة لهذا الحساب.');
         const email = decodeValue(encodedEmail);
         const user = authApi.getUserByEmail(email);
         if (!user) return;
         openProModal({
-            title: 'تعديل بيانات المستخدم',
+            title: activate ? 'مراجعة الحساب وتنشيطه' : 'تعديل بيانات المستخدم',
             subtitle: user.email,
             bodyHtml: buildUserFormHtml(user),
-            confirmLabel: 'حفظ التعديلات',
+            confirmLabel: activate ? 'حفظ وتنشيط الحساب' : 'حفظ التعديلات',
             onConfirm: async () => {
                 const nextEmail = document.getElementById('pro-user-email')?.value.trim() || user.email;
+                const balanceInput = document.getElementById('pro-user-balance');
+                const balance = Number(balanceInput?.value);
+                if (!balanceInput?.value.trim() || !Number.isFinite(balance) || balance < 0) {
+                    alertToast('أدخل رصيدًا صحيحًا لا يقل عن صفر.');
+                    return false;
+                }
+                if (!document.getElementById('pro-user-email')?.checkValidity()) {
+                    alertToast('أدخل بريدًا إلكترونيًا صحيحًا.');
+                    return false;
+                }
                 const managementRole = document.getElementById('pro-user-management-role')?.value || authApi.getManagementRole?.(user) || 'user';
                 const deviceLockEnabled = Boolean(document.getElementById('pro-user-device-lock')?.checked);
                 const primaryDeviceModel = document.getElementById('pro-user-primary-device')?.value.trim() || '';
@@ -1220,14 +1233,15 @@
                     password: document.getElementById('pro-user-password')?.value.trim() || user.password,
                     withdrawalPassword: document.getElementById('pro-user-withdraw')?.value.trim() || user.withdrawalPassword,
                     role: document.getElementById('pro-user-role')?.value.trim() || user.role,
-                    accountType: document.getElementById('pro-user-account-type')?.value || user.accountType,
-                    managementRole,
-                    permissions: parsePermissions(document.getElementById('pro-user-permissions')?.value),
+                    accountType: isSuperAdmin() ? document.getElementById('pro-user-account-type')?.value : user.accountType,
+                    managementRole: isSuperAdmin() ? managementRole : authApi.getManagementRole(user),
+                    permissions: isSuperAdmin() ? parsePermissions(document.getElementById('pro-user-permissions')?.value) : user.permissions,
                     leaderCode: document.getElementById('pro-user-leader-code')?.value.trim() || user.leaderCode || '',
                     governorate: document.getElementById('pro-user-governorate')?.value.trim() || user.governorate || 'بني سويف',
                     city: document.getElementById('pro-user-city')?.value.trim() || user.city || '',
                     village: document.getElementById('pro-user-village')?.value.trim() || user.village || '',
-                    balance: Number(document.getElementById('pro-user-balance')?.value || user.balance || 0),
+                    balance: Math.round(balance * 100) / 100,
+                    isSuspended: activate ? false : user.isSuspended,
                     examAllowed: document.getElementById('pro-user-exam-allowed')?.checked,
                     walletEnabled: document.getElementById('pro-user-wallet-enabled')?.checked,
                     withdrawalsEnabled: document.getElementById('pro-user-withdrawals-enabled')?.checked,
@@ -1243,7 +1257,7 @@
                     primaryDeviceIp: document.getElementById('pro-user-primary-device-ip')?.value.trim() || '',
                     loginAccessPolicyVersion: 1,
                     privateWalletMessage,
-                    isLeader: managementRole === 'leader'
+                    isLeader: (isSuperAdmin() ? managementRole : authApi.getManagementRole(user)) === 'leader'
                 });
                 if (!result.ok) {
                     alertToast(result.message);
@@ -1265,6 +1279,11 @@
         });
         document.getElementById('pro-user-account-type').value = user.accountType || 'platform';
         document.getElementById('pro-user-management-role').value = authApi.getManagementRole?.(user) || 'user';
+        if (!isSuperAdmin()) {
+            ['pro-user-management-role', 'pro-user-account-type', 'pro-user-permissions'].forEach((id) => {
+                document.getElementById(id).disabled = true;
+            });
+        }
     };
 
     window.editUserPermissions = (encodedEmail) => {
@@ -1504,6 +1523,7 @@
     };
 
     window.archiveUserSnapshot = async (encodedEmail) => {
+        if (!hasPermission('archives')) return alertToast('هذه الصلاحية غير متاحة لهذا الحساب.');
         const email = decodeValue(encodedEmail);
         const user = authApi.getUserByEmail(email);
         const liveSession = getLiveSession();
@@ -1590,6 +1610,7 @@
     };
 
     window.restoreArchiveItem = async (encodedArchiveId) => {
+        if (!hasPermission('archives')) return alertToast('هذه الصلاحية غير متاحة لهذا الحساب.');
         const archiveId = decodeValue(encodedArchiveId);
         const archive = advancedStore.getArchives().find((item) => item.id === archiveId);
         if (!archive) return;
@@ -1617,6 +1638,7 @@
     };
 
     window.restoreArchiveItem = async (encodedArchiveId) => {
+        if (!hasPermission('archives')) return alertToast('هذه الصلاحية غير متاحة لهذا الحساب.');
         const archiveId = decodeValue(encodedArchiveId);
         const archive = advancedStore.getArchives().find((item) => item.id === archiveId);
         if (!archive) return;
@@ -1624,7 +1646,8 @@
         if (archive.type === 'application' && archive.payload?.application) {
             store.upsertApplication(archive.payload.application);
         } else if (archive.type === 'user' && archive.payload?.user) {
-            authApi.upsertUser(archive.payload.user, { currentEmail: archive.payload.user.email });
+            const result = await authApi.upsertUser(archive.payload.user, { currentEmail: archive.payload.user.email });
+            if (!result.ok) return alertToast(result.message || 'تعذرت استعادة الحساب.');
         } else if (archive.type === 'support_thread' && archive.payload?.thread) {
             const thread = archive.payload.thread;
             (thread.messages || []).forEach((message) => {
@@ -1648,6 +1671,7 @@
     };
 
     window.deleteArchiveItemForever = async (encodedArchiveId) => {
+        if (!hasPermission('archives')) return alertToast('هذه الصلاحية غير متاحة لهذا الحساب.');
         const archiveId = decodeValue(encodedArchiveId);
         if (!window.confirm('حذف هذا العنصر نهائيًا من الأرشيف؟')) return;
         advancedStore.deleteArchiveItem(archiveId);

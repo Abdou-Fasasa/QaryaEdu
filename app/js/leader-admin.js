@@ -559,6 +559,9 @@
             closeModal();
             void refreshAll(true);
             showToast('تم حفظ البيانات بنجاح.');
+        } catch (error) {
+            console.error('Admin operation failed:', error);
+            showToast('تعذر حفظ التغييرات. راجع الاتصال وحاول مرة أخرى.');
         } finally {
             adminModalConfirm.disabled = false;
             adminModalConfirm.textContent = 'حفظ التغييرات';
@@ -2255,36 +2258,11 @@
         });
     };
 
-    window.changeUserBalance = (encodedEmail) => {
-        if (!guardAdmin()) return;
-        const email = decodeValue(encodedEmail);
-        const user = authApi.getUserByEmail(email);
-        if (!user) return;
-        openModal('تعديل رصيد المستخدم', `
-            <div class="form-group"><label>الرصيد الحالي</label><input class="form-control" type="text" value="${escapeHtml(formatMoney(user.balance))}" disabled></div>
-            <div class="form-group"><label>الرصيد الجديد</label><input class="form-control" id="edit-user-balance" type="number" value="${escapeHtml(user.balance)}"></div>
-        `, async () => {
-            const nextBalance = Number(document.getElementById('edit-user-balance')?.value || user.balance || 0);
-            const result = await authApi.updateUserPersistentData(email, { balance: nextBalance });
-            if (result?.ok === false) {
-                showToast(result.message || 'تعذر تحديث رصيد المستخدم.');
-                return false;
-            }
-            await authApi.refreshFromRemote?.({ force: true });
-            await notifyUserAccountChange(email, {
-                title: 'تحديث رصيد الحساب',
-                body: `تم تحديث رصيد حسابك إلى ${formatMoney(nextBalance)} من الإدارة.`
-            });
-            await syncAll();
-            await authApi.refreshFromRemote?.({ force: true });
-            await refreshAll(true);
-        });
-    };
-
     // Replaces the old absolute-only balance editor with a complete, auditable
     // balance control: set, add, deduct, or clear. Every action is written as a
     // completed transaction so it remains visible to the administrator.
     window.changeUserBalance = (encodedEmail) => {
+        if (!guardAdmin()) return;
         const email = decodeValue(encodedEmail);
         const user = authApi.getUserByEmail(email);
         if (!user) {
@@ -2293,7 +2271,7 @@
         }
 
         openModal('إدارة رصيد المستخدم', `
-            <div class="form-group"><label>الرصد الحالي</label><input class="form-control" type="text" value="${escapeHtml(formatMoney(user.balance))}" disabled></div>
+            <div class="form-group"><label>الرصيد الحالي</label><input class="form-control" type="text" value="${escapeHtml(formatMoney(user.balance))}" disabled></div>
             <div class="form-group"><label>الإجراء</label><select class="form-control" id="balance-operation"><option value="set">تعيين رصيد جديد</option><option value="add">إضافة رصيد</option><option value="subtract">خصم رصيد</option><option value="clear">تصفير الرصيد</option></select></div>
             <div class="form-group"><label>المبلغ</label><input class="form-control" id="balance-amount" type="number" min="0" step="0.01" value="0"></div>
             <div class="form-group"><label>سبب العملية</label><textarea class="form-control" id="balance-reason" rows="3" placeholder="مثال: مكافأة، تصحيح، خصم إداري"></textarea></div>
@@ -2301,21 +2279,28 @@
             const operation = document.getElementById('balance-operation')?.value || 'set';
             const amount = Number(document.getElementById('balance-amount')?.value);
             const reason = document.getElementById('balance-reason')?.value.trim() || 'تعديل إداري للرصيد';
-            const currentBalance = Math.max(0, Number(user.balance || 0));
+            const currentBalance = Number(authApi.getUserByEmail(email)?.balance || 0);
             if (operation !== 'clear' && (!Number.isFinite(amount) || amount < 0)) {
                 showToast('أدخل مبلغًا صحيحًا.');
-                return;
+                return false;
             }
 
-            const nextBalance = operation === 'add' ? currentBalance + amount
+            if (operation === 'subtract' && amount > currentBalance) {
+                showToast('المبلغ المطلوب خصمه أكبر من الرصيد المتاح.');
+                return false;
+            }
+
+            const rawBalance = operation === 'add' ? currentBalance + amount
                 : operation === 'subtract' ? Math.max(0, currentBalance - amount)
                 : operation === 'clear' ? 0
                 : amount;
+            const nextBalance = Math.round(rawBalance * 100) / 100;
+            if (!Number.isFinite(nextBalance) || nextBalance < 0) return false;
             const delta = nextBalance - currentBalance;
             const result = await authApi.updateUserPersistentData(email, { balance: nextBalance });
             if (result?.ok === false) {
                 showToast(result.message || 'تعذر تحديث الرصيد.');
-                return;
+                return false;
             }
 
             await authApi.upsertTransaction?.({
@@ -2336,6 +2321,8 @@
                 resolvedAt: new Date().toISOString()
             });
             await authApi.syncNow?.();
+            await notifyUserAccountChange(email, { title: 'تحديث الرصيد', body: `رصيدك الآن ${formatMoney(nextBalance)}. السبب: ${reason}` });
+            scheduleRenderAll();
             showToast(`تم حفظ الرصيد الجديد: ${formatMoney(nextBalance)}.`);
         });
     };
@@ -2357,7 +2344,16 @@
             const user = authApi.getUserByEmail(email);
             if (!user) return;
             const nextSuspended = !user.isSuspended;
-            authApi.updateUserPersistentData(email, { isSuspended: nextSuspended });
+            if (user.isSuspended) {
+                window.editUser(encodedEmail, { activate: true });
+                return;
+            }
+            if (authApi.normalizeEmail(email) === authApi.normalizeEmail(session.email)) {
+                showToast('لا يمكنك إيقاف حسابك الحالي.');
+                return;
+            }
+            const result = await authApi.updateUserPersistentData(email, { isSuspended: nextSuspended });
+            if (!result.ok) { showToast(result.message); return; }
             scheduleRenderAll();
             await notifyUserAccountChange(email, {
                 title: nextSuspended ? 'إيقاف الحساب' : 'تنشيط الحساب',
@@ -2380,7 +2376,8 @@
             const user = authApi.getUserByEmail(email);
             if (!user) return;
             const nextExamAllowed = user.examAllowed === false;
-            authApi.updateUserPersistentData(email, { examAllowed: nextExamAllowed });
+            const result = await authApi.updateUserPersistentData(email, { examAllowed: nextExamAllowed });
+            if (!result.ok) { showToast(result.message); return; }
             scheduleRenderAll();
             await notifyUserAccountChange(email, {
                 title: nextExamAllowed ? 'السماح بالامتحان' : 'منع الامتحان',
@@ -2399,6 +2396,7 @@
     window.removeUser = async (encodedEmail) => {
         if (!guardAdmin()) return;
         const email = decodeValue(encodedEmail);
+        if (authApi.normalizeEmail(email) === authApi.normalizeEmail(session.email)) { showToast('لا يمكنك حذف حسابك الحالي.'); return; }
         if (!window.confirm(`حذف حساب المستخدم ${email} نهائيًا؟`)) return;
         authApi.deleteUserAccount(email);
         await syncAll();
@@ -3002,10 +3000,11 @@
                     <div class="form-group"><label>رسالة تظهر للمستخدم داخل صفحة السحب</label><textarea class="form-control" id="withdrawal-lock-message" rows="5">${escapeHtml(defaultLockMessage)}</textarea></div>
                 `, async () => {
                     const lockMessage = document.getElementById('withdrawal-lock-message')?.value.trim() || defaultLockMessage;
-                    authApi.updateUserPersistentData(email, {
+                    const result = await authApi.updateUserPersistentData(email, {
                         withdrawalsEnabled: false,
                         withdrawalLockMessage: lockMessage
                     });
+                    if (!result.ok) { showToast(result.message); return false; }
                     scheduleRenderAll();
                     await notifyUserAccountChange(email, {
                         title: 'إغلاق السحب على الحساب',
@@ -3019,10 +3018,11 @@
                 return;
             }
 
-            authApi.updateUserPersistentData(email, {
+            const result = await authApi.updateUserPersistentData(email, {
                 withdrawalsEnabled: true,
                 withdrawalLockMessage: ''
             });
+            if (!result.ok) { showToast(result.message); return false; }
             scheduleRenderAll();
             await notifyUserAccountChange(email, {
                 title: 'فتح السحب على الحساب',
