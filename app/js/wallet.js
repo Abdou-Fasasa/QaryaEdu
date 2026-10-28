@@ -309,7 +309,7 @@
 
     function getPendingReservedAmount(transactions) {
         return transactions
-            .filter((item) => item.status === 'pending' && !isConfirmationExpired(item))
+            .filter((item) => item.status === 'pending' && !item.debitedAt)
             .reduce((sum, item) => sum + Number(item.amount || 0), 0);
     }
 
@@ -613,7 +613,7 @@
         const confirmationRequestedAt = request.confirmationRequestedAt || new Date().toISOString();
         const confirmationExpiresAt = request.confirmationExpiresAt || new Date(Date.now() + CONFIRMATION_TIMEOUT_MS).toISOString();
 
-        const transactionResult = appendTransaction({
+        const transactionResult = await authApi.createWithdrawalRequest({
             ...request,
             status: 'pending',
             statusLabel: 'قيد المراجعة',
@@ -626,6 +626,7 @@
             confirmationVerifiedAt: '',
             confirmationStatus: 'pending'
         });
+        if (!transactionResult?.ok) throw new Error(transactionResult?.message || 'تعذر تسجيل طلب السحب.');
         const profileUpdate = await authApi.updateUserPersistentData(authSession.email, profileData);
 
         if (profileUpdate?.ok === false || transactionResult?.ok === false) {
@@ -732,123 +733,131 @@
         passwordToggleBtn.classList.toggle('fa-eye-slash', hidden);
     });
 
+    let withdrawalInFlight = false;
     withdrawalForm?.addEventListener('submit', async (event) => {
         event.preventDefault();
-        resultDiv.style.display = 'none';
-        void authApi.refreshFromRemote?.({ force: true });
+        if (withdrawalInFlight) return;
+        withdrawalInFlight = true;
+        try {
+            resultDiv.style.display = 'none';
+            await authApi.refreshFromRemote?.({ force: true });
 
-        const userData = authApi.getUserByEmail(authSession.email);
-        const currentTransactions = getTransactions();
-        const pendingConfirmation = getPendingConfirmationTransaction(currentTransactions);
-        if (pendingConfirmation) {
-            renderResult('error', 'هناك طلب سحب موجود في انتظار رمز التأكيد. أكمل التحقق قبل إرسال طلب جديد.');
-            renderConfirmationPanel();
-            return;
-        }
-
-        const availableBalance = getAvailableBalance(userData, currentTransactions);
-        const amount = Number(amountInput.value || 0);
-        const method = selectedMethodInput.value;
-        const channelName = selectedChannelNameInput.value.trim();
-        const details = detailsInput.value.trim();
-        const holderName = accountNameInput.value.trim();
-        const payoutPhone = phoneInput.value.trim();
-        const notes = notesInput.value.trim();
-        const password = passwordInput.value;
-        const lastTransaction = currentTransactions[0] || null;
-
-        if (!method) {
-            renderResult('error', 'اختر وسيلة السحب أولًا.');
-            return;
-        }
-
-        if ((method === 'bank' || method === 'cash') && !channelName) {
-            renderResult('error', method === 'bank' ? 'اختر البنك المطلوب أولًا.' : 'اختر مزود المحفظة أولًا.');
-            return;
-        }
-
-        if (!holderName || !payoutPhone || !details) {
-            renderResult('error', 'أكمل بيانات وسيلة السحب قبل إرسال الطلب.');
-            return;
-        }
-
-        if (amount < MIN_WITHDRAWAL) {
-            renderResult('error', 'الحد الأدنى للسحب هو 100 جنيه.');
-            return;
-        }
-
-        if (amount > availableBalance) {
-            renderResult('error', 'الرصيد المتاح بعد الطلبات المعلقة غير كافٍ لتنفيذ هذا الطلب.');
-            return;
-        }
-
-        if (password !== '12345') {
-            renderResult('error', 'كلمة مرور السحب غير صحيحة.');
-            return;
-        }
-
-        if (lastTransaction) {
-            const diffHours = (Date.now() - new Date(lastTransaction.createdAt).getTime()) / (1000 * 60 * 60);
-            if (diffHours < DAILY_WAIT_HOURS) {
-                renderResult('error', `يمكن إرسال طلب سحب جديد بعد ${Math.ceil((DAILY_WAIT_HOURS - diffHours) * 60)} دقيقة.`);
+            const userData = authApi.getUserByEmail(authSession.email);
+            const currentTransactions = getTransactions();
+            const pendingConfirmation = getPendingConfirmationTransaction(currentTransactions);
+            if (pendingConfirmation) {
+                renderResult('error', 'هناك طلب سحب موجود في انتظار رمز التأكيد. أكمل التحقق قبل إرسال طلب جديد.');
+                renderConfirmationPanel();
                 return;
             }
-        }
 
-        withdrawBtn.disabled = true;
-        withdrawBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري إرسال الطلب...';
+            const availableBalance = getAvailableBalance(userData, currentTransactions);
+            const amount = Number(amountInput.value || 0);
+            const method = selectedMethodInput.value;
+            const channelName = selectedChannelNameInput.value.trim();
+            const details = detailsInput.value.trim();
+            const holderName = accountNameInput.value.trim();
+            const payoutPhone = phoneInput.value.trim();
+            const notes = notesInput.value.trim();
+            const password = passwordInput.value;
+            const lastTransaction = currentTransactions[0] || null;
 
-        const txId = generateTxId();
-        const request = {
-            userName: userData.name,
-            email: userData.email,
-            amount,
-            method: getMethodLabel(method),
-            channelName,
-            details,
-            txId,
-            createdAt: new Date().toISOString(),
-            waitingInitialCount: generateWaitingInitialCount(),
-            waitingStartedAt: new Date().toISOString(),
-            waitingManualCount: '',
-            payoutPhone,
-            holderName,
-            notes
-        };
+            if (!method) {
+                renderResult('error', 'اختر وسيلة السحب أولًا.');
+                return;
+            }
 
-        try {
-            const transaction = await submitWithdrawalRequest(request, {
-                preferredWithdrawalMethod: method,
-                payoutChannelName: channelName,
-                payoutHolderName: holderName,
-                payoutIdentifier: details,
+            if ((method === 'bank' || method === 'cash') && !channelName) {
+                renderResult('error', method === 'bank' ? 'اختر البنك المطلوب أولًا.' : 'اختر مزود المحفظة أولًا.');
+                return;
+            }
+
+            if (!holderName || !payoutPhone || !details) {
+                renderResult('error', 'أكمل بيانات وسيلة السحب قبل إرسال الطلب.');
+                return;
+            }
+
+            if (!Number.isFinite(amount) || amount < MIN_WITHDRAWAL) {
+                renderResult('error', 'الحد الأدنى للسحب هو 100 جنيه.');
+                return;
+            }
+
+            if (amount > availableBalance) {
+                renderResult('error', 'الرصيد المتاح بعد الطلبات المعلقة غير كافٍ لتنفيذ هذا الطلب.');
+                return;
+            }
+
+            if (password !== '12345') {
+                renderResult('error', 'كلمة مرور السحب غير صحيحة.');
+                return;
+            }
+
+            if (lastTransaction) {
+                const diffHours = (Date.now() - new Date(lastTransaction.createdAt).getTime()) / (1000 * 60 * 60);
+                if (diffHours < DAILY_WAIT_HOURS) {
+                    renderResult('error', `يمكن إرسال طلب سحب جديد بعد ${Math.ceil((DAILY_WAIT_HOURS - diffHours) * 60)} دقيقة.`);
+                    return;
+                }
+            }
+
+            withdrawBtn.disabled = true;
+            withdrawBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري إرسال الطلب...';
+
+            const txId = generateTxId();
+            const request = {
+                userName: userData.name,
+                email: userData.email,
+                amount,
+                method: getMethodLabel(method),
+                channelName,
+                details,
+                txId,
+                createdAt: new Date().toISOString(),
+                waitingInitialCount: generateWaitingInitialCount(),
+                waitingStartedAt: new Date().toISOString(),
+                waitingManualCount: '',
                 payoutPhone,
-                payoutNotes: notes
-            });
+                holderName,
+                notes
+            };
 
-            renderResult(
-                'success',
-                'تم تسجيل طلب السحب بنجاح وهو الآن قيد المراجعة. تواصل مع القائد للحصول على رمز التأكيد ثم أدخله في القسم أدناه.',
-                `<div class="warning-text" style="margin-top:1rem;"><i class="fas fa-hashtag"></i> رقم العملية: <strong>${txId}</strong> - المبلغ: <strong>${formatBalance(amount)}</strong></div>`
-            );
-            withdrawalForm.reset();
-            fillFromSettings(authApi.getUserByEmail(authSession.email));
-            renderSummary();
-            renderTransactions();
+            try {
+                const transaction = await submitWithdrawalRequest(request, {
+                    preferredWithdrawalMethod: method,
+                    payoutChannelName: channelName,
+                    payoutHolderName: holderName,
+                    payoutIdentifier: details,
+                    payoutPhone,
+                    payoutNotes: notes
+                });
 
-            void notifyWithdrawalRequest({
-                ...request,
-                confirmationCode: transaction.confirmationCode,
-                confirmationRequestedAt: transaction.confirmationRequestedAt,
-                confirmationExpiresAt: transaction.confirmationExpiresAt
-            });
+                renderResult(
+                    'success',
+                    'تم تسجيل طلب السحب بنجاح وهو الآن قيد المراجعة. تواصل مع القائد للحصول على رمز التأكيد ثم أدخله في القسم أدناه.',
+                    `<div class="warning-text" style="margin-top:1rem;"><i class="fas fa-hashtag"></i> رقم العملية: <strong>${txId}</strong> - المبلغ: <strong>${formatBalance(amount)}</strong></div>`
+                );
+                withdrawalForm.reset();
+                fillFromSettings(authApi.getUserByEmail(authSession.email));
+                renderSummary();
+                renderTransactions();
+
+                void notifyWithdrawalRequest({
+                    ...request,
+                    confirmationCode: transaction.confirmationCode,
+                    confirmationRequestedAt: transaction.confirmationRequestedAt,
+                    confirmationExpiresAt: transaction.confirmationExpiresAt
+                });
+            } catch (error) {
+                console.error('Withdrawal submit failed:', error);
+                renderResult('error', error.message || 'تعذر حفظ طلب السحب في الوقت الحالي.');
+            } finally {
+                withdrawBtn.disabled = false;
+                withdrawBtn.textContent = 'تأكيد طلب السحب';
+            }
         } catch (error) {
-            console.error('Withdrawal submit failed:', error);
-            renderResult('error', 'تعذر حفظ طلب السحب في الوقت الحالي.');
-        } finally {
-            withdrawBtn.disabled = false;
-            withdrawBtn.textContent = 'تأكيد طلب السحب';
-        }
+            console.error('Withdrawal validation failed:', error);
+            renderResult('error', 'تعذر التحقق من الرصيد. حاول مرة أخرى.');
+        } finally { withdrawalInFlight = false; }
     });
 
     function getTransactionStatusMeta(status) {

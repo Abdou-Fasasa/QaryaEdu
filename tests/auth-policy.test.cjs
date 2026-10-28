@@ -145,6 +145,52 @@ vm.runInNewContext(source, context, { filename: 'auth.js' });
     assert.equal(restored.ok, true);
     assert.equal(auth.getAllUsers().some(user => user.email === saved.email), true);
 
+    // Model server transactions, including Firebase's callback retry behavior.
+    const financeEmail = 'mohamed.shaban@qarya.edu';
+    const financeKey = financeEmail.replace(/\./g, '_');
+    let remote = { users: { [financeKey]: { ...auth.getUserByEmail(financeEmail), balance: 0, withdrawalsEnabled: true } }, transactions: {} };
+    const at = key => key ? key.split('/').reduce((value, part) => value?.[part], remote) : remote;
+    const snapshot = key => ({ val: () => JSON.parse(JSON.stringify(at(key) ?? null)), exists: () => Boolean(at(key)) });
+    context.QaryaFirebase = {
+        db: {}, ref: (_, key = '') => key,
+        get: async key => snapshot(key),
+        update: async () => {}, set: async () => {},
+        runTransaction: async (key, callback) => {
+            callback(JSON.parse(JSON.stringify(at(key) ?? null)));
+            const next = callback(JSON.parse(JSON.stringify(at(key) ?? null)));
+            if (next !== undefined) {
+                if (!key) remote = next;
+                else { const parts = key.split('/'); const leaf = parts.pop(); parts.reduce((value, part) => value[part], remote)[leaf] = next; }
+            }
+            return { committed: next !== undefined, snapshot: snapshot(key) };
+        }
+    };
+    const otherContext = { ...context, QaryaFirebase: undefined, localStorage: new MemoryStorage(), sessionStorage: new MemoryStorage() };
+    otherContext.window = otherContext;
+    vm.runInNewContext(source, otherContext, { filename: 'auth-other-device.js' });
+    otherContext.QaryaFirebase = context.QaryaFirebase;
+    const otherDevice = otherContext.QaryaAuth;
+    const attempt = { requestId: 'REQ-TEST', examDateKey: '2026-10-28', passed: true, percentage: 90 };
+    const repeated = await Promise.all([auth.claimExamReward(financeEmail, attempt), otherDevice.claimExamReward(financeEmail, attempt), auth.claimExamReward(financeEmail, attempt)]);
+    assert.equal(repeated.filter(result => result.ok && !result.alreadyGranted).length, 1);
+    assert.equal(remote.users[financeKey].balance, 100, 'Triple click grants exactly 100');
+    const replay = await auth.claimExamReward(financeEmail, attempt);
+    assert.equal(replay.alreadyGranted, true);
+    assert.equal(remote.users[financeKey].balance, 100, 'Replay cannot grant another reward');
+    assert.equal((await auth.claimExamReward(financeEmail, { ...attempt, examDateKey: '2026-10-29' })).ok, true);
+    assert.equal(remote.users[financeKey].balance, 200, 'Different exam grants its own 100');
+    const withdrawal = amount => ({ email: financeEmail, txId: `TX-${amount}`, amount, status: 'pending' });
+    assert.equal((await auth.createWithdrawalRequest(withdrawal(201))).ok, false);
+    assert.equal((await auth.createWithdrawalRequest(withdrawal(NaN))).ok, false);
+    assert.equal((await auth.createWithdrawalRequest(withdrawal(100.001))).ok, false);
+    const concurrentWithdrawals = await Promise.all([auth.createWithdrawalRequest(withdrawal(150)), otherDevice.createWithdrawalRequest({ ...withdrawal(150), txId: 'TX-other-device' })]);
+    assert.equal(concurrentWithdrawals.filter(result => result.ok).length, 1);
+    assert.equal((await auth.createWithdrawalRequest(withdrawal(100))).ok, false, 'Pending requests reserve available funds');
+    remote.transactions = {};
+    assert.equal((await auth.createWithdrawalRequest(withdrawal(200))).ok, true, 'Exact available balance is allowed');
+    assert.equal(Object.values(remote.transactions).reduce((sum, item) => sum + item.amount, 0), 200);
+    console.log('PASS finance: triple submission, reward replay, next exam, excessive/invalid withdrawals, reservations, exact balance');
+
     console.log('PASS auth policy: active accounts, Galaxy A12 notice, direct login, and suspension rules');
 })().catch((error) => {
     console.error(error);

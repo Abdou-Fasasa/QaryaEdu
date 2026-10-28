@@ -1623,6 +1623,104 @@
         return getAllTransactions().find((transaction) => transaction.email === normalizedEmail && transaction.txId === normalizedTxId) || null;
     }
 
+    const financialActions = new Set();
+
+    async function claimExamReward(email, attempt) {
+        const normalizedEmail = normalizeEmail(email);
+        const requestId = String(attempt?.requestId || '').trim().toUpperCase();
+        const dateKey = String(attempt?.examDateKey || '').trim();
+        if (!requestId || !/^\d{4}-\d{2}-\d{2}$/.test(dateKey) || !attempt?.passed) {
+            return { ok: false, message: 'بيانات مكافأة الامتحان غير صحيحة.' };
+        }
+        const rewardKey = `${requestId}_${dateKey}`.replace(/[.#$[\]/]/g, '_');
+        const lockKey = `reward:${normalizedEmail}:${rewardKey}`;
+        if (financialActions.has(lockKey)) return { ok: false, message: 'جارٍ تسجيل مكافأة الامتحان.' };
+        financialActions.add(lockKey);
+        try {
+            const firebase = await waitForFirebaseApi();
+            if (!firebase?.runTransaction) return { ok: false, message: 'يلزم الاتصال بالخادم لتسجيل المكافأة.' };
+            const userRef = firebase.ref(firebase.db, `users/${normalizedEmail.replace(/\./g, '_')}`);
+            await firebase.get(userRef);
+            const result = await firebase.runTransaction(userRef, current => {
+                if (!current || current.deleted) return;
+                const alreadyGranted = current.examRewardClaims?.[rewardKey]
+                    || (current.lastExamRewardRequestId === requestId && current.lastExamRewardDateKey === dateKey)
+                    || Object.values(current.examAttempts || {}).some(item => item.requestId === requestId && item.examDateKey === dateKey && item.rewardStatus === 'granted');
+                if (alreadyGranted) return;
+                const balance = Number(current.balance || 0);
+                if (!Number.isFinite(balance) || balance < 0) return;
+                const now = new Date().toISOString();
+                return { ...current, balance: Math.round((balance + 100) * 100) / 100,
+                    examRewardClaims: { ...current.examRewardClaims, [rewardKey]: { amount: 100, grantedAt: now } },
+                    lastExamRewardAt: now, lastExamRewardRequestId: requestId,
+                    lastExamRewardDateKey: dateKey, lastExamRewardPercentage: attempt.percentage,
+                    updatedAt: now, lastUpdatedAt: now };
+            }, { applyLocally: false });
+            const user = result.snapshot.val();
+            if (!user) return { ok: false, message: 'حساب الطالب غير موجود.' };
+            if (!result.committed && !user.examRewardClaims?.[rewardKey]
+                && !(user.lastExamRewardRequestId === requestId && user.lastExamRewardDateKey === dateKey)) {
+                return { ok: false, message: 'تعذر تسجيل مكافأة الامتحان.' };
+            }
+            writeUsers([user, ...getAllUsersRaw().filter(item => normalizeEmail(item.email) !== normalizedEmail)]);
+            dispatchUserUpdate(normalizedEmail, normalizedEmail);
+            return { ok: true, alreadyGranted: !result.committed, amount: 100, email: normalizedEmail, nextBalance: user.balance };
+        } catch (error) {
+            console.error('Exam reward transaction failed:', error);
+            return { ok: false, message: 'تعذر الاتصال بالخادم لتسجيل المكافأة.' };
+        } finally { financialActions.delete(lockKey); }
+    }
+
+    function validateWithdrawal(user, transactions, amount) {
+        if (!user || user.deleted || user.isSuspended || user.withdrawalsEnabled === false || user.walletEnabled === false) {
+            return { ok: false, message: 'السحب غير متاح لهذا الحساب.' };
+        }
+        const balance = Number(user.balance || 0);
+        const reserved = transactions.filter(item => !item.deleted && item.status === 'pending' && !item.debitedAt)
+            .reduce((sum, item) => sum + Math.max(0, Number(item.amount) || 0), 0);
+        if (!Number.isFinite(amount) || amount < 100 || Math.abs(Math.round(amount * 100) - amount * 100) > 0.000001) {
+            return { ok: false, message: 'أدخل مبلغًا صحيحًا لا يقل عن 100 جنيه وبحد أقصى منزلتين عشريتين.' };
+        }
+        if (!Number.isFinite(balance) || amount > Math.max(0, balance - reserved)) {
+            return { ok: false, message: 'مبلغ السحب أكبر من الرصيد المتاح بعد الطلبات المعلقة.' };
+        }
+        return { ok: true };
+    }
+
+    async function createWithdrawalRequest(request) {
+        const email = normalizeEmail(request.email);
+        const key = `withdrawal:${email}`;
+        if (financialActions.has(key)) return { ok: false, message: 'جارٍ تسجيل طلب السحب.' };
+        financialActions.add(key);
+        try {
+            const firebase = await waitForFirebaseApi();
+            if (!firebase?.runTransaction) return { ok: false, message: 'يلزم الاتصال بالخادم لتسجيل السحب.' };
+            if (!request.txId) return { ok: false, message: 'رقم عملية السحب غير موجود.' };
+            const rootRef = firebase.ref(firebase.db);
+            await firebase.get(rootRef);
+            const transaction = normalizeTransaction({ ...request, status: 'pending', createdAt: request.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString() });
+            const safeEmail = email.replace(/\./g, '_');
+            const safeId = String(transaction.txId).replace(/[.#$[\]/]/g, '_');
+            const txKey = `${safeEmail}__${safeId}`;
+            let validation = { ok: false, message: 'تعذر قراءة الرصيد.' };
+            const result = await firebase.runTransaction(rootRef, current => {
+                if (!current?.users?.[safeEmail]) return;
+                if (current.transactions?.[txKey]) return;
+                const transactions = Object.values(current.transactions || {}).filter(item => normalizeEmail(item.email) === email);
+                validation = validateWithdrawal(current.users[safeEmail], transactions, Number(request.amount));
+                if (!validation.ok) return;
+                return { ...current, transactions: { ...current.transactions, [txKey]: transaction } };
+            }, { applyLocally: false });
+            if (!result.committed) return { ok: false, message: validation.message || 'تم تسجيل هذا الطلب بالفعل.' };
+            writeTransactions([transaction, ...getAllTransactions().filter(item => !(item.email === email && item.txId === transaction.txId))]);
+            notifyStoreUpdated({ email, txId: transaction.txId });
+            return { ok: true, transaction };
+        } catch (error) {
+            console.error('Withdrawal transaction failed:', error);
+            return { ok: false, message: 'تعذر الاتصال بالخادم لتسجيل السحب.' };
+        } finally { financialActions.delete(key); }
+    }
+
     function upsertTransaction(transaction) {
         const normalized = normalizeTransaction({
             ...transaction,
@@ -2302,6 +2400,9 @@ async function login(email, password) {
         getTransactionsByEmail,
         getTransaction,
         upsertTransaction,
+        claimExamReward,
+        createWithdrawalRequest,
+        validateWithdrawal,
         updateTransaction,
         deleteTransaction,
         deleteTransactionPermanently,

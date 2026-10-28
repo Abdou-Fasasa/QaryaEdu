@@ -23,6 +23,8 @@
 
     let cameraStream = null;
     let submitTimerId = null;
+    let submissionInFlight = false;
+    let submissionCompleted = false;
     let stateMonitorId = null;
 
     function parseJson(value, fallback) {
@@ -279,19 +281,11 @@
             return { ok: false, message: 'لم يتم العثور على حساب الطالب لإضافة المكافأة.' };
         }
 
-        const current = authApi.getUserByEmail?.(user.email) || user;
-        const nextBalance = Number(current.balance || 0) + PASS_REWARD_AMOUNT;
-        const result = await authApi.updateUserPersistentData(user.email, {
-            balance: nextBalance,
-            lastExamRewardAt: examAttempt.date,
-            lastExamRewardRequestId: examAttempt.requestId,
-            lastExamRewardDateKey: examAttempt.examDateKey,
-            lastExamRewardPercentage: examAttempt.percentage
-        });
+        const result = await authApi.claimExamReward?.(user.email, examAttempt);
+        if (!result?.ok) return result || { ok: false };
+        const nextBalance = result.nextBalance;
 
-        if (result?.ok === false) return result;
-
-        authApi.pushPrivateNotification?.(user.email, {
+        if (!result.alreadyGranted) authApi.pushPrivateNotification?.(user.email, {
             id: `exam-pass-reward-${examAttempt.requestId}-${examAttempt.examDateKey}`,
             title: 'مكافأة نجاح الامتحان',
             body: `تمت إضافة ${PASS_REWARD_AMOUNT} EGP إلى محفظتك بعد اجتياز الامتحان بنسبة ${examAttempt.percentage}%.`,
@@ -613,121 +607,133 @@
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
 
-            if (submitButton.disabled) {
+            if (submitButton.disabled || submissionInFlight || submissionCompleted) {
                 return;
             }
+            submissionInFlight = true;
+            submitButton.disabled = true;
+            try {
 
-            if (store.refreshFromRemote) {
-                await store.refreshFromRemote({ force: true });
-            }
-
-            const liveState = examWindowApi.getExamWindowState(examWindowApi.getEgyptNow(), store.getPlatformSettings?.() || {});
-            if (!liveState.open) {
-                blockExam(form, resultDiv, liveState.statusText);
-                return;
-            }
-
-            if (hasAttemptedToday(store, verifiedStudent.requestId, examWindowApi.getEgyptNow())) {
-                blockExam(form, resultDiv, 'تم تسجيل محاولة هذا اليوم بالفعل. لا يمكن إعادة الامتحان إلا في يوم الامتحان التالي.');
-                return;
-            }
-
-            const answers = collectAnswers(form, selectedQuestions);
-            const { totalPoints, studentScore, percentage, passed } = evaluateAnswers(answers, selectedQuestions);
-            const attemptDate = new Date();
-            let rewardResult = { ok: false };
-            const examAttempt = {
-                id: `EX-${attemptDate.getTime()}-${Math.random().toString(36).slice(2, 8)}`,
-                requestId: verifiedStudent.requestId,
-                name: application.name || verifiedStudent.name,
-                nationalId: application.nationalId || verifiedStudent.nationalId || '',
-                studentEmail: application.studentEmail || verifiedStudent.studentEmail || '',
-                leaderCode: verifiedStudent.leaderCode || application.leaderCode || '',
-                governorate: application.governorate || '',
-                city: application.city || '',
-                village: application.village || '',
-                age: application.age || '',
-                gender: application.gender || '',
-                examLevel,
-                day: examDayInput?.value || '',
-                score: studentScore,
-                total: totalPoints,
-                percentage,
-                passed,
-                date: attemptDate.toISOString(),
-                updatedAt: attemptDate.toISOString(),
-                examDateKey: getEgyptDateKey(attemptDate),
-                approved: true,
-                passThreshold: PASS_PERCENTAGE,
-                rewardAmount: 0,
-                rewardGrantedAt: '',
-                rewardStatus: passed ? 'pending' : 'not_applicable',
-                rewardEmail: '',
-                walletBalanceAfter: null
-            };
-
-            if (passed) {
-                rewardResult = await grantPassReward(authApi, application, verifiedStudent, examAttempt);
-                if (rewardResult.ok) {
-                    examAttempt.rewardAmount = PASS_REWARD_AMOUNT;
-                    examAttempt.rewardGrantedAt = new Date().toISOString();
-                    examAttempt.rewardStatus = 'granted';
-                    examAttempt.rewardEmail = rewardResult.email || '';
-                    examAttempt.walletBalanceAfter = rewardResult.nextBalance ?? null;
-                } else {
-                    examAttempt.rewardStatus = 'failed';
+                if (store.refreshFromRemote) {
+                    await store.refreshFromRemote({ force: true });
                 }
-            }
 
-            try {
-                await saveUserExamSnapshot(authApi, application, verifiedStudent, examAttempt);
-            } catch (error) {
-                console.error('Failed to save user exam snapshot:', error);
-            }
+                const liveState = examWindowApi.getExamWindowState(examWindowApi.getEgyptNow(), store.getPlatformSettings?.() || {});
+                if (!liveState.open) {
+                    blockExam(form, resultDiv, liveState.statusText);
+                    return;
+                }
 
-            const history = store.getExamHistory ? store.getExamHistory() : [];
-            store.saveExamHistory([examAttempt, ...history]);
-            if (store.syncNow) {
-                await store.syncNow();
-            }
+                if (hasAttemptedToday(store, verifiedStudent.requestId, examWindowApi.getEgyptNow())) {
+                    blockExam(form, resultDiv, 'تم تسجيل محاولة هذا اليوم بالفعل. لا يمكن إعادة الامتحان إلا في يوم الامتحان التالي.');
+                    return;
+                }
 
-            try {
-                await telegramApi?.sendExamSubmission?.({
-                    ...examAttempt,
-                    studentScore,
-                    totalPoints,
-                    answers
+                const answers = collectAnswers(form, selectedQuestions);
+                const { totalPoints, studentScore, percentage, passed } = evaluateAnswers(answers, selectedQuestions);
+                const attemptDate = new Date();
+                let rewardResult = { ok: false };
+                const examAttempt = {
+                    id: `EX-${attemptDate.getTime()}-${Math.random().toString(36).slice(2, 8)}`,
+                    requestId: verifiedStudent.requestId,
+                    name: application.name || verifiedStudent.name,
+                    nationalId: application.nationalId || verifiedStudent.nationalId || '',
+                    studentEmail: application.studentEmail || verifiedStudent.studentEmail || '',
+                    leaderCode: verifiedStudent.leaderCode || application.leaderCode || '',
+                    governorate: application.governorate || '',
+                    city: application.city || '',
+                    village: application.village || '',
+                    age: application.age || '',
+                    gender: application.gender || '',
+                    examLevel,
+                    day: examDayInput?.value || '',
+                    score: studentScore,
+                    total: totalPoints,
+                    percentage,
+                    passed,
+                    date: attemptDate.toISOString(),
+                    updatedAt: attemptDate.toISOString(),
+                    examDateKey: getEgyptDateKey(attemptDate),
+                    approved: true,
+                    passThreshold: PASS_PERCENTAGE,
+                    rewardAmount: 0,
+                    rewardGrantedAt: '',
+                    rewardStatus: passed ? 'pending' : 'not_applicable',
+                    rewardEmail: '',
+                    walletBalanceAfter: null
+                };
+
+                if (passed) {
+                    rewardResult = await grantPassReward(authApi, application, verifiedStudent, examAttempt);
+                    if (rewardResult.ok) {
+                        examAttempt.rewardAmount = PASS_REWARD_AMOUNT;
+                        examAttempt.rewardGrantedAt = new Date().toISOString();
+                        examAttempt.rewardStatus = 'granted';
+                        examAttempt.rewardEmail = rewardResult.email || '';
+                        examAttempt.walletBalanceAfter = rewardResult.nextBalance ?? null;
+                    } else {
+                        examAttempt.rewardStatus = 'failed';
+                    }
+                }
+
+                try {
+                    await saveUserExamSnapshot(authApi, application, verifiedStudent, examAttempt);
+                } catch (error) {
+                    console.error('Failed to save user exam snapshot:', error);
+                }
+
+                const history = store.getExamHistory ? store.getExamHistory() : [];
+                store.saveExamHistory([examAttempt, ...history]);
+                if (store.syncNow) {
+                    await store.syncNow();
+                }
+
+                try {
+                    await telegramApi?.sendExamSubmission?.({
+                        ...examAttempt,
+                        studentScore,
+                        totalPoints,
+                        answers
+                    });
+                } catch (error) {
+                    console.error('Failed to send exam submission update:', error);
+                }
+
+                stopSubmitTimer();
+                if (stateMonitorId) {
+                    clearInterval(stateMonitorId);
+                    stateMonitorId = null;
+                }
+
+                form.querySelectorAll('input, select, button').forEach((element) => {
+                    element.disabled = true;
                 });
+
+                resultDiv.style.display = 'block';
+                resultDiv.className = `result ${passed ? 'pass' : 'fail'}`;
+                const rewardText = passed
+                    ? (rewardResult.ok
+                        ? `تم حفظ النتيجة وإضافة ${PASS_REWARD_AMOUNT} EGP إلى المحفظة.`
+                        : 'تم حفظ النتيجة، لكن تعذر إضافة مكافأة المحفظة تلقائيًا.')
+                    : 'تم حفظ المحاولة داخل المنصة.';
+                resultDiv.innerHTML = `
+                    <strong>${passed ? 'تم اجتياز الامتحان' : 'تم إرسال الامتحان'}</strong>
+                    <p>النتيجة النهائية: ${percentage}% من 100%.</p>
+                    <p>درجتك: ${studentScore} من ${totalPoints}.</p>
+                    <p>${rewardText}</p>
+                `;
+
+                clearExamRuntime(verifiedStudent.requestId, examLevel);
+                sessionStorage.removeItem(EXAM_GATE_KEY);
+                submissionCompleted = true;
             } catch (error) {
-                console.error('Failed to send exam submission update:', error);
+                console.error('Exam submission failed:', error);
+                resultDiv.style.display = 'block';
+                resultDiv.textContent = 'تعذر إتمام إرسال الامتحان. حاول مرة أخرى؛ لن تتكرر مكافأة الامتحان.';
+            } finally {
+                submissionInFlight = false;
+                if (!submissionCompleted) submitButton.disabled = false;
             }
-
-            stopSubmitTimer();
-            if (stateMonitorId) {
-                clearInterval(stateMonitorId);
-                stateMonitorId = null;
-            }
-
-            form.querySelectorAll('input, select, button').forEach((element) => {
-                element.disabled = true;
-            });
-
-            resultDiv.style.display = 'block';
-            resultDiv.className = `result ${passed ? 'pass' : 'fail'}`;
-            const rewardText = passed
-                ? (rewardResult.ok
-                    ? `تم حفظ النتيجة وإضافة ${PASS_REWARD_AMOUNT} EGP إلى المحفظة.`
-                    : 'تم حفظ النتيجة، لكن تعذر إضافة مكافأة المحفظة تلقائيًا.')
-                : 'تم حفظ المحاولة داخل المنصة.';
-            resultDiv.innerHTML = `
-                <strong>${passed ? 'تم اجتياز الامتحان' : 'تم إرسال الامتحان'}</strong>
-                <p>النتيجة النهائية: ${percentage}% من 100%.</p>
-                <p>درجتك: ${studentScore} من ${totalPoints}.</p>
-                <p>${rewardText}</p>
-            `;
-
-            clearExamRuntime(verifiedStudent.requestId, examLevel);
-            sessionStorage.removeItem(EXAM_GATE_KEY);
         });
     });
 
