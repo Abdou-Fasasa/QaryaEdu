@@ -3477,13 +3477,11 @@
 
     window.clearAllWithdrawals = async () => {
         if (!isAdmin && !authApi.isLeader(session.email)) { showToast('هذه الصلاحية متاحة للإدارة أو القائد.'); return; }
-        if (!window.confirm('تحذير: سيتم مسح كافة سجلات عمليات السحب نهائيًا. هل تريد الاستمرار؟')) return;
-
-        authApi.writeTransactions([]);
-        await syncAll();
-        await authApi.refreshFromRemote?.({ force: true });
+        if (!window.confirm('مسح سجل السحب وإعادة أي مبلغ مخصوم لطلبات لم يتم تنفيذها؟')) return;
+        const result = await authApi.clearWithdrawalRequests();
+        if (!result?.ok) { showToast(result?.message || 'تعذر مسح سجل السحب.'); return; }
         await refreshAll(true);
-        showToast('تم مسح سجل العمليات بنجاح.');
+        showToast('تم مسح السجل وإعادة مبالغ الطلبات غير المنفذة.');
     };
 
     renderStudents = function renderStudentsModern() {
@@ -4079,81 +4077,16 @@
         }
 
         const statusMeta = getWithdrawalStatusMeta(status);
-        const amount = Number(transaction.amount || 0);
-        const currentBalance = Number(user.balance || 0);
-        const currentStatus = String(transaction.status || 'pending').trim();
-        const alreadyDebited = Boolean(transaction.debitedAt);
-        const now = new Date().toISOString();
-        const nextMessage = String(adminMessage || transaction.adminMessage || statusMeta.defaultMessage).trim();
-
-        let nextBalance = currentBalance;
-        let debitedAt = String(transaction.debitedAt || '');
-        let resolvedAt = String(transaction.resolvedAt || '');
-        let shouldUpdateBalance = false;
-
-        if (status === 'completed') {
-            if (alreadyDebited) {
-                resolvedAt = resolvedAt || now;
-            } else {
-                if (amount > currentBalance) {
-                    showToast('لا يمكن تنفيذ العملية لأن الرصيد الحالي للمستخدم أقل من مبلغ السحب.');
-                    return false;
-                }
-                nextBalance = currentBalance - amount;
-                debitedAt = now;
-                resolvedAt = now;
-                shouldUpdateBalance = true;
-            }
-        } else if (status === 'pending') {
-            if (alreadyDebited) {
-                nextBalance = currentBalance + amount;
-                shouldUpdateBalance = true;
-            }
-            debitedAt = '';
-            resolvedAt = '';
-        } else if (status === 'rejected' || status === 'error') {
-            if (alreadyDebited) {
-                nextBalance = currentBalance + amount;
-                shouldUpdateBalance = true;
-            }
-            debitedAt = '';
-            resolvedAt = now;
+        const result = await authApi.setWithdrawalStatus(email, txId, {
+            status,
+            statusLabel: statusMeta.label,
+            adminMessage: String(adminMessage || transaction.adminMessage || statusMeta.defaultMessage).trim()
+        });
+        if (!result?.ok) {
+            showToast(result?.message || 'تعذر تحديث عملية السحب.');
+            return false;
         }
-
-        const hasMeaningfulChange = (
-            currentStatus !== status
-            || String(transaction.adminMessage || '').trim() !== nextMessage
-            || String(transaction.debitedAt || '') !== debitedAt
-            || String(transaction.resolvedAt || '') !== resolvedAt
-            || shouldUpdateBalance
-        );
-
-        if (!hasMeaningfulChange) {
-            await refreshAll(true);
-            return true;
-        }
-
-        commitWithdrawalState(
-            email,
-            txId,
-            (candidate) => ({
-                ...candidate,
-                status,
-                statusLabel: statusMeta.label,
-                adminMessage: nextMessage,
-                debitedAt,
-                resolvedAt,
-                updatedAt: now
-            }),
-            shouldUpdateBalance
-                ? (candidate) => ({
-                    ...candidate,
-                    balance: nextBalance,
-                    updatedAt: now,
-                    lastUpdatedAt: now
-                })
-                : null
-        );
+        const nextMessage = result.transaction.adminMessage;
 
         try {
             await publishPrivateNotification(email, {

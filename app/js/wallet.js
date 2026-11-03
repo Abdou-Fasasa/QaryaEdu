@@ -141,12 +141,11 @@
 
     const WITHDRAWAL_COOLDOWN_MS = 2 * 60 * 1000;
     const DAILY_WAIT_HOURS = 1 / 30;
-    const MIN_WITHDRAWAL = 1;
+    const MIN_WITHDRAWAL = 100;
     const WALLET_REFRESH_INTERVAL_MS = 30000;
     const WAITING_DECREMENT_MS = 14 * 60 * 1000;
     const CONFIRMATION_TIMEOUT_MS = 15 * 60 * 1000;
     const CONFIRMATION_CODE_LENGTH = 6;
-    const CONFIRMATION_CODE_ROTATION_INTERVAL_MS = 15 * 60 * 1000;  // توليد كود جديد كل 15 دقيقة
 
     const BANK_OPTIONS = [
         { id: 'nbe', name: 'البنك الأهلي المصري', hint: 'NBE', code: 'NBE', colors: ['#0f766e', '#134e4a'] },
@@ -343,28 +342,6 @@
 
     function generateConfirmationCode() {
         return String(Math.floor(10 ** (CONFIRMATION_CODE_LENGTH - 1) + Math.random() * 9 * 10 ** (CONFIRMATION_CODE_LENGTH - 1)));
-    }
-
-    function rotateConfirmationCodeIfNeeded(transaction) {
-        if (!transaction || transaction.status !== 'pending' || !transaction.confirmationCode || transaction.confirmationVerifiedAt) {
-            return transaction;
-        }
-
-        const rotatedAt = transaction.confirmationCodeRotatedAt || transaction.confirmationRequestedAt;
-        const lastRotation = new Date(rotatedAt).getTime();
-        const now = Date.now();
-        const elapsedSinceRotation = now - lastRotation;
-
-        if (elapsedSinceRotation >= CONFIRMATION_CODE_ROTATION_INTERVAL_MS) {
-            const newCode = generateConfirmationCode();
-            const updatedTransaction = authApi.updateTransaction(authSession.email, transaction.txId, {
-                confirmationCode: newCode,
-                confirmationCodeRotatedAt: new Date().toISOString()
-            });
-            return updatedTransaction?.transaction || transaction;
-        }
-
-        return transaction;
     }
 
     function generateWaitingInitialCount() {
@@ -892,7 +869,6 @@
 
     let walletProfilePrefilled = false;
     let walletRefreshTask = null;
-    let confirmationCodeRotationTask = null;
 
     async function refreshWalletView(forceRemote = false, prefillForm = false) {
         if (walletRefreshTask) {
@@ -923,38 +899,6 @@
         }
     }
 
-    async function rotateConfirmationCodesIfNeeded() {
-        if (confirmationCodeRotationTask) {
-            await confirmationCodeRotationTask;
-            return;
-        }
-
-        confirmationCodeRotationTask = (async () => {
-            const transactions = getTransactions();
-            const pendingWithCode = transactions.filter(t => t.status === 'pending' && t.confirmationCode && !t.confirmationVerifiedAt);
-            
-            for (const transaction of pendingWithCode) {
-                const rotatedAt = transaction.confirmationCodeRotatedAt || transaction.confirmationRequestedAt;
-                const lastRotation = new Date(rotatedAt).getTime();
-                const elapsedSinceRotation = Date.now() - lastRotation;
-
-                if (elapsedSinceRotation >= CONFIRMATION_CODE_ROTATION_INTERVAL_MS) {
-                    const newCode = generateConfirmationCode();
-                    authApi.updateTransaction(authSession.email, transaction.txId, {
-                        confirmationCode: newCode,
-                        confirmationCodeRotatedAt: new Date().toISOString()
-                    });
-                }
-            }
-        })();
-
-        try {
-            await confirmationCodeRotationTask;
-        } finally {
-            confirmationCodeRotationTask = null;
-        }
-    }
-
     window.addEventListener('qarya_auth_store_updated', async (event) => {
         // تحديث المحفظة عند حدوث أي تغيير في بيانات السكيورتي أو العمليات
         if (event.detail?.source === 'firebase-realtime' || event.detail?.txId) {
@@ -982,6 +926,7 @@
         await refreshWalletView(false, false);
     });
 
+    let confirmationInFlight = false;
     confirmationForm?.addEventListener('submit', async (event) => {
         event.preventDefault();
         resultDiv.style.display = 'none';
@@ -1004,20 +949,23 @@
             return;
         }
 
-        if (enteredCode !== pendingTransaction.confirmationCode) {
-            renderResult('error', 'رمز التأكيد غير مطابق. تحقق وأعد المحاولة.');
+        if (confirmationInFlight) return;
+        confirmationInFlight = true;
+        confirmWithdrawBtn.disabled = true;
+        try {
+            const updateResult = await authApi.confirmWithdrawalCode(authSession.email, pendingTransaction.txId, enteredCode);
+            if (!updateResult?.ok) {
+                renderResult('error', updateResult?.message || 'تعذر تأكيد رمز السحب الآن.');
+                return;
+            }
+            confirmationPanel.classList.remove('show');
+            confirmationCodeInput.value = '';
+        } catch (error) {
+            renderResult('error', 'تعذر الاتصال بالخادم. حاول مرة أخرى.');
             return;
-        }
-
-        const updateResult = authApi.updateTransaction(authSession.email, pendingTransaction.txId, {
-            confirmationVerifiedAt: new Date().toISOString(),
-            confirmationStatus: 'verified',
-            adminMessage: 'تم تأكيد رمز السحب. الطلب الآن قيد المراجعة المالية.'
-        });
-
-        if (!updateResult?.ok) {
-            renderResult('error', 'تعذر تأكيد رمز السحب الآن. حاول مرة أخرى لاحقًا.');
-            return;
+        } finally {
+            confirmationInFlight = false;
+            confirmWithdrawBtn.disabled = false;
         }
 
         renderResult('success', 'تم تأكيد رمز السحب بنجاح. الطلب سيعرض على المالية للمراجعة النهائية.');
@@ -1038,11 +986,6 @@
             void refreshWalletView(false, false);
         }
     }, WALLET_REFRESH_INTERVAL_MS);
-
-    // توليد كود جديد كل 15 دقيقة
-    window.setInterval(() => {
-        void rotateConfirmationCodesIfNeeded();
-    }, CONFIRMATION_CODE_ROTATION_INTERVAL_MS);
 
     void refreshWalletView(true, true);
 })();

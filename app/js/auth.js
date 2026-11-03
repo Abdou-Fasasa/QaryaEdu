@@ -1771,28 +1771,97 @@
         });
     }
 
+    // Commit the request and its balance effect together, using the latest server data.
+    async function mutateWithdrawal(email, txId, action, value = '') {
+        const normalizedEmail = normalizeEmail(email);
+        try {
+            const firebase = await waitForFirebaseApi();
+            if (!firebase?.runTransaction) return { ok: false, message: 'يلزم الاتصال بالخادم لإتمام العملية.' };
+            const rootRef = firebase.ref(firebase.db);
+            await firebase.get(rootRef);
+            let message = 'عملية السحب غير موجودة.';
+            const result = await firebase.runTransaction(rootRef, current => {
+                if (!current) return;
+                const transactions = { ...current.transactions };
+                const users = { ...current.users };
+                const matches = Object.entries(transactions).filter(([, item]) => action === 'clear'
+                    || (normalizeEmail(item.email) === normalizedEmail && item.txId === txId));
+                if (!matches.length && action !== 'clear') return;
+                for (const [key, raw] of matches) {
+                    const item = { ...raw };
+                    const now = new Date().toISOString();
+                    if (action === 'confirm') {
+                        if (item.status !== 'pending') { message = 'طلب السحب لم يعد قيد المراجعة.'; return; }
+                        if (!item.confirmationVerifiedAt) {
+                            if (Date.parse(item.confirmationExpiresAt) <= Date.now()) { message = 'انتهت صلاحية رمز التأكيد.'; return; }
+                            const code = String(value).trim().replace(/[٠-٩]/g, digit => String('٠١٢٣٤٥٦٧٨٩'.indexOf(digit)))
+                                .replace(/[۰-۹]/g, digit => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(digit)));
+                            if (!item.confirmationCode || code !== String(item.confirmationCode).trim()) { message = 'رمز التأكيد غير مطابق. تحقق وأعد المحاولة.'; return; }
+                            item.confirmationVerifiedAt = now;
+                            item.confirmationStatus = 'verified';
+                            item.adminMessage = 'تم تأكيد رمز السحب. الطلب الآن قيد المراجعة المالية.';
+                        }
+                    } else {
+                        const deleting = action === 'delete' || action === 'clear';
+                        const status = deleting ? item.status : value.status;
+                        if (!deleting && !['pending', 'completed', 'rejected', 'error'].includes(status)) return;
+                        // Deleting an executed transfer keeps its debit; all other removals release funds.
+                        const wasDebited = Boolean(item.debitedAt) || item.status === 'completed';
+                        const shouldDebit = status === 'completed';
+                        const amount = Number(item.amount);
+                        const userKey = normalizeEmail(item.email).replace(/\./g, '_');
+                        const user = users[userKey];
+                        if (wasDebited !== shouldDebit) {
+                            if (!user || !Number.isFinite(amount) || amount <= 0 || !Number.isFinite(Number(user.balance))) return;
+                            const balance = Math.round((Number(user.balance) + (shouldDebit ? -amount : amount)) * 100) / 100;
+                            if (balance < 0) { message = 'رصيد المستخدم غير كافٍ لتنفيذ السحب.'; return; }
+                            users[userKey] = { ...user, balance, updatedAt: now, lastUpdatedAt: now };
+                        }
+                        if (deleting) { delete transactions[key]; continue; }
+                        item.status = status;
+                        item.statusLabel = value.statusLabel;
+                        item.adminMessage = value.adminMessage;
+                        item.debitedAt = shouldDebit ? (item.debitedAt || now) : '';
+                        item.resolvedAt = status === 'pending' ? '' : (item.resolvedAt || now);
+                    }
+                    transactions[key] = { ...item, updatedAt: now };
+                }
+                return { ...current, users, transactions, state: { ...current.state,
+                    auth: { ...current.state?.auth, users: Object.values(users), transactions: Object.values(transactions) }
+                } };
+            }, { applyLocally: false });
+            if (!result.committed) return { ok: false, message };
+            const saved = result.snapshot.val();
+            writeUsers(Object.values(saved.users || {}), { fromRemote: true });
+            writeTransactions(Object.values(saved.transactions || {}), { fromRemote: true });
+            dispatchUserUpdate(normalizedEmail, normalizedEmail);
+            notifyStoreUpdated({ email: normalizedEmail, txId, source: 'withdrawal-commit' });
+            return { ok: true, transaction: getTransaction(normalizedEmail, txId) };
+        } catch (error) {
+            console.error('Withdrawal commit failed:', error);
+            return { ok: false, message: 'تعذر الاتصال بالخادم. حاول مرة أخرى.' };
+        }
+    }
+
+    function confirmWithdrawalCode(email, txId, code) {
+        return mutateWithdrawal(email, txId, 'confirm', code);
+    }
+
+    function setWithdrawalStatus(email, txId, updates) {
+        return mutateWithdrawal(email, txId, 'status', updates);
+    }
+
+    function clearWithdrawalRequests() {
+        return mutateWithdrawal('', '', 'clear');
+    }
+
     function deleteTransaction(email, txId) {
-        return deleteTransactionPermanently(email, txId).then(() => true);
+        return deleteTransactionPermanently(email, txId);
     }
 
     async function deleteTransactionPermanently(email, txId) {
-        const normalizedEmail = normalizeEmail(email);
-        const normalizedTxId = String(txId || '').trim();
-        const current = getTransaction(normalizedEmail, normalizedTxId);
-        if (!current) return false;
-        const nextTransactions = getAllTransactions().filter((item) => !(
-            normalizeEmail(item.email) === normalizedEmail && String(item.txId || '').trim() === normalizedTxId
-        ));
-        saveStoredTransactions(nextTransactions);
-        notifyStoreUpdated({ email: normalizedEmail, txId: normalizedTxId, deleted: true });
-        if (typeof BroadcastChannel === 'function') {
-            const channel = new BroadcastChannel('qaryaedu-admin-update');
-            channel.postMessage({ type: 'transactions-deleted', email: normalizedEmail, txId: normalizedTxId });
-            channel.close();
-        }
-        await replaceTransactionsInFirebaseDirectly(nextTransactions);
-        await syncNow();
-        return true;
+        const result = await mutateWithdrawal(email, txId, 'delete');
+        return result.ok;
     }
 
     function getPrivateNotifications(email) {
@@ -2402,6 +2471,9 @@ async function login(email, password) {
         upsertTransaction,
         claimExamReward,
         createWithdrawalRequest,
+        confirmWithdrawalCode,
+        setWithdrawalStatus,
+        clearWithdrawalRequests,
         validateWithdrawal,
         updateTransaction,
         deleteTransaction,
