@@ -414,7 +414,7 @@
             village: user.village || '',
             leaderCode: user.leaderCode || '',
             isLeader: Boolean(user.isLeader),
-            privateNotifications: Array.isArray(user.privateNotifications) ? user.privateNotifications : [],
+            privateNotifications: Array.isArray(user.privateNotifications) ? user.privateNotifications.filter(note => Date.parse(note.createdAt || '') > Math.max(Date.parse('2026-11-03T16:02:52.000Z'), window.QaryaPlatformStore?.getNotificationsClearedAt?.() || 0)) : [],
             bio: user.bio || '',
             telegramUsername: user.telegramUsername || '',
             payoutHolderName: user.payoutHolderName || user.name || '',
@@ -490,7 +490,7 @@
             isSuspended: Boolean(user.isSuspended),
             deleted: Boolean(user.deleted),
             isLeader: Boolean(user.isLeader),
-            privateNotifications: Array.isArray(user.privateNotifications) ? user.privateNotifications : [],
+            privateNotifications: Array.isArray(user.privateNotifications) ? user.privateNotifications.filter(note => Date.parse(note.createdAt || '') > Math.max(Date.parse('2026-11-03T16:02:52.000Z'), window.QaryaPlatformStore?.getNotificationsClearedAt?.() || 0)) : [],
             examAllowed: user.examAllowed !== false,
             updatedAt: user.updatedAt || user.lastUpdatedAt || defaultUser.updatedAt || '',
             lastUpdatedAt: user.lastUpdatedAt || user.updatedAt || defaultUser.lastUpdatedAt || ''
@@ -1704,15 +1704,15 @@
             const txKey = `${safeEmail}__${safeId}`;
             let validation = { ok: false, message: 'تعذر قراءة الرصيد.' };
             const result = await firebase.runTransaction(rootRef, current => {
-                if (!current?.users?.[safeEmail]) return;
-                if (current.transactions?.[txKey]) return;
+                if (!current?.users?.[safeEmail]) { validation = { ok: false, message: 'حساب المستخدم غير موجود على الخادم. حدّث الصفحة أو تواصل مع الإدارة.' }; return; }
+                if (current.transactions?.[txKey]) { validation = { ok: false, message: 'تم تسجيل طلب السحب بالفعل.' }; return; }
                 const transactions = Object.values(current.transactions || {}).filter(item => normalizeEmail(item.email) === email);
                 validation = validateWithdrawal(current.users[safeEmail], transactions, Number(request.amount));
                 if (!validation.ok) return;
                 return { ...current, transactions: { ...current.transactions, [txKey]: transaction } };
             }, { applyLocally: false });
             if (!result.committed) return { ok: false, message: validation.message || 'تم تسجيل هذا الطلب بالفعل.' };
-            writeTransactions([transaction, ...getAllTransactions().filter(item => !(item.email === email && item.txId === transaction.txId))]);
+            writeTransactions(Object.values(result.snapshot.val().transactions || {}), { fromRemote: true });
             notifyStoreUpdated({ email, txId: transaction.txId });
             return { ok: true, transaction };
         } catch (error) {
@@ -1869,7 +1869,7 @@
         return Array.isArray(user?.privateNotifications)
             ? user.privateNotifications
                 .map((item) => normalizePrivateNotification(item))
-                .filter((item) => !item.deleted)
+                .filter((item) => !item.deleted && Date.parse(item.createdAt || '') > Math.max(Date.parse('2026-11-03T16:02:52.000Z'), window.QaryaPlatformStore?.getNotificationsClearedAt?.() || 0))
                 .sort((first, second) => new Date(second.createdAt || 0).getTime() - new Date(first.createdAt || 0).getTime())
             : [];
     }

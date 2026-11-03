@@ -59,7 +59,7 @@
     let managedNotificationSurfaceSignature = '';
     let welcomeAnnouncementSignature = '';
     let welcomeAnnouncementElement = null;
-    let welcomeAnnouncementDismissedSignature = sessionStorage.getItem('qaryaWelcomeAnnouncementDismissed') || '';
+    let welcomeAnnouncementDismissedSignature = localStorage.getItem('qaryaWelcomeAnnouncementDismissed') || '';
     let serverSyncToastVisible = false;
 
     function escapeHtml(value) {
@@ -410,14 +410,13 @@
     function getNotificationDismissKey(note) {
         const audience = String(note?.audience || 'global').trim() || 'global';
         const recipient = normalizeGuestEmail(note?.recipientEmail || 'all-users');
-        const version = String(note?.updatedAt || note?.createdAt || '').trim();
-        return `${audience}:${recipient}:${String(note?.id || '').trim()}:${version}`;
+        return `${audience}:${recipient}:${String(note?.id || '').trim()}`;
     }
 
     function isNotificationDismissed(note) {
-        if (!note || note.sticky) return false;
+        if (!note) return false;
         const key = getNotificationDismissKey(note);
-        return Boolean(getDismissedNotificationsMap()[key]);
+        return Object.keys(getDismissedNotificationsMap()).some(saved => saved === key || saved.startsWith(`${key}:`));
     }
 
     function dismissNotificationLocally(note) {
@@ -546,7 +545,7 @@
             : [];
 
         return [...privateNotes, ...globalNotes]
-            .filter((note) => !note.deleted && isNotificationActive(note) && !isNotificationDismissed(note) && !isSensitiveGlobalUserNotification(note))
+            .filter((note) => !note.deleted && (getStoreApi()?.isNotificationCurrent?.(note) ?? true) && isNotificationActive(note) && !isNotificationDismissed(note) && !isSensitiveGlobalUserNotification(note))
             .sort((first, second) => (
                 getNotificationTimestamp(second.updatedAt || second.createdAt || 0)
                 - getNotificationTimestamp(first.updatedAt || first.createdAt || 0)
@@ -617,10 +616,8 @@
         const signature = buildManagedNotificationSurfaceSignature(notes);
 
         if (!signature) {
-            if (managedNotificationSurfaceSignature) {
-                clearManagedNotificationSurfaces();
-                managedNotificationSurfaceSignature = '';
-            }
+            clearManagedNotificationSurfaces();
+            managedNotificationSurfaceSignature = '';
             return;
         }
 
@@ -1243,40 +1240,6 @@
 
     function handleHolidayGiftAndNotif() {
         renderManagedNotificationSurfaces();
-        return;
-        if (!authSession) return;
-        if (!canShowWallet()) return;
-        
-        const HOLIDAY_NOTIF_KEY = 'qarya_holiday_gift_notif_shown';
-        if (sessionStorage.getItem(HOLIDAY_NOTIF_KEY)) return;
-
-        // Apply gift if not already claimed
-        const giftApplied = authApi.checkAndApplyHolidayGift(authSession.email);
-
-        setTimeout(() => {
-            const prefix = getPrefix();
-            const banner = document.createElement('div');
-            banner.className = 'holiday-banner';
-            
-            banner.innerHTML = `
-                <div class="holiday-banner-content">
-                    <div class="holiday-banner-icon">🌸</div>
-                    <div class="holiday-banner-text">
-                        <h3>تهنئة بمناسبة شم النسيم! 🎉</h3>
-                        <p>نهنئ جميع طلابنا بمناسبة شم النسيم. قررت الإدارة منحكم <strong>1000 EGP</strong> أضيفت لرصيدكم.</p>
-                        <p style="font-size: 0.85rem; color: #fff; font-weight: bold; background: rgba(0,0,0,0.2); display: inline-block; padding: 2px 8px; border-radius: 4px; margin-top: 5px;">
-                            ⚠️ تنبيه: يتم حذف الأرصدة غير المسحوبة يوم 30 من كل شهر.
-                        </p>
-                    </div>
-                    <div class="holiday-banner-actions">
-                        <a href="${prefix}wallet.html" class="btn-festive">سحب الهدية الآن</a>
-                        <button class="holiday-banner-close" onclick="this.closest('.holiday-banner').remove()">&times;</button>
-                    </div>
-                </div>
-            `;
-            document.body.prepend(banner);
-            sessionStorage.setItem(HOLIDAY_NOTIF_KEY, 'true');
-        }, 1500);
     }
 
     function handleCloudNotifications() {
@@ -1378,13 +1341,13 @@
             welcomeAnnouncementElement = null;
             return;
         }
-        const currentAnnouncementSignature = `${settings.updatedAt}|${settings.welcomeAnnouncementTitle}|${settings.welcomeAnnouncementMessage}|${settings.welcomeAnnouncementClosable}|${settings.welcomeAnnouncementEndsAt}`;
+        const currentAnnouncementSignature = `${settings.welcomeAnnouncementTitle}|${settings.welcomeAnnouncementMessage}|${settings.welcomeAnnouncementClosable}|${settings.welcomeAnnouncementEndsAt}`;
         if (welcomeAnnouncementElement && (!settings.welcomeAnnouncementEnabled || welcomeAnnouncementSignature !== currentAnnouncementSignature)) {
             welcomeAnnouncementElement.remove();
             welcomeAnnouncementElement = null;
         }
         if (!settings.welcomeAnnouncementEnabled || welcomeAnnouncementElement) return;
-        welcomeAnnouncementSignature = `${settings.updatedAt}|${settings.welcomeAnnouncementTitle}|${settings.welcomeAnnouncementMessage}|${settings.welcomeAnnouncementClosable}|${settings.welcomeAnnouncementEndsAt}`;
+        welcomeAnnouncementSignature = `${settings.welcomeAnnouncementTitle}|${settings.welcomeAnnouncementMessage}|${settings.welcomeAnnouncementClosable}|${settings.welcomeAnnouncementEndsAt}`;
         if (settings.welcomeAnnouncementClosable && welcomeAnnouncementDismissedSignature === welcomeAnnouncementSignature) return;
         const overlay = document.createElement('div');
         overlay.className = 'welcome-announcement-overlay';
@@ -1399,7 +1362,8 @@
             card.querySelector('button')?.addEventListener('click', () => {
                 overlay.remove();
                 welcomeAnnouncementElement = null;
-                sessionStorage.setItem('qaryaWelcomeAnnouncementDismissed', welcomeAnnouncementSignature);
+                welcomeAnnouncementDismissedSignature = welcomeAnnouncementSignature;
+                localStorage.setItem('qaryaWelcomeAnnouncementDismissed', welcomeAnnouncementSignature);
             });
         }
         document.body.appendChild(overlay);
@@ -1427,7 +1391,7 @@
         supportAttachmentPreview.hidden = pendingSupportAttachments.length === 0;
         supportAttachmentPreview.innerHTML = pendingSupportAttachments.map((attachment, index) => `
             <div class="support-chat-upload-chip">
-                <img src="${attachment.src}" alt="${escapeHtml(attachment.name || `attachment-${index + 1}`)}" />
+                <img src="${escapeHtml(attachment.src)}" alt="${escapeHtml(attachment.name || `attachment-${index + 1}`)}" />
                 <div class="support-chat-upload-copy">
                     <strong>${escapeHtml(attachment.name || `صورة ${index + 1}`)}</strong>
                     <span>${attachment.width > 0 && attachment.height > 0 ? `${attachment.width}×${attachment.height}` : 'صورة مرفقة'}</span>
@@ -1506,6 +1470,8 @@
         });
     }
 
+    window.QaryaSupportMedia = { prepareImage: buildSupportAttachmentFromFile };
+
     async function appendSupportAttachments(files) {
         const nextFiles = Array.from(files || []).filter((file) => String(file?.type || '').startsWith('image/'));
         if (!nextFiles.length) {
@@ -1533,8 +1499,8 @@
         return `
             <div class="${className}-attachments">
                 ${safeAttachments.map((attachment, index) => `
-                    <a class="${className}-attachment" href="${attachment.src}" target="_blank" rel="noreferrer" aria-label="فتح الصورة ${index + 1}">
-                        <img src="${attachment.src}" alt="${escapeHtml(attachment.name || `attachment-${index + 1}`)}" loading="lazy" />
+                    <a class="${className}-attachment" href="${escapeHtml(attachment.src)}" target="_blank" rel="noreferrer" aria-label="فتح الصورة ${index + 1}">
+                        <img src="${escapeHtml(attachment.src)}" alt="${escapeHtml(attachment.name || `attachment-${index + 1}`)}" loading="lazy" />
                     </a>
                 `).join('')}
             </div>
@@ -1716,7 +1682,8 @@
         supportPanel.classList.toggle('is-chat-mode', supportView === 'chat');
         if (supportBadge) {
             supportBadge.hidden = unreadCount <= 0;
-            supportBadge.textContent = unreadCount > 9 ? '+9' : String(unreadCount);
+            supportBadge.textContent = unreadCount > 99 ? '99+' : unreadCount.toLocaleString('ar-EG');
+            supportBadge.setAttribute('aria-label', `${unreadCount} رسالة غير مقروءة`);
         }
         if (supportAttachmentCounter) {
             supportAttachmentCounter.hidden = pendingSupportAttachments.length === 0;
@@ -1743,11 +1710,11 @@
             if (hasMessages) {
                 const previousScrollTop = supportMessages.scrollTop;
                 const wasNearBottom = supportMessages.scrollHeight - supportMessages.scrollTop - supportMessages.clientHeight < 80;
-                const nextSignature = `${thread.messages.length}:${thread.messages[thread.messages.length - 1]?.id || ''}:${thread.messages[thread.messages.length - 1]?.createdAt || ''}`;
+                const nextSignature = JSON.stringify(thread.messages);
                 const hasNewMessages = nextSignature !== supportMessageSignature;
 
-                supportMessages.innerHTML = thread.messages.map((message) => buildSupportMessageMarkup(message)).join('');
                 if (hasNewMessages) {
+                    supportMessages.innerHTML = thread.messages.filter(message => !message.deleted).map((message) => buildSupportMessageMarkup(message)).join('');
                     supportMessageSignature = nextSignature;
                     if (wasNearBottom || previousScrollTop === 0) {
                         requestAnimationFrame(() => {
@@ -1769,25 +1736,6 @@
             }
         }
 
-        if (false && supportEmpty) {
-            supportEmpty.hidden = Boolean(thread?.messages?.length);
-            if (!authSession) {
-                supportEmpty.innerHTML = '<strong>الدعم الإداري</strong><p>اكتب الاسم والبريد الإلكتروني ثم أرسل رسالتك مباشرة إلى الإدارة. الخدمة متاحة الآن لجميع الزوار والمستخدمين.</p>';
-            } else {
-                supportEmpty.innerHTML = '<strong>الدعم الإداري</strong><p>لم تبدأ أي محادثة بعد. اكتب رسالتك وسيتم إرسالها مباشرة إلى الإدارة.</p>';
-            }
-        }
-
-        if (false && supportEmpty) {
-            if (!identity?.email) {
-                supportEmpty.innerHTML = '<strong>الدعم الإداري</strong><p>اكتب الاسم والبريد الإلكتروني ثم أرسل رسالتك مباشرة إلى الإدارة. الخدمة متاحة الآن لجميع الزوار والمستخدمين.</p>';
-            } else if (!identity.authenticated && !thread?.messages?.length) {
-                supportEmpty.innerHTML = '<strong>الدعم الإداري</strong><p>يمكنك متابعة نفس المحادثة من هذا الجهاز باستخدام البريد الذي أدخلته، وستظهر ردود الإدارة هنا مباشرة.</p>';
-            } else if (identity.authenticated && !thread?.messages?.length) {
-                supportEmpty.innerHTML = '<strong>الدعم الإداري</strong><p>لم تبدأ أي محادثة بعد. اكتب رسالتك وسيتم إرسالها مباشرة إلى الإدارة.</p>';
-            }
-        }
-
         if (supportEmpty) {
             supportEmpty.hidden = hasMessages;
             supportEmpty.innerHTML = getSupportEmptyMarkup(identity, hasMessages);
@@ -1803,6 +1751,12 @@
         }
 
         setSupportComposerState(storeApi);
+        if (supportView === 'chat' && !supportPanel.hasAttribute('hidden') && !document.hidden && unreadCount > 0) {
+            void markSupportThreadReadForUser();
+        }
+        let totals = supportPanel.querySelector('.support-chat-message-count');
+        if (!totals) { totals = document.createElement('span'); totals.className = 'support-chat-message-count'; supportPanel.querySelector('.support-chat-subheader-copy')?.appendChild(totals); }
+        totals.textContent = `${(thread?.messages || []).filter(message => !message.deleted).length.toLocaleString('ar-EG')} رسالة`;
     }
 
     function injectSupportWidget() {
@@ -1917,7 +1871,7 @@
         const autoSizeSupportInput = () => {
             if (!supportInput) return;
             supportInput.style.height = '0px';
-            supportInput.style.height = `${Math.min(Math.max(supportInput.scrollHeight, 96), 220)}px`;
+            supportInput.style.height = `${Math.min(Math.max(supportInput.scrollHeight, 64), 140)}px`;
         };
 
         supportInput?.addEventListener('input', autoSizeSupportInput);
@@ -2004,7 +1958,6 @@
         toggleBtn?.addEventListener('click', async () => {
             supportView = 'home';
             supportPanel.removeAttribute('hidden');
-            await markSupportThreadReadForUser();
             renderSupportWidget();
         });
 
@@ -2025,10 +1978,8 @@
         openViewButtons.forEach((button) => {
             button.addEventListener('click', async () => {
                 const nextView = button.dataset.supportOpenView || 'home';
-                if (nextView === 'chat') {
-                    await markSupportThreadReadForUser();
-                }
                 setSupportView(nextView);
+                if (nextView === 'chat') void markSupportThreadReadForUser();
                 if (nextView === 'chat') {
                     if (getSupportIdentity()?.authenticated) {
                         focusSupportField(supportInput);
@@ -2043,9 +1994,9 @@
             button.addEventListener('click', () => setSupportView('home'));
         });
 
-        contactBtn?.addEventListener('click', async () => {
-            await markSupportThreadReadForUser();
+        contactBtn?.addEventListener('click', () => {
             setSupportView('chat');
+            void markSupportThreadReadForUser();
             renderSupportWidget();
             if (getSupportIdentity()?.authenticated) {
                 focusSupportField(supportInput);
@@ -2438,3 +2389,61 @@
         targets.forEach((target) => observer.observe(target));
     }
 });
+// Shared image viewer for user and administration conversations.
+(() => {
+    let viewer;
+    let gallery = [];
+    let current = 0;
+    let zoomed = false;
+    let opener;
+    function render() {
+        const source = gallery[current];
+        const image = viewer.querySelector('img');
+        image.src = source.href;
+        image.alt = source.querySelector('img')?.alt || 'صورة المحادثة';
+        image.classList.toggle('is-zoomed', zoomed);
+        viewer.querySelector('[data-media-count]').textContent = `${current + 1} / ${gallery.length}`;
+        viewer.querySelector('[data-media-name]').textContent = image.alt;
+        const download = viewer.querySelector('[data-media-download]');
+        download.href = source.href;
+        download.download = image.alt || 'chat-image.jpg';
+        viewer.querySelector('[data-media-zoom]').textContent = zoomed ? 'تصغير' : 'تكبير';
+        viewer.querySelector('[data-media-zoom]').setAttribute('aria-pressed', String(zoomed));
+        viewer.querySelectorAll('[data-media-prev], [data-media-next]').forEach(button => { button.disabled = gallery.length < 2; });
+    }
+    function move(step) { current = (current + step + gallery.length) % gallery.length; zoomed = false; render(); }
+    function createViewer() {
+        viewer = document.createElement('dialog');
+        viewer.className = 'chat-image-viewer';
+        viewer.setAttribute('aria-label', 'عارض صور المحادثة');
+        viewer.innerHTML = `<header><div><strong data-media-name></strong><span data-media-count aria-live="polite"></span></div><div class="chat-image-tools"><button type="button" data-media-zoom aria-pressed="false">تكبير</button><a data-media-download download>تنزيل</a><button type="button" data-media-close aria-label="إغلاق الصورة">إغلاق ×</button></div></header><div class="chat-image-stage"><img alt="صورة المحادثة" draggable="false"></div><footer><button type="button" data-media-prev aria-label="الصورة السابقة">→ السابقة</button><span>اضغط على الصورة للتكبير</span><button type="button" data-media-next aria-label="الصورة التالية">التالية ←</button></footer>`;
+        document.body.appendChild(viewer);
+        viewer.querySelector('[data-media-close]').onclick = () => viewer.close();
+        viewer.querySelector('[data-media-prev]').onclick = () => move(-1);
+        viewer.querySelector('[data-media-next]').onclick = () => move(1);
+        const zoom = () => { zoomed = !zoomed; render(); };
+        viewer.querySelector('[data-media-zoom]').onclick = zoom;
+        viewer.querySelector('img').onclick = zoom;
+        viewer.addEventListener('click', event => { if (event.target === viewer) viewer.close(); });
+        viewer.addEventListener('keydown', event => {
+            if (event.key === 'ArrowLeft') { event.preventDefault(); move(1); }
+            if (event.key === 'ArrowRight') { event.preventDefault(); move(-1); }
+        });
+        viewer.addEventListener('close', () => { viewer.querySelector('img').removeAttribute('src'); gallery = []; opener?.focus(); });
+    }
+    document.addEventListener('click', event => {
+        const selector = 'a.support-chat-attachment, a.admin-support-message-attachment';
+        const link = event.target.closest(selector);
+        if (!link || event.ctrlKey || event.metaKey || event.shiftKey) return;
+        if (!/^(data:image\/(png|jpe?g|webp|gif);base64,|https?:\/\/|blob:)/i.test(link.href)) return;
+        event.preventDefault();
+        if (!viewer) createViewer();
+        opener = link;
+        const conversation = link.closest('.support-chat-messages, .support-desk-stream, .admin-grid') || link.parentElement;
+        gallery = Array.from(conversation.querySelectorAll(selector));
+        current = gallery.indexOf(link);
+        zoomed = false;
+        render();
+        viewer.showModal();
+    });
+})();

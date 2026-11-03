@@ -35,6 +35,21 @@ auth.languageCode = 'ar';
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 
+// get() does not populate the cache used by runTransaction(). Keep a value
+// subscription alive until the transaction finishes so its first callback has
+// the complete node instead of null, which would abort validation immediately.
+async function runTransactionWithServerState(reference, updater, options) {
+  let unsubscribe;
+  try {
+    await new Promise((resolve, reject) => {
+      unsubscribe = onValue(reference, () => resolve(), reject);
+    });
+    return await runTransaction(reference, updater, options);
+  } finally {
+    unsubscribe?.();
+  }
+}
+
 window.QaryaFirebase = {
   app,
   db,
@@ -46,7 +61,7 @@ window.QaryaFirebase = {
   update,
   push,
   child,
-  runTransaction,
+  runTransaction: runTransactionWithServerState,
   GoogleAuthProvider,
   googleProvider,
   RecaptchaVerifier,

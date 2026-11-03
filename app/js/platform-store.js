@@ -2,6 +2,7 @@
     const APPLICATIONS_KEY = 'qaryaeduApplications';
     const EXAM_HISTORY_KEY = 'qaryaeduExamHistory';
     const EXAM_CLEARS_KEY = 'qaryaeduExamHistoryClears';
+    const NOTIFICATION_RESET_AT = '2026-11-03T16:02:52.000Z';
     const NOTIFICATIONS_KEY = 'qaryaeduPlatformNotifications';
     const SUPPORT_THREADS_KEY = 'qaryaeduSupportThreads';
     const SETTINGS_KEY = 'qaryaeduPlatformSettings';
@@ -345,8 +346,8 @@
             userName: normalizeText(thread?.userName),
             role: normalizeText(thread?.role),
             status: normalizeSupportStatus(thread?.status),
-            unreadByAdmin: Math.max(0, Number(thread?.unreadByAdmin || 0)),
-            unreadByUser: Math.max(0, Number(thread?.unreadByUser || 0)),
+            unreadByAdmin: messages.filter(message => !message.deleted && message.sender === 'user' && !message.readByAdminAt).length,
+            unreadByUser: messages.filter(message => !message.deleted && message.sender !== 'user' && !message.readByUserAt).length,
             createdAt: thread?.createdAt || latestMessage?.createdAt || new Date().toISOString(),
             updatedAt: thread?.updatedAt || latestMessage?.createdAt || thread?.createdAt || new Date().toISOString(),
             lastMessagePreview: normalizeText(thread?.lastMessagePreview || getSupportMessagePreview(latestMessage)).slice(0, 180),
@@ -489,7 +490,7 @@
             applications,
             examHistory: normalizeArray(state?.examHistory).filter((attempt) => isAllowedExamRecord(attempt, applications)),
             examClears: normalizeArray(state?.examClears).filter((clearRecord) => isAllowedExamRecord(clearRecord, applications)),
-            notifications: normalizeArray(state?.notifications),
+            notifications: normalizeArray(state?.notifications).filter(note => Date.parse(note.createdAt || '') > Math.max(Date.parse(NOTIFICATION_RESET_AT), Date.parse(state?.settings?.notificationsClearedAt) || 0)),
             supportThreads: normalizeArray(state?.supportThreads)
                 .map((thread) => normalizeSupportThread(thread))
                 .filter((thread) => isAllowedSupportThread(thread)),
@@ -605,7 +606,7 @@
             examClears: mergeByKey(remote.examClears, local.examClears, (item) => normalizeRequestId(item?.requestId)),
             notifications: mergeByKey(remote.notifications, local.notifications, (item) => normalizeText(item?.id)),
             supportThreads: mergeByKey(remote.supportThreads, local.supportThreads, (item) => normalizeText(item?.id) || normalizeEmail(item?.email)),
-            settings: new Date(local.settings?.updatedAt || 0).getTime() >= new Date(remote.settings?.updatedAt || 0).getTime() ? local.settings : remote.settings
+            settings: { ...(new Date(local.settings?.updatedAt || 0).getTime() >= new Date(remote.settings?.updatedAt || 0).getTime() ? local.settings : remote.settings), notificationsClearedAt: new Date(Math.max(Date.parse(NOTIFICATION_RESET_AT), Date.parse(local.settings?.notificationsClearedAt) || 0, Date.parse(remote.settings?.notificationsClearedAt) || 0)).toISOString() }
         });
     }
 
@@ -1026,7 +1027,7 @@
             unreadByAdmin: audience === 'admin' ? 0 : existing.unreadByAdmin,
             unreadByUser: audience === 'user' ? 0 : existing.unreadByUser,
             messages,
-            updatedAt: existing.updatedAt
+            updatedAt: readAt
         }, options);
     }
 
@@ -1071,61 +1072,48 @@
         }, options);
     }
 
-    function getDefaultNotifications() {
-        return [
-            {
-                id: 'eid-adha-2026-gift',
-                title: 'تهنئة عيد الأضحى',
-                body: 'كل عام وأنتم بخير بمناسبة عيد الأضحى. تمت إضافة 100 EGP لرصيد كل طالب متاح داخل المنصة.',
-                type: 'finance',
-                createdAt: '2026-05-27T09:00:00+03:00',
-                actionUrl: './wallet.html',
-                actionLabel: 'فتح المحفظة',
-                displayMode: 'banner',
-                sticky: false,
-                dismissible: true,
-                systemKey: 'eid-adha-2026'
-            },
-            {
-                id: 'default-exam-window',
-                title: 'مواعيد الامتحان الرسمية',
-                body: 'تفتح الامتحانات أيام السبت والأحد والاثنين من 08:00 مساءً إلى 09:00 مساءً بتوقيت مصر.',
-                type: 'exam',
-                createdAt: '2026-03-01T18:00:00+02:00',
-                actionUrl: './exam-status.html',
-                actionLabel: 'بوابة الامتحان',
-                displayMode: 'feed',
-                sticky: true,
-                dismissible: false,
-                systemKey: 'exam-window'
-            },
-            {
-                id: 'default-reapply-policy',
-                title: 'سياسة إعادة التقديم',
-                body: 'إعادة التقديم بنفس الرقم القومي متاحة بعد 72 ساعة فقط، ثم يتم حذف الطلب السابق تلقائيًا.',
-                type: 'application',
-                createdAt: '2026-03-02T12:00:00+02:00',
-                actionUrl: './request-policy.html',
-                actionLabel: 'سياسة الطلبات',
-                displayMode: 'feed',
-                sticky: true,
-                dismissible: false,
-                systemKey: 'reapply-policy'
-            },
-            {
-                id: 'default-payment-note',
-                title: 'إشعار الأموال',
-                body: 'تم إرسال جميع الأموال إلى القائد على جميع الطلاب. تأكدوا من تفعيل الأدمن لكم حتى تتمكنوا من استلام الدفعات.',
-                type: 'finance',
-                createdAt: '2026-03-03T14:00:00+02:00',
-                actionUrl: './notifications.html',
-                actionLabel: 'مركز الإشعارات',
-                displayMode: 'feed',
-                sticky: false,
-                dismissible: true,
-                systemKey: 'payment-note'
-            }
-        ].map((item) => normalizeNotification(item));
+    function getDefaultNotifications() { return []; }
+
+    function getNotificationsClearedAt() {
+        return Math.max(Date.parse(NOTIFICATION_RESET_AT), Date.parse(getPlatformSettings().notificationsClearedAt) || 0);
+    }
+
+    function isNotificationCurrent(note) {
+        return Boolean(note && !note.deleted && Date.parse(note.createdAt || '') > getNotificationsClearedAt());
+    }
+
+    async function clearAllNotifications() {
+        try {
+            const firebase = await waitForFirebaseApi();
+            if (!firebase?.runTransaction) return { ok: false, message: 'يلزم الاتصال بالخادم لحذف التنبيهات.' };
+            const rootRef = firebase.ref(firebase.db);
+            await firebase.get(rootRef);
+            const result = await firebase.runTransaction(rootRef, current => {
+                if (!current) return;
+                const now = new Date().toISOString();
+                const users = Object.fromEntries(Object.entries(current.users || {}).map(([key, user]) => [key, { ...user, privateNotifications: [] }]));
+                const authUsers = current.state?.auth?.users;
+                const clearedAuthUsers = Array.isArray(authUsers)
+                    ? authUsers.map(user => ({ ...user, privateNotifications: [] }))
+                    : Object.fromEntries(Object.entries(authUsers || {}).map(([key, user]) => [key, { ...user, privateNotifications: [] }]));
+                return { ...current, users, notifications: null, global_notification: null,
+                    state: { ...current.state,
+                        auth: { ...current.state?.auth, users: clearedAuthUsers },
+                        platform: { ...current.state?.platform, notifications: [], settings: {
+                            ...current.state?.platform?.settings, notificationsClearedAt: now, updatedAt: now
+                        } }
+                    }
+                };
+            }, { applyLocally: false });
+            if (!result.committed) return { ok: false, message: 'تعذر حذف التنبيهات.' };
+            const saved = result.snapshot.val();
+            applyRuntimeState(saved.state.platform);
+            window.QaryaAuth?.writeUsers?.(Object.values(saved.users || {}), { fromRemote: true });
+            return { ok: true };
+        } catch (error) {
+            console.error('Clear notifications failed:', error);
+            return { ok: false, message: 'تعذر الاتصال بالخادم لحذف التنبيهات.' };
+        }
     }
 
     function getNotifications() {
@@ -1135,7 +1123,7 @@
             if (!map.has(normalized.id)) map.set(normalized.id, normalized);
         });
         return Array.from(map.values())
-            .filter((item) => !item.deleted)
+            .filter(isNotificationCurrent)
             .sort((first, second) => new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime());
     }
 
@@ -1522,6 +1510,9 @@
         canStudentTakeExam,
         getStudentExamBlockMessage,
         getNotifications,
+        isNotificationCurrent,
+        getNotificationsClearedAt,
+        clearAllNotifications,
         addNotification,
         updateNotification,
         deleteNotification,

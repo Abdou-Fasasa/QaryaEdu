@@ -786,7 +786,7 @@
                 dashboardState.seenTabCounts[tabId] = currentCount;
             }
             const seenCount = Number(dashboardState.seenTabCounts?.[tabId] || 0);
-            const visibleCount = Math.max(0, currentCount - seenCount);
+            const visibleCount = tabId === 'support-tab' ? currentCount : Math.max(0, currentCount - seenCount);
 
             let badge = button.querySelector('.admin-tab-count');
             if (!badge) {
@@ -796,7 +796,7 @@
             }
 
             badge.textContent = visibleCount > 99 ? '99+' : String(visibleCount);
-            badge.hidden = visibleCount <= 0 || tabId === dashboardState.activeTab;
+            badge.hidden = visibleCount <= 0 || (tabId !== 'support-tab' && tabId === dashboardState.activeTab);
         });
     }
 
@@ -873,7 +873,7 @@
             const dataset = getSupportDataset();
             total = dataset.all.length;
             visible = dataset.filtered.length;
-            primary = `${dataset.filtered.filter((item) => Number(item.unreadByAdmin || 0) > 0).length} رسائل غير مقروءة`;
+            primary = `${dataset.filtered.reduce((sum, item) => sum + Number(item.unreadByAdmin || 0), 0)} رسائل غير مقروءة`;
         } else if (dashboardState.activeTab === 'exams-tab') {
             total = store.getExamHistory().length;
             visible = total;
@@ -1135,7 +1135,8 @@
                         <span>${escapeHtml(senderLabel)}</span>
                         ${complaintIdHtml}
                         <p>${displayContent}</p>
-                        <small>${escapeHtml(formatDate(message.createdAt))}</small>
+                        ${isAdmin ? renderAdminSupportAttachments(message.attachments) : ''}
+                        <small>${escapeHtml(formatDate(message.createdAt))} · ${escapeHtml(getAdminSupportMessageState(message))}</small>
                     </div>
                     ${isUserMessage ? `<span class="support-desk-avatar">${escapeHtml(avatarLabel)}</span>` : ''}
                 </article>
@@ -1182,7 +1183,7 @@
                 </div>
             </div>
             <div class="support-desk-body">
-                <div class="support-desk-stream">
+                <div class="support-desk-stream" data-thread="${escapeHtml(thread.email)}">
                     ${renderSupportDeskMessages(thread)}
                 </div>
             </div>
@@ -1201,7 +1202,7 @@
             { label: 'المعروض الآن', value: filtered.length },
             { label: 'إجمالي المحادثات', value: all.length },
             { label: 'مفتوحة', value: all.filter((item) => item.status === 'open').length },
-            { label: 'غير مقروءة', value: all.filter((item) => Number(item.unreadByAdmin || 0) > 0).length }
+            { label: 'رسائل غير مقروءة', value: all.reduce((sum, item) => sum + Number(item.unreadByAdmin || 0), 0) }
         ]);
 
         if (!filtered.length) {
@@ -1264,7 +1265,7 @@
             { label: 'المعروض الآن', value: filtered.length },
             { label: 'إجمالي المحادثات', value: all.length },
             { label: 'مفتوحة', value: all.filter((item) => item.status === 'open').length },
-            { label: 'غير مقروءة', value: all.filter((item) => Number(item.unreadByAdmin || 0) > 0).length }
+            { label: 'رسائل غير مقروءة', value: all.reduce((sum, item) => sum + Number(item.unreadByAdmin || 0), 0) }
         ]);
 
         if (!filtered.length) {
@@ -1327,7 +1328,7 @@
             { label: 'المعروض الآن', value: filtered.length },
             { label: 'إجمالي المحادثات', value: all.length },
             { label: 'مفتوحة', value: all.filter((item) => item.status === 'open').length },
-            { label: 'غير مقروءة', value: all.filter((item) => Number(item.unreadByAdmin || 0) > 0).length }
+            { label: 'رسائل غير مقروءة', value: all.reduce((sum, item) => sum + Number(item.unreadByAdmin || 0), 0) }
         ]);
 
         if (!filtered.length) {
@@ -1795,7 +1796,7 @@
             { label: 'المعروض الآن', value: filtered.length },
             { label: 'إجمالي المحادثات', value: all.length },
             { label: 'مفتوحة', value: all.filter((item) => item.status === 'open').length },
-            { label: 'غير مقروءة', value: all.filter((item) => Number(item.unreadByAdmin || 0) > 0).length }
+            { label: 'رسائل غير مقروءة', value: all.reduce((sum, item) => sum + Number(item.unreadByAdmin || 0), 0) }
         ]);
 
         if (!filtered.length) {
@@ -2567,9 +2568,15 @@
         openModal(`الرد على ${thread.userName || thread.email}`, `
             <div class="form-group"><label>المستخدم</label><input class="form-control" type="text" value="${escapeHtml(thread.userName || thread.email)}" disabled></div>
             <div class="form-group"><label>نص الرد</label><textarea class="form-control" id="support-reply-text" rows="5" placeholder="اكتب رد الدعم هنا"></textarea></div>
+            <div class="form-group"><label for="support-reply-images">صور مرفقة (حتى 3 صور)</label><input id="support-reply-images" class="form-control" type="file" accept="image/*" multiple><div id="support-reply-preview" class="support-reply-preview"></div></div>
         `, async () => {
             const text = document.getElementById('support-reply-text')?.value.trim();
-            if (!text) {
+            const files = Array.from(document.getElementById('support-reply-images')?.files || []);
+            if (files.length > 3 || files.some(file => !file.type.startsWith('image/'))) { showToast('اختر حتى 3 صور فقط.'); return false; }
+            let attachments;
+            try { attachments = await Promise.all(files.map(file => window.QaryaSupportMedia.prepareImage(file))); }
+            catch (error) { showToast('تعذر تجهيز الصور. اختر صورًا صالحة وحاول مرة أخرى.'); return false; }
+            if (!text && !attachments.length) {
                 showToast('اكتب الرد أولًا.');
                 return false;
             }
@@ -2580,7 +2587,7 @@
                 role: thread.role,
                 sender: 'admin',
                 senderName: session.name,
-                text
+                text, attachments
             }, { silent: true });
             store.markSupportThreadRead?.(email, 'admin', { silent: true });
             store.updateSupportThreadStatus?.(email, 'open', { silent: true });
@@ -2588,7 +2595,7 @@
             try {
                 await publishPrivateNotification(email, {
                     title: 'رد جديد من الدعم الإداري',
-                    body: text,
+                    body: text || 'أرسل الدعم صورًا جديدة داخل المحادثة.',
                     type: 'support',
                     actionUrl: './notifications.html',
                     actionLabel: 'فتح الإشعارات'
@@ -2600,6 +2607,12 @@
             await syncAll();
             return true;
         }, 'إرسال الرد');
+        let previewUrls = [];
+        document.getElementById('support-reply-images')?.addEventListener('change', event => {
+            previewUrls.forEach(url => URL.revokeObjectURL(url));
+            previewUrls = Array.from(event.target.files || []).slice(0, 3).map(file => URL.createObjectURL(file));
+            document.getElementById('support-reply-preview').innerHTML = previewUrls.map(url => `<img src="${url}" alt="معاينة الصورة المرفقة">`).join('');
+        });
     };
 
     function toDateTimeLocalValue(value) {
@@ -2913,27 +2926,17 @@
         await refreshAll(true);
     };
 
+    let deletingAllNotifications = false;
     window.deleteAllNotifications = async () => {
-        if (!guardAdmin()) return;
-        const all = getNotificationsDataset().all;
-        if (all.length === 0) {
-            showToast('لا توجد تنبيهات لحذفها.');
-            return;
-        }
-        if (!window.confirm(`هل أنت متأكد من حذف جميع التنبيهات (${all.length} تنبيه)؟ لا يمكن التراجع عن هذه الخطوة.`)) return;
-        
-        for (const note of all) {
-            if (note.audience === 'private') {
-                authApi.deletePrivateNotification(note.recipientEmail, note.id);
-                await deletePrivateNotificationFirebase(note.recipientEmail, note.id);
-            } else {
-                store.deleteNotification(note.id);
-            }
-        }
-
-        await syncAll();
-        await refreshAll(true);
-        showToast('تم حذف كافة التنبيهات بنجاح.');
+        if (!guardAdmin() || deletingAllNotifications) return;
+        if (!window.confirm('حذف جميع التنبيهات العامة والخاصة نهائيًا؟')) return;
+        deletingAllNotifications = true;
+        try {
+            const result = await store.clearAllNotifications();
+            if (!result?.ok) { showToast(result?.message || 'تعذر حذف التنبيهات.'); return; }
+            renderAll();
+            showToast('تم حذف جميع التنبيهات العامة والخاصة.');
+        } finally { deletingAllNotifications = false; }
     };
 
     renderUsers = function renderUsersPatched() {
@@ -3836,8 +3839,8 @@
         return `
             <div class="admin-support-message-attachments">
                 ${safeAttachments.map((attachment, index) => `
-                    <a class="admin-support-message-attachment" href="${attachment.src}" target="_blank" rel="noreferrer" aria-label="فتح الصورة ${index + 1}">
-                        <img src="${attachment.src}" alt="${escapeHtml(attachment.name || `attachment-${index + 1}`)}" loading="lazy" />
+                    <a class="admin-support-message-attachment" href="${escapeHtml(attachment.src)}" target="_blank" rel="noreferrer" aria-label="فتح الصورة ${index + 1}">
+                        <img src="${escapeHtml(attachment.src)}" alt="${escapeHtml(attachment.name || `attachment-${index + 1}`)}" loading="lazy" />
                     </a>
                 `).join('')}
             </div>
@@ -4114,9 +4117,10 @@
         
         // حفظ موضع التمرير الحالي قبل المسح والرندرة
         const sidebar = document.querySelector('.support-desk-list');
-        const conversation = document.querySelector('.support-desk-body');
+        const conversation = document.querySelector('.support-desk-stream');
         const sidebarScroll = sidebar ? sidebar.scrollTop : 0;
         const streamScroll = conversation ? conversation.scrollTop : 0;
+        const wasAtBottom = !conversation || conversation.scrollHeight - conversation.scrollTop - conversation.clientHeight < 80;
 
         if (!isAdmin) {
             supportInboxListEl.innerHTML = renderEmptyState('fa-lock', 'هذه المساحة للإدارة فقط', 'صندوق الدعم الإداري لا يظهر إلا للإدارة العامة.');
@@ -4128,7 +4132,7 @@
             { label: 'المعروض الآن', value: filtered.length },
             { label: 'إجمالي المحادثات', value: all.length },
             { label: 'مفتوحة', value: all.filter((item) => item.status === 'open').length },
-            { label: 'غير مقروءة', value: all.filter((item) => Number(item.unreadByAdmin || 0) > 0).length }
+            { label: 'رسائل غير مقروءة', value: all.reduce((sum, item) => sum + Number(item.unreadByAdmin || 0), 0) }
         ]);
 
         if (!filtered.length) {
@@ -4166,9 +4170,9 @@
         // استعادة موضع التمرير فور اكتمال تحديث الـ DOM
         window.requestAnimationFrame(() => {
             const newSidebar = document.querySelector('.support-desk-list');
-            const newStream = document.querySelector('.support-desk-body');
+            const newStream = document.querySelector('.support-desk-stream');
             if (newSidebar) newSidebar.scrollTop = sidebarScroll;
-            if (newStream) newStream.scrollTop = streamScroll;
+            if (newStream) newStream.scrollTop = wasAtBottom || conversation?.dataset.thread !== newStream.dataset.thread ? newStream.scrollHeight : streamScroll;
         });
     };
 

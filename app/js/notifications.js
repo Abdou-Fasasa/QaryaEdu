@@ -85,8 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getDismissKey(note) {
-        const version = String(note.updatedAt || note.createdAt || '').trim();
-        return `${note.audience || 'global'}:${String(note.recipientEmail || 'all').toLowerCase()}:${note.id}:${version}`;
+        return `${note.audience || 'global'}:${String(note.recipientEmail || 'all-users').toLowerCase()}:${note.id}`;
     }
 
     function getTimestamp(value) {
@@ -123,7 +122,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function isDismissed(note) {
-        return Boolean(getDismissedMap()[getDismissKey(note)]);
+        const key = getDismissKey(note);
+        return Object.keys(getDismissedMap()).some(saved => saved === key || saved.startsWith(`${key}:`));
     }
 
     function dismissNotification(note) {
@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
             : [];
 
         return [...privateNotes, ...globalNotes]
-            .filter((note) => isActiveNotification(note) && !isDismissed(note) && !isSensitiveGlobalUserNotification(note))
+            .filter((note) => (store.isNotificationCurrent?.(note) ?? true) && isActiveNotification(note) && !isDismissed(note) && !isSensitiveGlobalUserNotification(note))
             .sort((a, b) => getTimestamp(b.updatedAt || b.createdAt) - getTimestamp(a.updatedAt || a.createdAt));
     }
 

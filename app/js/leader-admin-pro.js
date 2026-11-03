@@ -1331,22 +1331,33 @@
         openProModal({
             title: `الرد على ${thread.userName || thread.email}`,
             subtitle: 'يمكن استخدام رد سريع أو كتابة رسالة جديدة بالكامل.',
-            bodyHtml: `<div class="admin-pro-form-grid"><div class="admin-pro-form-group full"><label>ردود سريعة</label><div class="admin-pro-quick-replies">${SUPPORT_QUICK_REPLIES.map((item) => `<button type="button" data-support-quick="${escapeHtml(item)}">${escapeHtml(item)}</button>`).join('')}</div></div><div class="admin-pro-form-group full"><label>الرسالة</label><textarea class="form-control" id="pro-support-reply-text" rows="8" placeholder="اكتب الرد هنا"></textarea></div></div>`,
+            bodyHtml: `<div class="admin-pro-form-grid"><div class="admin-pro-form-group full"><label>ردود سريعة</label><div class="admin-pro-quick-replies">${SUPPORT_QUICK_REPLIES.map((item) => `<button type="button" data-support-quick="${escapeHtml(item)}">${escapeHtml(item)}</button>`).join('')}</div></div><div class="admin-pro-form-group full"><label>الرسالة</label><textarea class="form-control" id="pro-support-reply-text" rows="8" placeholder="اكتب الرد هنا"></textarea></div><div class="admin-pro-form-group full"><label for="support-reply-images">صور مرفقة (حتى 3 صور)</label><input class="form-control" id="support-reply-images" type="file" accept="image/*" multiple><div id="support-reply-preview" class="support-reply-preview"></div></div></div>`,
             confirmLabel: 'إرسال الرد',
             onConfirm: async () => {
                 const text = document.getElementById('pro-support-reply-text')?.value.trim();
-                if (!text) {
+                const files = Array.from(document.getElementById('support-reply-images')?.files || []);
+                if (files.length > 3 || files.some(file => !file.type.startsWith('image/'))) { alertToast('اختر حتى 3 صور فقط.'); return false; }
+                let attachments;
+                try { attachments = await Promise.all(files.map(file => window.QaryaSupportMedia.prepareImage(file))); }
+                catch (error) { alertToast('تعذر تجهيز الصور. اختر صورًا صالحة وحاول مرة أخرى.'); return false; }
+                if (!text && !attachments.length) {
                     alertToast('اكتب الرد أولًا.');
                     return false;
                 }
-                store.sendSupportMessage({ email, userName: thread.userName, role: thread.role, sender: 'admin', senderName: session.name, text }, { silent: true });
+                store.sendSupportMessage({ email, userName: thread.userName, role: thread.role, sender: 'admin', senderName: session.name, text, attachments }, { silent: true });
                 store.markSupportThreadRead?.(email, 'admin', { silent: true });
                 store.updateSupportThreadStatus?.(email, 'open', { silent: true });
-                authApi.pushPrivateNotification?.(email, { title: 'رد جديد من الدعم الإداري', body: text, type: 'support', actionUrl: './notifications.html', actionLabel: 'فتح الإشعارات', displayMode: 'feed', sticky: false });
+                authApi.pushPrivateNotification?.(email, { title: 'رد جديد من الدعم الإداري', body: text || 'أرسل الدعم صورًا جديدة داخل المحادثة.', type: 'support', actionUrl: './notifications.html', actionLabel: 'فتح الإشعارات', displayMode: 'feed', sticky: false });
                 logAdminAction({ area: 'support', action: 'reply', targetType: 'support_thread', targetId: email, summary: `تم إرسال رد دعم إلى ${email}.` });
                 await syncEverything();
                 await refreshEverything(true);
             }
+        });
+        let previewUrls = [];
+        document.getElementById('support-reply-images')?.addEventListener('change', event => {
+            previewUrls.forEach(url => URL.revokeObjectURL(url));
+            previewUrls = Array.from(event.target.files || []).slice(0, 3).map(file => URL.createObjectURL(file));
+            document.getElementById('support-reply-preview').innerHTML = previewUrls.map(url => `<img src="${url}" alt="معاينة الصورة المرفقة">`).join('');
         });
         document.querySelectorAll('[data-support-quick]').forEach((button) => {
             button.addEventListener('click', () => {
@@ -1802,7 +1813,7 @@
         wrapWindowAction('removeSupportThread', ([encodedEmail]) => ({ area: 'support', action: 'delete', targetType: 'support_thread', targetId: decodeValue(encodedEmail), summary: `تم حذف محادثة الدعم ${decodeValue(encodedEmail)}.` }));
         wrapWindowAction('markSupportMessagesRead', ([encodedEmail]) => ({ area: 'support', action: 'read', targetType: 'support_thread', targetId: decodeValue(encodedEmail), summary: `تم تعليم رسائل ${decodeValue(encodedEmail)} كمقروءة.` }));
         wrapWindowAction('removePlatformNotification', ([encodedKey]) => ({ area: 'notifications', action: 'delete', targetType: 'notification', targetId: decodeValue(encodedKey), summary: 'تم حذف إشعار من لوحة الإدارة.' }));
-        wrapWindowAction('deleteAllNotifications', () => ({ area: 'notifications', action: 'clear_all', targetType: 'notification_collection', targetId: 'all-notifications', summary: 'تم حذف جميع الإشعارات غير الثابتة.' }));
+        wrapWindowAction('deleteAllNotifications', () => ({ area: 'notifications', action: 'clear_all', targetType: 'notification_collection', targetId: 'all-notifications', summary: 'تم حذف جميع الإشعارات العامة والخاصة.' }));
     }
 
     function bootstrap() {

@@ -9,6 +9,7 @@
   "settings": {
     "examMode": "default",
     "examModeMessage": "",
-    "updatedAt": ""
+    "updatedAt": "",
+    "notificationsClearedAt": "2026-11-03T16:02:52.000Z"
   }
 }
